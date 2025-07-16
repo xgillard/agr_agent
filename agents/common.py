@@ -53,11 +53,12 @@ Final Answer: the final answer to the original input question
 """
 
 
-_TASK_TEMPLATE = ChatPromptTemplate.from_template("""
+_TASK_TEMPLATE = """
 Current Task: {input}
 
 Begin! This is VERY important to you, use the tools available and give your best Final Answer, your job depends on it!
-""")
+{{input}}
+"""
 
 def agent_system_prompt(
     role:      Annotated[str, "Role played by the agent"],
@@ -103,6 +104,6 @@ def agent(
 def task(
     description: str,
     #expected_outcome: str,
-) -> list[BaseMessage]:
+) -> ChatPromptTemplate:
     """Create a task for the agent to execute."""
-    return _TASK_TEMPLATE.invoke(input=description).messages
+    return ChatPromptTemplate.from_template(_TASK_TEMPLATE.format(input=description))

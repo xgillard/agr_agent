@@ -1,29 +1,47 @@
 """A customer support agent"""
+import os
+
 from logging import Logger
 from langchain.tools import tool
 from langchain.chat_models import init_chat_model
 
 from .common import agent
+from tools import agatha_knowledge
 
 log = Logger(__name__)
 
+_knowledge = agatha_knowledge()
+
 @tool
 def search_help(question: str) -> str:
-    """Search for help in the FAQ and user's manual."""
-    log.info("question: %s", question)
-    return "Ta mere en short !"
+    """Content of the help section, FAQ, and user manuals."""
+    return _knowledge.invoke(question)
 
+
+available_tools = [_knowledge]
 
 customer_support = agent(
-    name  = "customer_support",
-    role  = "Senior Customer Support",
-    goal  = "Help people answer their questions",
-    backstory = "You are a helpful assistant who gives factually correct answers based on what is in the FAQ and user manuals.",
-    tools = [search_help],
+    name   = "customer_support",
+    role   = "Senior Customer Support at the Belgian State Archive",
+    goal   = "Give factually correct answers to user emails",
+    backstory = """
+        You have been collaborating with the IT during the launch
+        of AGATHA, the new gateway to search the Belgian State Archives. You have
+        a talent for explaining to users how they should proceed with their search.
+        This is why you were one of the authors of the AGATGA 'help' section, in
+        addition to contributing to the 'getting started' and 'genealogy' users 
+        manuals.""",
+    tools = available_tools,
+    #
     model = init_chat_model(
-        'llama3.2', 
+        'qwen3:30b', 
         model_provider="ollama",
-        temperature = 0.1,
+        temperature = 0.01,
     ),
+    #model = init_chat_model(
+    #    'gemini-2.5-flash', 
+    #    model_provider="google_genai",
+    #    temperature = 0.2,
+    #),
     debug = True,
 )
