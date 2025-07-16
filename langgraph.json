@@ -1,0 +1,7 @@
+{
+    "dependencies": ["./"],
+    "env": ".env",
+    "graphs": {
+      "customer_support": "./agents/customer_support.py:customer_support"
+    }
+}
