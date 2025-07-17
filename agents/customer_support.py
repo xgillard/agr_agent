@@ -2,23 +2,34 @@
 import os
 
 from logging import Logger
+from typing import NamedTuple, Annotated
+
+from langchain.prompts import ChatPromptTemplate
 from langchain.tools import tool
 from langchain.chat_models import init_chat_model
+from langchain_core.output_parsers import StrOutputParser
+from langchain_core.tools import BaseTool, render_text_description
 
 from .common import agent
 from tools import agatha_knowledge
+
+from functools import partial
 
 log = Logger(__name__)
 
 _knowledge = agatha_knowledge()
 
 @tool
-def search_help(question: str) -> str:
-    """Content of the help section, FAQ, and user manuals."""
-    return _knowledge.invoke(question)
+def manually_activate_user_account(user_email: str) -> bool:
+    """Manually activate a user's account.
+    
+    Returns True upon success, False otherwise.
+    """
+    print(f"Activation du compte de {user_email}")
+    return True
 
 
-available_tools = [_knowledge]
+available_tools = [ _knowledge, manually_activate_user_account ]
 
 customer_support = agent(
     name   = "customer_support",
@@ -32,12 +43,41 @@ customer_support = agent(
         addition to contributing to the 'getting started' and 'genealogy' users 
         manuals.""",
     tools = available_tools,
-    #
+    # === QWEN3 ==============
     model = init_chat_model(
-        'qwen3:30b', 
+        'qwen3:8b', 
         model_provider="ollama",
         temperature = 0.01,
     ),
+    #model = init_chat_model(
+    #    'qwen3:14b', 
+    #    model_provider="ollama",
+    #    temperature = 0.01,
+    #),
+    #model = init_chat_model(
+    #    'qwen3:30b', 
+    #    model_provider="ollama",
+    #    temperature = 0.01,
+    #),
+    # === LLAMA3 ==============
+    #model = init_chat_model(
+    #    'llama3.1:8b', 
+    #    model_provider="ollama",
+    #    temperature = 0.01,
+    #),
+    #model = init_chat_model(
+    #    'llama3.2:latest', 
+    #    model_provider="ollama",
+    #    temperature = 0.01,
+    #    
+    #),
+    # === MISTRAL =============
+    #model = init_chat_model(
+    #    'mistral-nemo', 
+    #    model_provider="ollama",
+    #    temperature = 0.01,
+    #),
+    # === GEMINI ==============
     #model = init_chat_model(
     #    'gemini-2.5-flash', 
     #    model_provider="google_genai",
@@ -45,3 +85,4 @@ customer_support = agent(
     #),
     debug = True,
 )
+

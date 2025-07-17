@@ -15,14 +15,15 @@ from langgraph.graph import MessagesState
 def _trace_llm(direction: str, name: str, state: MessagesState) -> None:
     """Loggue une étape d'interaction dans un graphe langgraph."""
     msg = state["messages"][-1]
-    has_tools = hasattr(msg, "tool_calls")
-    if has_tools:
-        print(f"{direction} {name} ({msg.type}) {direction}")
+
+    print(f"{direction} {name} ({msg.type}) {direction}")
+    if hasattr(msg, "content"):
+        print(msg.content)
+    
+    if hasattr(msg, "tool_calls"):
         tool_calls = msg.tool_calls
         for t in tool_calls:
             print(f"{t['name']} {t['args']}")
-    else:
-        print(f"{direction} {name} ({msg.type}) {direction}\n{msg.content}")
 
 
 
@@ -35,28 +36,23 @@ You ONLY have access to the following tools, and should NEVER make up tools that
 
 {tools}
 
-IMPORTANT: Use the following format in your response:
+**IMPORTANT**: 
+As a first step, I want you to make a plan of how you intend to complete your taks.
+You are only allowed to make use of your tools after you made the initial plan.
+You may only use **ONE TOOL AT A TIME**.
+Feel free to use each tool as many times as you need, ie. to ask different questions.
+Feel free to refine your plan based on the information you find over time.
 
-```
-Thought: you should always think about what to do
-Action: the action to take, only one name of [{tool_names}], just the name, exactly as it's written.
-Action Input: the input to the action, just a simple JSON object, enclosed in curly braces, using " to wrap keys and values.
-Observation: the result of the action
-```
+**FORMAT**:
+- Insert your the marker [__FINAL_ANSWER__] before your best and final answer.
+- Structure your reasoning as 'Plan' followed by a series of 'Thought' and 'Observation'.
 
-Once all necessary information is gathered, return the following format:
-
-```
-Thought: I now know the final answer
-Final Answer: the final answer to the original input question
-```
 """
 
 
 _TASK_TEMPLATE = """
 Current Task: {input}
 
-Begin! This is VERY important to you, use the tools available and give your best Final Answer, your job depends on it!
 {{input}}
 """
 

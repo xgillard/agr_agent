@@ -7,8 +7,7 @@ from langchain.tools import Tool
 from langchain.tools.retriever import create_retriever_tool
 from langchain_chroma import Chroma
 from langchain_docling import DoclingLoader
-#from langchain_huggingface import HuggingFaceEmbeddings
-from langchain_ollama import OllamaEmbeddings
+from langchain_huggingface import HuggingFaceEmbeddings
 from langchain_text_splitters import MarkdownHeaderTextSplitter
 
 #__DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
@@ -17,16 +16,11 @@ def agatha_knowledge(cache: str = Path("./__knowledge")) -> Tool:
     """Return the knowledge source for the AGATHA website."""
     cache =  Path(cache)
     # create the embedding model to add and search to the vector db
-    #embedding_model = HuggingFaceEmbeddings(
-    #    model = "intfloat/multilingual-e5-large",
-    #    model_kwargs = {
-    #        "device": __DEVICE, 
-    #        "model_kwargs": {"torch_dtype": "float16"},
-    #    }
-    #)
-    embedding_model = OllamaEmbeddings(
-        model="llama3.2",
-        base_url="http://localhost:11434",
+    embedding_model = HuggingFaceEmbeddings(
+        model = "intfloat/multilingual-e5-large",
+        model_kwargs = {
+            "model_kwargs": {"torch_dtype": "float16", "device_map": "auto"},
+        }
     )
     # index the data if needed else just return the existing database
     if cache.exists():
@@ -36,22 +30,23 @@ def agatha_knowledge(cache: str = Path("./__knowledge")) -> Tool:
             persist_directory=str(cache),
         )
     else:
-        loader = DoclingLoader([
-            #"https://agatha.arch.be/help/States-Archives_user-guide-genealogical-sources.pdf",
-            #"https://agatha.arch.be/help/States-Archives_user-guide-analyses-records.pdf",
-            "https://agatha.arch.be/help/",
-            "https://agatha.arch.be/help/beginning/",
-        ])
+        loader = DoclingLoader(
+            file_path = [
+                "https://agatha.arch.be/help/States-Archives_user-guide-genealogical-sources.pdf",
+                "https://agatha.arch.be/help/States-Archives_user-guide-analyses-records.pdf",
+                "https://agatha.arch.be/help/",
+                "https://agatha.arch.be/help/beginning/",
+            ],
+            export_type = "markdown",
+        )
         splitter = MarkdownHeaderTextSplitter(
-            headers_to_split_on= [
+            strip_headers = False,
+            headers_to_split_on = [
                 ("##",  "h2"),
                 ("###", "h3"),
             ],
         )
-        
-        documents = [ 
-            chunk for doc in loader.load() for chunk in splitter.split_text(doc.page_content)
-        ]
+        documents = [ chunk for doc in loader.load() for chunk in splitter.split_text(doc.page_content) ]
         
         knowledge_source = Chroma.from_documents(
             documents, 
@@ -67,6 +62,5 @@ def agatha_knowledge(cache: str = Path("./__knowledge")) -> Tool:
             Content of the help section from the AGATHA platform as well as
             that of the 'getting started' and 'genealogy' user manuals.
             """,
-        #response_format = "content_and_artifact",
     )
     return knowledge_tool
