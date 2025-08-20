@@ -1,0 +1,34 @@
+<View>
+  <View>
+  <Header value="Response" />
+  <Text name="response" value="$responses"/>
+  </View>
+  <View>
+  <Header value="Question" />
+  <Text name="question" value="$questions"/>
+  </View>
+  <View style="box-shadow: 2px 2px 5px #999;                padding: 20px; margin-top: 2em;                border-radius: 5px;">
+    <Header value="Action Taken"/>
+    <Choices name="Action" toName="response" choice="single">
+      <Choice value="ACTUAL_SEARCH"/>
+      <Choice value="REDIRECT_DEPOT"/>
+      <Choice value="REDIRECT_AOS_AVG"/>
+      <Choice value="REDIRECT_POLICE_ETRANGERS"/>
+      <Choice value="REDIRECT_MILITAIRE"/>
+      <Choice value="REDIRECT_COLONIAL"/>
+      <Choice value="REDIRECT_COLLABO"/>
+      <Choice value="REDIRECT_KBR"/>
+      <Choice value="REDIRECT_CHURCH"/>
+      <Choice value="REDIRECT_DEPOT"/>
+      <Choice value="REJECT"/>
+      <Choice value="EXPLAIN_FAQ"/>
+      <Choice value="CORRECTION"/>
+      <Choice value="HUMAN_TAKEOVER"/>
+      <Choice value="MANUAL_ACTIVATION"/>
+      <Choice value="DELETE_LOCKED_ACCOUNT"/>
+    </Choices>
+  </View>
+</View>
+<!-- {
+  "data": {"text": "This is a great 3D movie that delivers everything almost right in your face."}
+} -->
