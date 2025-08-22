@@ -3,7 +3,7 @@ name = "investigate"
 version = "0.1.0"
 description = "Add your description here"
 readme = "README.md"
-requires-python = ">=3.11"
+requires-python = ">=3.13"
 dependencies    = [
     "agentevals>=0.0.8",
     "langchain-chroma>=0.2.4",
@@ -21,6 +21,7 @@ dependencies    = [
     "accelerate>=1.9.0",
     "scikit-learn>=1.7.0",
     "pyarrow>=21.0.0",
+    "torch>=2.8.0",
 ]
 
 [dependency-groups]
