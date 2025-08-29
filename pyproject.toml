@@ -23,6 +23,7 @@ dependencies    = [
     "pyarrow>=21.0.0",
     "torch>=2.8.0",
     "html5lib>=1.1",
+    "textdistance>=4.6.3",
 ]
 
 [dependency-groups]

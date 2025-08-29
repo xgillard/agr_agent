@@ -11,7 +11,11 @@ from langchain_core.output_parsers import StrOutputParser
 from langchain_core.tools import BaseTool, render_text_description
 
 from .common import agent
-from tools import agatha_knowledge
+from tools import (
+    agatha_knowledge,
+    genealogy_search_church_registers_prior_to_1796,
+    genealogy_search_civil_state_registers,
+)
 
 from functools import partial
 
@@ -29,7 +33,12 @@ def manually_activate_user_account(user_email: str) -> bool:
     return True
 
 
-available_tools = [ _knowledge, manually_activate_user_account ]
+available_tools = [ 
+    _knowledge, 
+    genealogy_search_church_registers_prior_to_1796,
+    genealogy_search_civil_state_registers, 
+    manually_activate_user_account,
+]
 
 customer_support = agent(
     name   = "customer_support",
@@ -37,18 +46,14 @@ customer_support = agent(
     goal   = "Give factually correct answers to user emails",
     backstory = """
         You have been collaborating with the IT during the launch
-        of AGATHA, the new gateway to search the Belgian State Archives. You have
-        a talent for explaining to users how they should proceed with their search.
-        This is why you were one of the authors of the AGATGA 'help' section, in
-        addition to contributing to the 'getting started' and 'genealogy' users 
-        manuals.""",
+        of AGATHA, the new gateway to search the Belgian State Archives.""",
     tools = available_tools,
     # === QWEN3 ==============
-    model = init_chat_model(
-        'qwen3:8b', 
-        model_provider="ollama",
-        temperature = 0.01,
-    ),
+    #model = init_chat_model(
+    #    'qwen3:8b', 
+    #    model_provider="ollama",
+    #    temperature = 0.01,
+    #),
     #model = init_chat_model(
     #    'qwen3:14b', 
     #    model_provider="ollama",
@@ -78,8 +83,13 @@ customer_support = agent(
     #    temperature = 0.01,
     #),
     # === GEMINI ==============
+    model = init_chat_model(
+        'gemini-2.5-flash', 
+        model_provider="google_genai",
+        temperature = 0.2,
+    ),
     #model = init_chat_model(
-    #    'gemini-2.5-flash', 
+    #    'gemini-2.5-pro', 
     #    model_provider="google_genai",
     #    temperature = 0.2,
     #),
