@@ -1,11 +1,11 @@
+from datetime import datetime
+
 from dotenv import load_dotenv
 
 load_dotenv()
 
-from agents.common import task
-from agents.customer_support import customer_support
-
-from datetime import datetime
+from agents.common import task  # noqa: E402
+from agents.customer_support import customer_support  # noqa: E402
 
 TODAY = datetime.today().strftime('%Y-%m-%d')
 

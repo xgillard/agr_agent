@@ -1,23 +1,16 @@
 """A customer support agent"""
-import os
-
 from logging import Logger
-from typing import NamedTuple, Annotated
 
-from langchain.prompts import ChatPromptTemplate
-from langchain.tools import tool
 from langchain.chat_models import init_chat_model
-from langchain_core.output_parsers import StrOutputParser
-from langchain_core.tools import BaseTool, render_text_description
+from langchain.tools import tool
 
-from .common import agent
 from tools import (
     agatha_knowledge,
     genealogy_search_church_registers_prior_to_1796,
     genealogy_search_civil_state_registers,
 )
 
-from functools import partial
+from .common import agent
 
 log = Logger(__name__)
 

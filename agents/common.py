@@ -1,15 +1,13 @@
 """Common utilities to design autonomous agents."""
-from logging import Logger
-from typing import Annotated
 from functools import partial
+from typing import Annotated
 
 from langchain.prompts import ChatPromptTemplate
-from langchain_core.tools import BaseTool, render_text_description
 from langchain_core.language_models import BaseLanguageModel
-from langchain_core.messages import BaseMessage
 from langchain_core.runnables import Runnable
-from langgraph.prebuilt import create_react_agent
+from langchain_core.tools import BaseTool, render_text_description
 from langgraph.graph import MessagesState
+from langgraph.prebuilt import create_react_agent
 
 
 def _trace_llm(direction: str, name: str, state: MessagesState) -> None:
