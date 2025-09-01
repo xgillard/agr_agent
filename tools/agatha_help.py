@@ -7,12 +7,13 @@ from langchain.tools import Tool
 from langchain.tools.retriever import create_retriever_tool
 from langchain_chroma import Chroma
 from langchain_docling import DoclingLoader
+from langchain_docling.loader import ExportType
 from langchain_huggingface import HuggingFaceEmbeddings
 from langchain_text_splitters import MarkdownHeaderTextSplitter
 
 #__DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
 
-def agatha_knowledge(cache: str = Path("./__knowledge")) -> Tool:
+def agatha_knowledge(cache: str | Path = Path("./__knowledge")) -> Tool:
     """Return the knowledge source for the AGATHA website."""
     cache =  Path(cache)
     # create the embedding model to add and search to the vector db
@@ -37,7 +38,7 @@ def agatha_knowledge(cache: str = Path("./__knowledge")) -> Tool:
                 "https://agatha.arch.be/help/",
                 "https://agatha.arch.be/help/beginning/",
             ],
-            export_type = "markdown",
+            export_type = ExportType.MARKDOWN,
         )
         splitter = MarkdownHeaderTextSplitter(
             strip_headers = False,

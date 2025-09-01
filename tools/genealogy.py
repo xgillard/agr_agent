@@ -1,15 +1,13 @@
 """A set of tools that implement research in genealogical sources."""
 
-import requests
-
-from pydantic import BaseModel, Field
-from typing import overload, Annotated, Literal, Optional, Self
-from textdistance import levenshtein
-from functools import cached_property
-
 from enum import StrEnum
-from langchain_core.tools import tool
+from functools import cached_property
+from typing import Annotated, Literal, Optional, Self, overload
 
+import requests
+from langchain_core.tools import tool
+from pydantic import BaseModel, Field
+from textdistance import levenshtein
 
 ## Constants
 BASE_URL  = "https://agatha.arch.be/search"
@@ -48,16 +46,16 @@ class Municipality(BaseModel):
 
     # stub for the usual case
     @overload
-    @staticmethod
-    def by_name(name: str, return_single_best_match: bool = False) -> list[Self]: ...
+    @classmethod
+    def by_name(cls, name: str, return_single_best_match: Literal[False] = False) -> list[Self]: ...
 
     # stub for the return single_best_match case
     @overload
-    @staticmethod
-    def by_name(name: str, return_single_best_match: Literal[True]) -> Optional[Self]: ...
+    @classmethod
+    def by_name(cls, name: str, return_single_best_match: Literal[True]) -> Optional[Self]: ...
     
-    @staticmethod
-    def by_name(name: str, return_single_best_match: bool=False) -> list[Self] | Optional[Self]:
+    @classmethod
+    def by_name(cls, name: str, return_single_best_match: bool=False) -> list[Self] | Optional[Self]:
         """Find municipality data by name.
 
         Retrieves the municipalities matching the given search name and returns them
@@ -118,9 +116,9 @@ class Municipality(BaseModel):
         })
         results = [ Municipality(**x) for x in r.json() ]
         if return_single_best_match:
-            return min(results, key = lambda x: levenshtein(x.label, name)) if results else None
+            return min(results, key = lambda x: levenshtein(x.label, name)) if results else None # type: ignore[return-value]
         else:
-            return results
+            return results # type: ignore[return-value]
 
     @cached_property
     def parishes(self) -> list[Parish]:
@@ -157,11 +155,20 @@ class GenealogySource(StrEnum):
     CHURCH_REGISTERS = "church"
     CIVIL_STATE      = "civil"
     
-# mapping to the constant values used in the agatha api
-GenealogySource.code: dict[GenealogySource, str] = {
-    GenealogySource.CHURCH_REGISTERS: "PR",
-    GenealogySource.CIVIL_STATE:      "CS"
-}
+    @property
+    def code(self) -> str:
+        """The code that is being used to represent this enum by the AGATHA api.
+        
+        Returns:
+            str: the code that is used by the underlying AGATHA API.
+        """
+
+        match self:
+            case GenealogySource.CHURCH_REGISTERS:
+                return "PR"
+            case GenealogySource.CIVIL_STATE:
+                return "CS"
+
 
 
 ## Types relating to a genealogical search within church registers
@@ -180,13 +187,23 @@ class ParishActType(StrEnum):
     DEATH   = "death"
     OTHER   = "other"
 
-# mapping to the constant values used in the agatha api
-ParishActType.code: dict[ParishActType, str] = {
-    ParishActType.BAPTISM: "1",
-    ParishActType.WEDDING: "2",
-    ParishActType.DEATH:   "3",
-    ParishActType.OTHER:   "OTHER",
-}
+    @property
+    def code(self) -> str:
+        """The code that is being used to represent this enum by the AGATHA api.
+        
+        Returns:
+            str: the code that is used by the underlying AGATHA API.
+        """
+
+        match self:
+            case ParishActType.BAPTISM:
+                return "1"
+            case ParishActType.WEDDING:
+                return "2"
+            case ParishActType.DEATH:
+                return "3"
+            case ParishActType.OTHER:
+                return "OTHER"
 
 
 class OtherParishActType(StrEnum):
@@ -203,8 +220,8 @@ class OtherParishActType(StrEnum):
                 an association (e.g. membership list of a fraternity).
         MEMORY_MASSES (str): Memory masses (List of deceased persons for whom a church service should be organised 
                 annually in memory and for the salvation of souls.)
-        STATUS_ANIMARUM (str): Status animarum (List per street or district of the families in a parish (state of souls), 
-                with information about the age of the residents, confirmation, ...)
+        STATUS_ANIMARUM (str): Status animarum (List per street or district of the families in a parish 
+                (state of souls), with information about the age of the residents, confirmation, ...)
     """
     
     MARRIAGE_EXEMPTION  = "marriage::exemption"
@@ -215,15 +232,30 @@ class OtherParishActType(StrEnum):
     MEMORY_MASSES       = "memory-masses"
     STATUS_ANIMARUM     = "status-animarum"
 
-OtherParishActType.code: dict[OtherParishActType, str] = {
-    OtherParishActType.MARRIAGE_EXEMPTION  : "12",
-    OtherParishActType.MARRIAGE_IMPEDIMENT : "20",
-    OtherParishActType.LIST_OF_COMMUNIANTS : "11",
-    OtherParishActType.LIST_OF_CONFIRMANDS : "31",
-    OtherParishActType.LIST_OF_NAMES       : "23",
-    OtherParishActType.MEMORY_MASSES       : "56",
-    OtherParishActType.STATUS_ANIMARUM     : "28",
-}
+    @property
+    def code(self) -> str:
+        """The code that is being used to represent this enum by the AGATHA api.
+        
+        Returns:
+            str: the code that is used by the underlying AGATHA API.
+        """
+
+        match self:
+            case OtherParishActType.MARRIAGE_EXEMPTION: 
+                return "12"
+            case OtherParishActType.MARRIAGE_IMPEDIMENT: 
+                return "20"
+            case OtherParishActType.LIST_OF_COMMUNIANTS: 
+                return "11"
+            case OtherParishActType.LIST_OF_CONFIRMANDS: 
+                return "31"
+            case OtherParishActType.LIST_OF_NAMES: 
+                return "23"
+            case OtherParishActType.MEMORY_MASSES: 
+                return "56"
+            case OtherParishActType.STATUS_ANIMARUM: 
+                return "28"
+        
 
 class ParishIndex(StrEnum):
     """Possible indexes where to look up documents in the church registers (prior to 1796).
@@ -238,11 +270,22 @@ class ParishIndex(StrEnum):
     WEDDING = "wedding" 
     DEATH   = "death"
 
-ParishIndex.code: dict[ParishIndex, str] = {
-    ParishIndex.BAPTISM: "1",
-    ParishIndex.WEDDING: "2",
-    ParishIndex.DEATH  : "3",
-}
+    @property
+    def code(self) -> str:
+        """The code that is being used to represent this enum by the AGATHA api.
+        
+        Returns:
+            str: the code that is used by the underlying AGATHA API.
+        """
+
+        match self:
+            case ParishIndex.BAPTISM: 
+                return "1"
+            case ParishIndex.WEDDING:
+                return "2"
+            case ParishIndex.DEATH: 
+                return "3"
+
 
 ## Types relating to a genealogical search within civil registers
 class CivilActType(StrEnum):
@@ -260,23 +303,38 @@ class CivilActType(StrEnum):
     DEATH   = "death"
     OTHER   = "other"
 
-CivilActType.code: dict[CivilActType, str] = {
-    CivilActType.BIRTH  : "1",
-    CivilActType.WEDDING: "2",
-    CivilActType.DEATH  : "3",
-    CivilActType.OTHER  : "OTHER",
-}
+    @property
+    def code(self) -> str:
+        """The code that is being used to represent this enum by the AGATHA api.
+        
+        Returns:
+            str: the code that is used by the underlying AGATHA API.
+        """
+
+        match self:
+            case CivilActType.BIRTH: 
+                return "1"
+            case CivilActType.WEDDING: 
+                return "2"
+            case CivilActType.DEATH: 
+                return "3"
+            case CivilActType.OTHER: 
+                return "OTHER"
 
 
 class OtherCivilActType(StrEnum):
     """Precision regarding what 'other' documents should be searched in the civil state registers.
 
     Attributes:
-        ADDITIONAL_REGISTER (str): Additional register (Supplement to a register containing exhibited documents (extracts) or notes.)
-        ADOPTION            (str): Adoption certificates (Certificate by which a court or authority establishes a legal direct relationship between persons who are not blood relatives.)
-        DEATH_ANNEXES       (str): Death annexes (Extracts of deaths abroad or death declarations of missing persons (after the World Wars) attached to death certificates.)
+        ADDITIONAL_REGISTER (str): Additional register (Supplement to a register containing 
+                                   exhibited documents (extracts) or notes.)
+        ADOPTION            (str): Adoption certificates (Certificate by which a court or authority establishes 
+                                   a legal direct relationship between persons who are not blood relatives.)
+        DEATH_ANNEXES       (str): Death annexes (Extracts of deaths abroad or death declarations of missing persons 
+                                   (after the World Wars) attached to death certificates.)
         DIVORCE             (str): Divorce certificates (Certificate of the termination of marriage.).
-        NATURALISATION      (str): Naturalisation certificates (Certificate by which a court or authority grants nationality to a person). 
+        NATURALISATION      (str): Naturalisation certificates (Certificate by which a court or authority grants 
+                                   nationality to a person). 
     """
     
     ADDITIONAL_REGISTER = "additional"
@@ -285,13 +343,25 @@ class OtherCivilActType(StrEnum):
     DIVORCE             = "divorce"
     NATURALISATION      = "naturalisation"
 
-OtherCivilActType.code: dict[OtherCivilActType, str] = {    
-    OtherCivilActType.ADDITIONAL_REGISTER : "BS_U",
-    OtherCivilActType.ADOPTION            : "BS_A",
-    OtherCivilActType.DEATH_ANNEXES       : "BS_Ob",
-    OtherCivilActType.DIVORCE             : "BS_E",
-    OtherCivilActType.NATURALISATION      : "BS_N",
-}
+    @property
+    def code(self) -> str:
+        """The code that is being used to represent this enum by the AGATHA api.
+        
+        Returns:
+            str: the code that is used by the underlying AGATHA API.
+        """
+
+        match self: 
+            case OtherCivilActType.ADDITIONAL_REGISTER:
+                return "BS_U"
+            case OtherCivilActType.ADOPTION:
+                return "BS_A"
+            case OtherCivilActType.DEATH_ANNEXES:
+                return "BS_Ob"
+            case OtherCivilActType.DIVORCE:
+                return "BS_E"
+            case OtherCivilActType.NATURALISATION:
+                return "BS_N"
 
 class CivilIndex(StrEnum):
     """Possible indexes where to look up documents in the civil state registers (after 1796).
@@ -312,14 +382,28 @@ class CivilIndex(StrEnum):
     DECENNAL_INDEX_OF_DIVORCE           = "divorce::10years"
     DECENNAL_INDEX_OF_NATURALISATION    = "naturalization::10years"
 
-CivilIndex.code: dict[CivilIndex, str] = {
-    CivilIndex.ANNUAL_INDEX_OF_DIVORCE             : "BS_Ei",
-    CivilIndex.ANNUAL_INDEX_OF_NATURALISATION      : "BS_Ni",
-    CivilIndex.ANNUAL_INDEX_OF_ADDITIONAL_REGISTER : "BS_Ui",
-    CivilIndex.DECENNAL_INDEX_OF_ADOPTION          : "BS_Ax",
-    CivilIndex.DECENNAL_INDEX_OF_DIVORCE           : "BS_Ex",
-    CivilIndex.DECENNAL_INDEX_OF_NATURALISATION    : "BS_Nx",
-}
+    @property
+    def code(self) -> str:
+        """The code that is being used to represent this enum by the AGATHA api.
+        
+        Returns:
+            str: the code that is used by the underlying AGATHA API.
+        """
+
+        match self:
+            case CivilIndex.ANNUAL_INDEX_OF_DIVORCE:
+                return "BS_Ei"
+            case CivilIndex.ANNUAL_INDEX_OF_NATURALISATION:
+                return "BS_Ni"
+            case CivilIndex.ANNUAL_INDEX_OF_ADDITIONAL_REGISTER:
+                return "BS_Ui"
+            case CivilIndex.DECENNAL_INDEX_OF_ADOPTION:
+                return "BS_Ax"
+            case CivilIndex.DECENNAL_INDEX_OF_DIVORCE:
+                return "BS_Ex"
+            case CivilIndex.DECENNAL_INDEX_OF_NATURALISATION:
+                return "BS_Nx"
+
 
 ## Results of a search in the genealogical sources.
 class GenealogySearchResult(BaseModel): 
@@ -335,11 +419,11 @@ class GenealogySearchResult(BaseModel):
         url (Optional[str]): URL where this document can be consulted (if available)
     """
 
-    description: str
-    start_date:  str
-    end_date:    str
-    last_update: str
-    notes:       str
+    description: Optional[str]
+    start_date:  Optional[str]
+    end_date:    Optional[str]
+    last_update: Optional[str]
+    notes:       Optional[str]
     available:   bool
     url:         Optional[str]
     
@@ -389,7 +473,7 @@ class GenealogyDocument(BaseModel):
     editorialformbase_id: Annotated[Optional[str], Field(alias="EDITORIALFORMBASE_ID")] = None
     isindex:              Annotated[Optional[str], Field(alias="ISINDEX")] = None
     notes:                Annotated[Optional[str], Field(alias="NOTES")] = None
-    available:            Annotated[Optional[bool], Field(alias="AVAILABLE")] = False
+    available:            Annotated[bool, Field(alias="AVAILABLE")] = False
 
     @property
     def start_date(self) -> str | None:
@@ -428,9 +512,7 @@ class GenealogyDocument(BaseModel):
             str: Properly formatted string with all the notes and remarks related to this document.
         """
         
-        notes   = self.notes + "\n" if self.notes is not None else ""
-        remarks = self.full_remarks if self.full_remarks is not None else ""
-        return notes + remarks
+        return "\n".join(filter(None, [self.notes, self.full_remarks]))
         
     @cached_property
     def url(self) -> Optional[str]:
@@ -524,14 +606,17 @@ def genealogy_search_church_registers_prior_to_1796(
 
     """
     municipality = Municipality.by_name(municipality_name, return_single_best_match=True)
-    parishes     = municipality.parishes
+    if municipality is None:
+        return []
+    
+    parishes = municipality.parishes
 
     if parish_name is not None:
         parishes = [ p for p in parishes if parish_name in p.place_name.lower() ]
     
     #
     request_data = {
-        "WHICH_TAB":         GenealogySource.code[GenealogySource.CHURCH_REGISTERS],
+        "WHICH_TAB":         GenealogySource.CHURCH_REGISTERS.code,
         "PLACEPOINT_ID_PR" : municipality.placepoint_id,
         "PLACE_PR":          municipality.value,
         "CURRENT_NAME_PR":   municipality.current_name,
@@ -539,13 +624,13 @@ def genealogy_search_church_registers_prior_to_1796(
     }
     
     if act_types is not None:
-        request_data["TYPEACTES_PR[]"] = ",".join( ParishActType.code[t] for t in act_types )
+        request_data["TYPEACTES_PR[]"] = ",".join( t.code for t in act_types )
     
     if other_types is not None:
-        request_data["TYPEACTES_OTHER_PR[]"] = ",".join( OtherParishActType.code[t] for t in other_types )
+        request_data["TYPEACTES_OTHER_PR[]"] = ",".join( t.code for t in other_types )
 
     if index_types is not None:
-        request_data["TYPEINDEX_PR[]"] = ",".join( ParishIndex.code[i] for i in index_types )
+        request_data["TYPEINDEX_PR[]"] = ",".join( i.code for i in index_types )
 
     if start_year is not None:
         request_data["exactYear"] = start_year
@@ -633,22 +718,24 @@ def genealogy_search_civil_state_registers(
       >>> len(rx)
     """
     municipality = Municipality.by_name(municipality_name, return_single_best_match=True)
+    if municipality is None:
+        return []
     
     request_data = {
-        "WHICH_TAB":         GenealogySource.code[GenealogySource.CIVIL_STATE],
+        "WHICH_TAB":         GenealogySource.CIVIL_STATE.code,
         "PLACEPOINT_ID_CS" : municipality.placepoint_id,
         "PLACE_CS":          municipality.value,
         "CURRENT_NAME_CS":   municipality.current_name,
     }
     
     if act_types is not None:
-        request_data["TYPEACTES_CS[]"] = ",".join( CivilActType.code[t] for t in act_types )
+        request_data["TYPEACTES_CS[]"] = ",".join( t.code for t in act_types )
     
     if other_types is not None:
-        request_data["TYPEACTES_OTHER_CS[]"] = ",".join( OtherCivilActType.code[t] for t in other_types )
+        request_data["TYPEACTES_OTHER_CS[]"] = ",".join( t.code for t in other_types )
 
     if index_types is not None:
-        request_data["TYPEINDEX_CS[]"] = ",".join( CivilIndex.code[i] for i in index_types )
+        request_data["TYPEINDEX_CS[]"] = ",".join( i.code for i in index_types )
 
     if start_year is not None:
         request_data["exactYear"] = start_year

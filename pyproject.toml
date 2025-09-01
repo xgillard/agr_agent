@@ -1,5 +1,5 @@
 [project]
-name = "investigate"
+name = "agr_agent"
 version = "0.1.0"
 description = "Add your description here"
 readme = "README.md"
@@ -30,8 +30,10 @@ dependencies    = [
 dev = [
     "jupyter-lsp>=2.3.0",
     "matplotlib>=3.10.5",
-    "python-lsp-server[ruff]>=1.13.1",
+    "mypy>=1.17.1",
+    "python-lsp-server>=1.13.1",
     "ruff>=0.12.11",
+    "types-requests>=2.32.4.20250809",
     "umap-learn>=0.5.9.post2",
 ]
 
@@ -47,4 +49,4 @@ torch = [
 
 [tool.ruff]
 line-length = 120
-select = ["E", "F", "I"]
+lint.select = ["E", "F", "I"]

@@ -6,6 +6,11 @@ dist/
 wheels/
 *.egg-info
 
+# corpus files that may not be commited
+corpus.zip
+corpus/digita_sent/*/*.txt
+corpus/digita_sent/*/*/*.txt
+
 # notebooks
 .ipynb_checkpoints
 
