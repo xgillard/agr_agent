@@ -263,7 +263,7 @@ class ParishIndex(StrEnum):
     Attributes:
         BAPTISM (str): Birth or baptism certificates
         WEDDING (str): Wedding certificates
-        DEATH   (str): Death / funeral certificates
+        DEATH (str): Death / funeral certificates
     """
     
     BAPTISM = "BAPTISM"
@@ -292,10 +292,10 @@ class CivilActType(StrEnum):
     """The kind of documents that can be found in Civil State registers after 1796.
 
     Attributes:
-        BIRTH   (str): Birth certificates
+        BIRTH (str): Birth certificates
         WEDDING (str): Wedding certificates
-        DEATH   (str): Death certificates
-        OTHER   (str): Other kind of documents
+        DEATH (str): Death certificates
+        OTHER (str): Other kind of documents
     """
     
     BIRTH   = "BIRTH"
@@ -327,14 +327,14 @@ class OtherCivilActType(StrEnum):
 
     Attributes:
         ADDITIONAL_REGISTER (str): Additional register (Supplement to a register containing 
-                                   exhibited documents (extracts) or notes.)
-        ADOPTION            (str): Adoption certificates (Certificate by which a court or authority establishes 
-                                   a legal direct relationship between persons who are not blood relatives.)
-        DEATH_ANNEXES       (str): Death annexes (Extracts of deaths abroad or death declarations of missing persons 
-                                   (after the World Wars) attached to death certificates.)
-        DIVORCE             (str): Divorce certificates (Certificate of the termination of marriage.).
-        NATURALISATION      (str): Naturalisation certificates (Certificate by which a court or authority grants 
-                                   nationality to a person). 
+            exhibited documents (extracts) or notes.)
+        ADOPTION (str): Adoption certificates (Certificate by which a court or authority establishes 
+            a legal direct relationship between persons who are not blood relatives.)
+        DEATH_ANNEXES (str): Death annexes (Extracts of deaths abroad or death declarations of missing persons 
+            (after the World Wars) attached to death certificates.)
+        DIVORCE (str): Divorce certificates (Certificate of the termination of marriage.).
+        NATURALISATION (str): Naturalisation certificates (Certificate by which a court or authority grants 
+            ationality to a person). 
     """
     
     ADDITIONAL_REGISTER = "ADDITIONAL_REGISTER"
@@ -432,26 +432,26 @@ class GenealogyDocument(BaseModel):
     """An entry from the results of a search in the genealogic sources.
 
     Attributes:
-        bookpart_id          (str):           Identifier that is used to retrieve the actual document scan
-        bookpartplace_id     (str):           I don't know what this means
-        new_municipalities   (Optional[str]): New municipality name (after merge)
-        old_municipalities   (Optional[str]): Municipality name (before they were merged)
-        place_name           (Optional[str]): Parish name (if relevant)
-        full_parish_name     (Optional[str]): Full parish name (if relevant)
-        start_day            (Optional[int]): Date of the first act recorded in this document (day)
-        start_month          (Optional[int]): Date of the first act recorded in this document (month)
-        start_year           (Optional[int]): Date of the first act recorded in this document (year)
-        end_day              (Optional[int]): Date of the last act recorded in this document (day)
-        end_month            (Optional[int]): Date of the last act recorded in this document (month)
-        end_year             (Optional[int]): Date of the last act recorded in this document (year)
+        bookpart_id (str): Identifier that is used to retrieve the actual document scan
+        bookpartplace_id (str): I don't know what this means
+        new_municipalities (Optional[str]): New municipality name (after merge)
+        old_municipalities (Optional[str]): Municipality name (before they were merged)
+        place_name (Optional[str]): Parish name (if relevant)
+        full_parish_name (Optional[str]): Full parish name (if relevant)
+        start_day (Optional[int]): Date of the first act recorded in this document (day)
+        start_month (Optional[int]): Date of the first act recorded in this document (month)
+        start_year (Optional[int]): Date of the first act recorded in this document (year)
+        end_day (Optional[int]): Date of the last act recorded in this document (day)
+        end_month (Optional[int]): Date of the last act recorded in this document (month)
+        end_year (Optional[int]): Date of the last act recorded in this document (year)
         book_last_modif_date (Optional[str]): Date when this archive was last modified
-        description          (Optional[str]): Description
-        full_remarks         (Optional[str]): Remarks wrt the document (e.g. missing)
-        publish_date_ref     (Optional[str]): Date when this archive was published
+        description (Optional[str]): Description
+        full_remarks (Optional[str]): Remarks wrt the document (e.g. missing)
+        publish_date_ref (Optional[str]): Date when this archive was published
         editorialformbase_id (Optional[str]): Identifier of the document type
-        isindex              (Optional[str]): Does it come from an index
-        notes                (Optional[str]): Additional notes regarding this document
-        available            (Optional[bool]): Is the document available for online consultation
+        isindex (Optional[str]): Does it come from an index
+        notes (Optional[str]): Additional notes regarding this document
+        available (Optional[bool]): Is the document available for online consultation
     """
     
     bookpart_id:          Annotated[str,           Field(alias="BOOKPART_ID")]
@@ -544,7 +544,7 @@ class GenealogyDocument(BaseModel):
         )
 
 ## Definition of the actual tools
-@tool
+@tool(parse_docstring=True)
 def genealogy_search_church_registers_prior_to_1796(
     municipality_name: str,
     parish_name:       Optional[str] = None,
@@ -557,13 +557,13 @@ def genealogy_search_church_registers_prior_to_1796(
     """Search genealogic data in the Church Registers (prior to 1796).
 
     Args:
-        municipality_name (str):                           Name of the municipality
-        parish_name (Optional[str]):                       Name of the parish
-        act_types   (Optional[list[ParishActType]]):       The kind of document we are searching for
-        other_types (Optional[list[OtherParishActType]]):  Mandatory precision when act_types is OTHER
-        index_types (Optional[list[ParishIndex]]):         The kind of index where to search data
-        start_year  (Optional[int]):                       Start year of the period considered for this search
-        end_year    (Optional[int]):                       End year of the period considered for this search
+        municipality_name (str): Name of the municipality
+        parish_name (Optional[str]): Name of the parish
+        act_types (Optional[list[ParishActType]]): The kind of document we are searching for
+        other_types (Optional[list[OtherParishActType]]): Mandatory precision when act_types is OTHER
+        index_types (Optional[list[ParishIndex]]): The kind of index where to search data
+        start_year (Optional[int]): Start year of the period considered for this search
+        end_year (Optional[int]): End year of the period considered for this search
 
     Note: 
         - Providing at least one 'act_types' or 'index_types' in mandatory.
@@ -657,7 +657,7 @@ def genealogy_search_church_registers_prior_to_1796(
     return [GenealogyDocument(**x).simplified() for x in results]
 
 
-@tool
+@tool(parse_docstring=True)
 def genealogy_search_civil_state_registers(
     municipality_name: str,
     act_types:         Optional[list[CivilActType]] =  None,
@@ -669,13 +669,12 @@ def genealogy_search_civil_state_registers(
     """Search genealogic data in the Civil State Registers (after 1796).
 
     Args:
-        municipality_name (str):                          Name of the municipality
-        parish_name (Optional[str]):                      Name of the parish
-        act_types   (Optional[list[CivilActType]]):       The kind of document we are searching for
-        other_types (Optional[list[OtherCivilActType]]):  Mandatory precision when act_types is OTHER
-        index_types (Optional[list[CivilIndex]]):         The kind of index where to search data
-        start_year  (Optional[int]):                      Start year of the period considered for this search
-        end_year    (Optional[int]):                      End year of the period considered for this search
+        municipality_name (str): Name of the municipality
+        act_types (Optional[list[CivilActType]]): The kind of document we are searching for
+        other_types (Optional[list[OtherCivilActType]]): Mandatory precision when act_types is OTHER
+        index_types (Optional[list[CivilIndex]]): The kind of index where to search data
+        start_year (Optional[int]): Start year of the period considered for this search
+        end_year (Optional[int]): End year of the period considered for this search
 
     Note: 
         - Providing at least one 'act_types' or 'index_types' in mandatory.
