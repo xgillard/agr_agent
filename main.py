@@ -19,33 +19,33 @@ help_usr = task(f"""
 """)
 
 def main():
-    response = (help_usr | customer_support).invoke(
-        """
-        MAIL FROM: anne.trucmachin@gmail.com
-        RCPT TO: contact@arch.be
-        SUBJECT: Certificat de bapteme 
-     
-        Je voudrais retrouver le certificat de bapteme de mon fils jean-philippe
-        qui a été baptisé a warneton.
-     
-        Merci d'avance,
-        Anne
-        """,
-    )
     #response = (help_usr | customer_support).invoke(
     #    """
     #    MAIL FROM: anne.trucmachin@gmail.com
     #    RCPT TO: contact@arch.be
-    #    SUBJECT: Je ne m'en sors pas 
+    #    SUBJECT: Certificat de bapteme 
     # 
-    #    Je voudrais retrouver le certificat de décès de mon arrière arrière grand oncle qui est décédé
-    #    à Sterrebeek en 1689 mais je n'ai vraiment aucune idée de la manière dont il faut que je m'y 
-    #    prenne. Pourriez vous m'aider ?
+    #    Je voudrais retrouver le certificat de bapteme de mon fils jean-philippe
+    #    qui a été baptisé a warneton.
     # 
     #    Merci d'avance,
     #    Anne
     #    """,
     #)
+    response = (help_usr | customer_support).invoke(
+        """
+        MAIL FROM: anne.trucmachin@gmail.com
+        RCPT TO: contact@arch.be
+        SUBJECT: Je ne m'en sors pas 
+     
+        Je voudrais retrouver le certificat de décès de mon arrière arrière grand oncle qui est décédé
+        à Sterrebeek en 1689 mais je n'ai vraiment aucune idée de la manière dont il faut que je m'y 
+        prenne. Pourriez vous m'aider ?
+     
+        Merci d'avance,
+        Anne
+        """,
+    )
     ##### ALT #################################
     #response = (help_usr | customer_support).invoke(
     #    """
