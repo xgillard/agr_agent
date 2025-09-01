@@ -2,14 +2,19 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-from agents.customer_support import customer_support
 from agents.common import task
-from langchain_core.output_parsers import StrOutputParser
+from agents.customer_support import customer_support
 
+from datetime import datetime
 
-help_usr = task("""
+TODAY = datetime.today().strftime('%Y-%m-%d')
+
+help_usr = task(f"""
+    Date: {TODAY}
+
     Answer to the following user email with factual information.
     Be kind, use professional tone. 
+    Please note that humans rarely live longer than 100 years.
     Make sure to formulate your final answer in the same language as the user's original email. 
 """)
 
@@ -18,16 +23,29 @@ def main():
         """
         MAIL FROM: anne.trucmachin@gmail.com
         RCPT TO: contact@arch.be
-        SUBJECT: Je ne m'en sors pas 
-    
-        Je voudrais retrouver le certificat de décès de mon arrière arrière grand oncle qui est décédé
-        à Sterrebeek en 1689 mais je n'ai vraiment aucune idée de la manière dont il faut que je m'y 
-        prenne. Pourriez vous m'aider ?
-    
+        SUBJECT: Certificat de bapteme 
+     
+        Je voudrais retrouver le certificat de bapteme de mon fils jean-philippe
+        qui a été baptisé a warneton.
+     
         Merci d'avance,
         Anne
         """,
     )
+    #response = (help_usr | customer_support).invoke(
+    #    """
+    #    MAIL FROM: anne.trucmachin@gmail.com
+    #    RCPT TO: contact@arch.be
+    #    SUBJECT: Je ne m'en sors pas 
+    # 
+    #    Je voudrais retrouver le certificat de décès de mon arrière arrière grand oncle qui est décédé
+    #    à Sterrebeek en 1689 mais je n'ai vraiment aucune idée de la manière dont il faut que je m'y 
+    #    prenne. Pourriez vous m'aider ?
+    # 
+    #    Merci d'avance,
+    #    Anne
+    #    """,
+    #)
     ##### ALT #################################
     #response = (help_usr | customer_support).invoke(
     #    """
@@ -57,7 +75,7 @@ def main():
     #    malik
     #    """,
     #)
-    #response = response["messages"][-1].content.split("[__FINAL_ANSWER__]")[1]
+    response = response["messages"][-1].content.split("[__FINAL_ANSWER__]")[-1]
     print("##" * 80)
     print(response)
 

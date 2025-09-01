@@ -544,7 +544,7 @@ class GenealogyDocument(BaseModel):
         )
 
 ## Definition of the actual tools
-@tool(parse_docstring=True)
+@tool
 def genealogy_search_church_registers_prior_to_1796(
     municipality_name: str,
     parish_name:       Optional[str] = None,
@@ -657,7 +657,7 @@ def genealogy_search_church_registers_prior_to_1796(
     return [GenealogyDocument(**x).simplified() for x in results]
 
 
-@tool(parse_docstring=True)
+@tool
 def genealogy_search_civil_state_registers(
     municipality_name: str,
     act_types:         Optional[list[CivilActType]] =  None,
