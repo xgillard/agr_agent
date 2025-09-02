@@ -10,7 +10,7 @@ from typing import Annotated, Optional
 
 import requests
 from langchain_core.tools import tool
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 from .agatha_common import Municipality
 
@@ -295,6 +295,8 @@ class GenealogySearchResult(BaseModel):
         url (Optional[str]): URL where this document can be consulted (if available)
     """
 
+    model_config = ConfigDict(validate_by_name=True, validate_by_alias=True)
+
     description: Optional[str]
     start_date:  Optional[str]
     end_date:    Optional[str]
@@ -330,6 +332,8 @@ class GenealogyDocument(BaseModel):
         available (Optional[bool]): Is the document available for online consultation
     """
     
+    model_config = ConfigDict(validate_by_name=True, validate_by_alias=True)
+
     bookpart_id:          Annotated[str,           Field(alias="BOOKPART_ID")]
     bookpartplace_id:     Annotated[str,           Field(alias="BOOKPARTPLACE_ID")]
     new_municipalities:   Annotated[Optional[str], Field(alias="NEW_MUNICIPALITIES")] = None

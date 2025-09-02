@@ -8,7 +8,7 @@ from enum import StrEnum
 from typing import Annotated, Literal, Optional, Self, overload
 
 import requests
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 from textdistance import levenshtein
 
 
@@ -58,6 +58,8 @@ class Parish(BaseModel):
         place_name (str): The name of the parish
     """
 
+    model_config = ConfigDict(validate_by_name=True, validate_by_alias=True)
+
     parish_id: Annotated[int, Field(alias="PARISH_ID")]
     place_name:   Annotated[str, Field(alias="PLACE_NAME")]
 
@@ -72,6 +74,8 @@ class Municipality(BaseModel):
         placepoint_id (int): The effective identifier of this municipality
         parishes_id (int | None): If present, the id of the parish in the municipality
     """
+
+    model_config = ConfigDict(validate_by_name=True, validate_by_alias=True)
 
     label: str
     value: str
