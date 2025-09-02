@@ -1,4 +1,8 @@
-"""A tool that implements the knowledge base of agatha porblems."""
+"""Tool to search in the AGATHA help.
+
+Date: 2025-09-01
+Author: X. Gillard
+"""
 
 #import torch
 from pathlib import Path
