@@ -88,8 +88,6 @@ def search_a_person():
 
 
 if __name__ == "__main__":
-    import json
-
     req = AnalysesFreeSearchRequest(
         search_terms="Gillard",
         #location="Wezembeek",
