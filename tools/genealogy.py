@@ -28,8 +28,8 @@ class GenealogySource(StrEnum):
         CIVIL_STATE (str): Civil State for ther records posterior to 1796
     """
     
-    CHURCH_REGISTERS = "CHURCH_REGISTERS"
-    CIVIL_STATE      = "CIVIL_STATE"
+    CHURCH_REGISTERS = "church-registers"
+    CIVIL_STATE      = "civil-state"
     
     @property
     def code(self) -> str:
@@ -58,10 +58,10 @@ class ParishActType(StrEnum):
         OTHER (str): other kind of documents
     """
     
-    BAPTISM = "BAPTISM"
-    WEDDING = "WEDDING"
-    DEATH   = "DEATH"
-    OTHER   = "OTHER"
+    BAPTISM = "baptism"
+    WEDDING = "wedding"
+    DEATH   = "death"
+    OTHER   = "other"
 
     @property
     def code(self) -> str:
@@ -100,13 +100,13 @@ class OtherParishActType(StrEnum):
                 (state of souls), with information about the age of the residents, confirmation, ...)
     """
     
-    MARRIAGE_EXEMPTION  = "MARRIAGE_EXEMPTION"
-    MARRIAGE_IMPEDIMENT = "MARRIAGE_IMPEDIMENT"
-    LIST_OF_COMMUNIANTS = "LIST_OF_COMMUNIANTS"
-    LIST_OF_CONFIRMANDS = "LIST_OF_CONFIRMANDS"
-    LIST_OF_NAMES       = "LIST_OF_NAMES"
-    MEMORY_MASSES       = "MEMORY_MASSES"
-    STATUS_ANIMARUM     = "STATUS_ANIMARUM"
+    MARRIAGE_EXEMPTION  = "marriage-exemption"
+    MARRIAGE_IMPEDIMENT = "marriage-impediment"
+    LIST_OF_COMMUNIANTS = "list-of-communiants"
+    LIST_OF_CONFIRMANDS = "list-of-confirmands"
+    LIST_OF_NAMES       = "list-of-names"
+    MEMORY_MASSES       = "memory-masses"
+    STATUS_ANIMARUM     = "status-animarum"
 
     @property
     def code(self) -> str:
@@ -142,9 +142,9 @@ class ParishIndex(StrEnum):
         DEATH (str): Death / funeral certificates
     """
     
-    BAPTISM = "BAPTISM"
-    WEDDING = "WEDDING" 
-    DEATH   = "DEATH"
+    BAPTISM = "baptism"
+    WEDDING = "wedding" 
+    DEATH   = "death"
 
     @property
     def code(self) -> str:
@@ -174,10 +174,10 @@ class CivilActType(StrEnum):
         OTHER (str): Other kind of documents
     """
     
-    BIRTH   = "BIRTH"
-    WEDDING = "WEDDING"
-    DEATH   = "DEATH"
-    OTHER   = "OTHER"
+    BIRTH   = "birth"
+    WEDDING = "wedding"
+    DEATH   = "death"
+    OTHER   = "other"
 
     @property
     def code(self) -> str:
@@ -213,11 +213,11 @@ class OtherCivilActType(StrEnum):
             ationality to a person). 
     """
     
-    ADDITIONAL_REGISTER = "ADDITIONAL_REGISTER"
-    ADOPTION            = "ADOPTION"
-    DEATH_ANNEXES       = "DEATH_ANNEXES"
-    DIVORCE             = "DIVORCE"
-    NATURALISATION      = "NATURALISATION"
+    ADDITIONAL_REGISTER = "additional-register"
+    ADOPTION            = "adoption"
+    DEATH_ANNEXES       = "death-annexes"
+    DIVORCE             = "divorce"
+    NATURALISATION      = "naturalization"
 
     @property
     def code(self) -> str:
@@ -251,12 +251,12 @@ class CivilIndex(StrEnum):
         DECENNAL_INDEX_OF_NATURALISATION (str): Ten-year index of naturalisation certificates
     """
     
-    ANNUAL_INDEX_OF_DIVORCE             = "ANNUAL_INDEX_OF_DIVORCE"
-    ANNUAL_INDEX_OF_NATURALISATION      = "ANNUAL_INDEX_OF_NATURALISATION"
-    ANNUAL_INDEX_OF_ADDITIONAL_REGISTER = "ANNUAL_INDEX_OF_ADDITIONAL_REGISTER"
-    DECENNAL_INDEX_OF_ADOPTION          = "DECENNAL_INDEX_OF_ADOPTION"
-    DECENNAL_INDEX_OF_DIVORCE           = "DECENNAL_INDEX_OF_DIVORCE"
-    DECENNAL_INDEX_OF_NATURALISATION    = "DECENNAL_INDEX_OF_NATURALISATION"
+    ANNUAL_INDEX_OF_DIVORCE             = "annual-index-of-divorce"
+    ANNUAL_INDEX_OF_NATURALISATION      = "annual-index-of-naturalisation"
+    ANNUAL_INDEX_OF_ADDITIONAL_REGISTER = "annual-index-of-additional-register"
+    DECENNAL_INDEX_OF_ADOPTION          = "decennal-index-of-adoption"
+    DECENNAL_INDEX_OF_DIVORCE           = "decennal-index-of-divorce"
+    DECENNAL_INDEX_OF_NATURALISATION    = "decennal-index-of-naturalisation"
 
     @property
     def code(self) -> str:
