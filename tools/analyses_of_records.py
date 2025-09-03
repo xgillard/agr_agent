@@ -74,7 +74,7 @@ def free_search_in_records(req: AnalysesFreeSearchRequest, ajax: str):
     results = requests.post(AJAX_URL, 
                       data = {
                           "method": "getResults", 
-                          "pageSize": 20, 
+                          "pageSize": 2, 
                           "pageNumber": 1,
                       },
                       cookies = cookies)
@@ -92,9 +92,6 @@ if __name__ == "__main__":
         search_terms="Gillard",
         #location="Wezembeek",
     )
-    print(str(req))
 
-    #rsp = free_search_in_records(req, ajax=AJAX_URL)
-    #print(
-    #    json.dumps(rsp, indent=4)
-    #)
+    rsp = free_search_in_records(req, ajax=AJAX_URL)
+    print(rsp)
