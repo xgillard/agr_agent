@@ -120,20 +120,18 @@ class Municipality(BaseModel):
 
         Example:
             >>> ajax = "https://agatha.arch.be/search/genealogie/ajax.php"
+
             # the name need not be a full match
             >>> Municipality.by_name("sterre", ajax=ajax)
             [Municipality(label='Sterrebeek (Zaventem)', ...)]
             
             # it can return multiple matches
             >>> result = Municipality.by_name("zaventem", ajax=ajax)
-            >>> sorted(result, key=lambda x: x.label)
-            [Municipality(label='Nossegem (Zaventem)', ...,
-             Municipality(label='Sint-Stevens-Woluwe (Zaventem)', ...),
-             Municipality(label='Sterrebeek (Zaventem)', ...),
-             Municipality(label='Zaventem', ...),]
+            >>> [m.label for m in sorted(result, key=lambda x: x.label)]
+            ['Nossegem (Zaventem)', 'Sint-Stevens-Woluwe (Zaventem)', 'Sterrebeek (Zaventem)', 'Zaventem']
 
             # there can be zero matches if the search term corresponds to nothing
-            >>> result = Municipality.by_name("nondidju", ajax=ajax)
+            >>> Municipality.by_name("nondidju", ajax=ajax)
             []
 
             # When the return_single_best_match flag is set, it returns only one municipality
@@ -148,7 +146,7 @@ class Municipality(BaseModel):
             # When the return_single_best_match flag is set and there is no match
             # corresponding to the search term, then the method will return None
             >>> Municipality.by_name("nondidju", ajax=ajax, return_single_best_match=True)
-            None
+            
         """
         
         r = requests.post(ajax, data = {
@@ -172,6 +170,7 @@ class Municipality(BaseModel):
 
         Examples:
             >>> ajax = "https://agatha.arch.be/search/genealogie/ajax.php"
+
             # There can be one result
             >>> Municipality.by_name("sterre", ajax=ajax, return_single_best_match=True).parishes(ajax)
             [Parish(...)]

@@ -1,8 +1,7 @@
 name: Mypy checks
 on: [push, pull_request]
 jobs:
-  uv-example:
-    name: python
+  run-mypy:
     runs-on: ubuntu-latest
 
     steps:

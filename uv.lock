@@ -1,5 +1,5 @@
 version = 1
-revision = 2
+revision = 3
 requires-python = ">=3.13"
 resolution-markers = [
     "(python_full_version >= '3.14' and sys_platform == 'linux') or (python_full_version >= '3.14' and sys_platform == 'win32')",
@@ -68,9 +68,11 @@ dependencies = [
 
 [package.dev-dependencies]
 dev = [
+    { name = "behave" },
     { name = "jupyter-lsp" },
     { name = "matplotlib" },
     { name = "mypy" },
+    { name = "pytest" },
     { name = "python-lsp-server" },
     { name = "ruff" },
     { name = "types-requests" },
@@ -103,9 +105,11 @@ requires-dist = [
 
 [package.metadata.requires-dev]
 dev = [
+    { name = "behave", specifier = ">=1.3.2" },
     { name = "jupyter-lsp", specifier = ">=2.3.0" },
     { name = "matplotlib", specifier = ">=3.10.5" },
     { name = "mypy", specifier = ">=1.17.1" },
+    { name = "pytest", specifier = ">=8.4.1" },
     { name = "python-lsp-server", specifier = ">=1.13.1" },
     { name = "ruff", specifier = ">=0.12.11" },
     { name = "types-requests", specifier = ">=2.32.4.20250809" },
@@ -317,6 +321,23 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/d8/e4/0c4c39e18fd76d6a628d4dd8da40543d136ce2d1752bd6eeeab0791f4d6b/beautifulsoup4-4.13.4.tar.gz", hash = "sha256:dbb3c4e1ceae6aefebdaf2423247260cd062430a410e38c66f2baa50a8437195", size = 621067, upload-time = "2025-04-15T17:05:13.836Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/50/cd/30110dc0ffcf3b131156077b90e9f60ed75711223f306da4db08eff8403b/beautifulsoup4-4.13.4-py3-none-any.whl", hash = "sha256:9bbbb14bfde9d79f38b8cd5f8c7c85f4b8f2523190ebed90e950a8dea4cb1c4b", size = 187285, upload-time = "2025-04-15T17:05:12.221Z" },
+]
+
+[[package]]
+name = "behave"
+version = "1.3.2"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "colorama" },
+    { name = "cucumber-expressions" },
+    { name = "cucumber-tag-expressions" },
+    { name = "parse" },
+    { name = "parse-type" },
+    { name = "six" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/1d/78/80eb78386127e22470d2fb831b9105d8decce756851b8970a48dc33a033f/behave-1.3.2.tar.gz", hash = "sha256:a1ef97c9e05ca4c19e60302d07ee1092480d2632c2e96abb30bb69a08b1681fb", size = 889462, upload-time = "2025-08-29T21:30:47.72Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/0d/8b/35fc1456c1056fcf0a1378eda289775e1ff8842d7ce5ff372954aecbca48/behave-1.3.2-py2.py3-none-any.whl", hash = "sha256:c602d34a7050a19d2281ab86bbc64086308fd187aac94bc1cbc1eca255225e7a", size = 223205, upload-time = "2025-08-29T21:30:45.748Z" },
 ]
 
 [[package]]
@@ -569,6 +590,24 @@ wheels = [
     { url = "https://files.pythonhosted.org/packages/93/8a/68a4ec5c55a2971213d29a9374913f7e9f18581945a7a31d1a39b5d2dfe5/contourpy-1.3.3-cp314-cp314t-win32.whl", hash = "sha256:e74a9a0f5e3fff48fb5a7f2fd2b9b70a3fe014a67522f79b7cca4c0c7e43c9ae", size = 202428, upload-time = "2025-07-26T12:02:48.691Z" },
     { url = "https://files.pythonhosted.org/packages/fa/96/fd9f641ffedc4fa3ace923af73b9d07e869496c9cc7a459103e6e978992f/contourpy-1.3.3-cp314-cp314t-win_amd64.whl", hash = "sha256:13b68d6a62db8eafaebb8039218921399baf6e47bf85006fd8529f2a08ef33fc", size = 250331, upload-time = "2025-07-26T12:02:50.137Z" },
     { url = "https://files.pythonhosted.org/packages/ae/8c/469afb6465b853afff216f9528ffda78a915ff880ed58813ba4faf4ba0b6/contourpy-1.3.3-cp314-cp314t-win_arm64.whl", hash = "sha256:b7448cb5a725bb1e35ce88771b86fba35ef418952474492cf7c764059933ff8b", size = 203831, upload-time = "2025-07-26T12:02:51.449Z" },
+]
+
+[[package]]
+name = "cucumber-expressions"
+version = "18.0.1"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/c6/7d/f4e231167b23b3d7348aa1c90117ce8854fae186d6984ad66d705df24061/cucumber_expressions-18.0.1.tar.gz", hash = "sha256:86ce41bf28ee520408416f38022e5a083d815edf04a0bd1dae46d474ca597c60", size = 22232, upload-time = "2024-10-28T11:38:48.672Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/80/e0/31ce90dad5234c3d52432bfce7562aa11cda4848aea90936a4be6c67d7ab/cucumber_expressions-18.0.1-py3-none-any.whl", hash = "sha256:86230d503cdda7ef35a1f2072a882d7d57c740aa4c163c82b07f039b6bc60c42", size = 20211, upload-time = "2024-10-28T11:38:47.101Z" },
+]
+
+[[package]]
+name = "cucumber-tag-expressions"
+version = "6.2.0"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/a2/81/32a2dc51c0720b34f642a6e79da6d89525c1eafd8902798026c233201f6f/cucumber_tag_expressions-6.2.0.tar.gz", hash = "sha256:b60aa2cdbf9ac43e28d9b0e4fd49edf9f09d5d941257d2912f5228f9d166c023", size = 41459, upload-time = "2025-05-25T12:30:43.25Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/30/99/0e9ac5b8429f39a05de5cd4731eac57738ce030dcd852aefe36a7102a4ce/cucumber_tag_expressions-6.2.0-py2.py3-none-any.whl", hash = "sha256:f94404b656831c56a3815da5305ac097003884d2ae64fa51f5f4fad82d97e583", size = 9333, upload-time = "2025-05-25T12:30:41.408Z" },
 ]
 
 [[package]]
@@ -1141,6 +1180,15 @@ source = { registry = "https://pypi.org/simple" }
 sdist = { url = "https://files.pythonhosted.org/packages/cf/8c/f834fbf984f691b4f7ff60f50b514cc3de5cc08abfc3295564dd89c5e2e7/importlib_resources-6.5.2.tar.gz", hash = "sha256:185f87adef5bcc288449d98fb4fba07cea78bc036455dd44c5fc4a2fe78fed2c", size = 44693, upload-time = "2025-01-03T18:51:56.698Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/a4/ed/1f1afb2e9e7f38a545d628f864d562a5ae64fe6f7a10e28ffb9b185b4e89/importlib_resources-6.5.2-py3-none-any.whl", hash = "sha256:789cfdc3ed28c78b67a06acb8126751ced69a3d5f79c095a98298cd8a760ccec", size = 37461, upload-time = "2025-01-03T18:51:54.306Z" },
+]
+
+[[package]]
+name = "iniconfig"
+version = "2.1.0"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/f2/97/ebf4da567aa6827c909642694d71c9fcf53e5b504f2d96afea02718862f3/iniconfig-2.1.0.tar.gz", hash = "sha256:3abbd2e30b36733fee78f9c7f7308f2d0050e88f0087fd25c2645f63c773e1c7", size = 4793, upload-time = "2025-03-19T20:09:59.721Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/2c/e1/e6716421ea10d38022b952c159d5161ca1193197fb744506875fbb87ea7b/iniconfig-2.1.0-py3-none-any.whl", hash = "sha256:9deba5723312380e77435581c6bf4935c94cbfab9b1ed33ef8d238ea168eb760", size = 6050, upload-time = "2025-03-19T20:10:01.071Z" },
 ]
 
 [[package]]
@@ -2630,6 +2678,28 @@ wheels = [
 ]
 
 [[package]]
+name = "parse"
+version = "1.20.2"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/4f/78/d9b09ba24bb36ef8b83b71be547e118d46214735b6dfb39e4bfde0e9b9dd/parse-1.20.2.tar.gz", hash = "sha256:b41d604d16503c79d81af5165155c0b20f6c8d6c559efa66b4b695c3e5a0a0ce", size = 29391, upload-time = "2024-06-11T04:41:57.34Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/d0/31/ba45bf0b2aa7898d81cbbfac0e88c267befb59ad91a19e36e1bc5578ddb1/parse-1.20.2-py2.py3-none-any.whl", hash = "sha256:967095588cb802add9177d0c0b6133b5ba33b1ea9007ca800e526f42a85af558", size = 20126, upload-time = "2024-06-11T04:41:55.057Z" },
+]
+
+[[package]]
+name = "parse-type"
+version = "0.6.6"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "parse" },
+    { name = "six" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/19/ea/42ba6ce0abba04ab6e0b997dcb9b528a4661b62af1fe1b0d498120d5ea78/parse_type-0.6.6.tar.gz", hash = "sha256:513a3784104839770d690e04339a8b4d33439fcd5dd99f2e4580f9fc1097bfb2", size = 98012, upload-time = "2025-08-11T22:53:48.066Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/85/8d/eef3d8cdccc32abdd91b1286884c99b8c3a6d3b135affcc2a7a0f383bb32/parse_type-0.6.6-py2.py3-none-any.whl", hash = "sha256:3ca79bbe71e170dfccc8ec6c341edfd1c2a0fc1e5cfd18330f93af938de2348c", size = 27085, upload-time = "2025-08-11T22:53:46.396Z" },
+]
+
+[[package]]
 name = "parso"
 version = "0.8.5"
 source = { registry = "https://pypi.org/simple" }
@@ -3103,6 +3173,22 @@ dependencies = [
     { name = "setuptools" },
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/6d/f5/59f3375b12172651c02615ed54b9ca8e5ca7cbf6d89a8506a5daec4ed813/pysolr-3.10.0.tar.gz", hash = "sha256:127b4a2dd169234acb1586643a6cd1e3e94b917921e69bf569d7b2a2aa0ef409", size = 59110, upload-time = "2024-09-18T22:49:01.395Z" }
+
+[[package]]
+name = "pytest"
+version = "8.4.1"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "colorama", marker = "sys_platform == 'win32'" },
+    { name = "iniconfig" },
+    { name = "packaging" },
+    { name = "pluggy" },
+    { name = "pygments" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/08/ba/45911d754e8eba3d5a841a5ce61a65a685ff1798421ac054f85aa8747dfb/pytest-8.4.1.tar.gz", hash = "sha256:7c67fd69174877359ed9371ec3af8a3d2b04741818c51e5e99cc1742251fa93c", size = 1517714, upload-time = "2025-06-18T05:48:06.109Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/29/16/c8a903f4c4dffe7a12843191437d7cd8e32751d5de349d45d3fe69544e87/pytest-8.4.1-py3-none-any.whl", hash = "sha256:539c70ba6fcead8e78eebbf1115e8b589e7565830d7d006a8723f19ac8a0afb7", size = 365474, upload-time = "2025-06-18T05:48:03.955Z" },
+]
 
 [[package]]
 name = "python-bidi"

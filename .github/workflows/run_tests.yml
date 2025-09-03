@@ -1,0 +1,25 @@
+name: Run tests
+on: [push, pull_request]
+jobs:
+  run-tests:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: "Set up Python"
+        uses: actions/setup-python@v5
+        with:
+          python-version-file: "pyproject.toml"
+
+      - name: "Install uv"
+        uses: astral-sh/setup-uv@v6
+
+      - name: "Install mypy and dependencies"
+        run: uv sync
+
+      - name: "Run test"
+        run: uv run pytest .
+      
+      # I have not setup any BDD tests yet with behave.
+

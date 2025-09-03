@@ -20,7 +20,8 @@ _knowledge = agatha_knowledge()
 def manually_activate_user_account(user_email: str) -> bool:
     """Manually activate a user's account.
     
-    Returns True upon success, False otherwise.
+    Returns:
+        bool: True upon success, False otherwise.
     """
     print(f"Activation du compte de {user_email}")
     return True
@@ -41,51 +42,11 @@ customer_support = agent(
         You have been collaborating with the IT during the launch
         of AGATHA, the new gateway to search the Belgian State Archives.""",
     tools = available_tools,
-    # === QWEN3 ==============
-    #model = init_chat_model(
-    #    'qwen3:8b', 
-    #    model_provider="ollama",
-    #    temperature = 0.01,
-    #),
-    #model = init_chat_model(
-    #    'qwen3:14b', 
-    #    model_provider="ollama",
-    #    temperature = 0.01,
-    #),
-    #model = init_chat_model(
-    #    'qwen3:30b', 
-    #    model_provider="ollama",
-    #    temperature = 0.01,
-    #),
-    # === LLAMA3 ==============
-    #model = init_chat_model(
-    #    'llama3.1:8b', 
-    #    model_provider="ollama",
-    #    temperature = 0.01,
-    #),
-    #model = init_chat_model(
-    #    'llama3.2:latest', 
-    #    model_provider="ollama",
-    #    temperature = 0.01,
-    #    
-    #),
-    # === MISTRAL =============
-    #model = init_chat_model(
-    #    'mistral-nemo', 
-    #    model_provider="ollama",
-    #    temperature = 0.01,
-    #),
-    # === GEMINI ==============
     model = init_chat_model(
         'gemini-2.5-flash', 
         model_provider="google_genai",
         temperature = 0.2,
     ),
-    #model = init_chat_model(
-    #    'gemini-2.5-pro', 
-    #    model_provider="google_genai",
-    #    temperature = 0.2,
-    #),
     debug = True,
 )
 
