@@ -61,7 +61,7 @@ class Parish(BaseModel):
     model_config = ConfigDict(validate_by_name=True, validate_by_alias=True)
 
     parish_id: Annotated[int, Field(alias="PARISH_ID")]
-    place_name:   Annotated[str, Field(alias="PLACE_NAME")]
+    place_name: Annotated[str, Field(alias="PLACE_NAME")]
 
 
 class Municipality(BaseModel):
@@ -117,6 +117,9 @@ class Municipality(BaseModel):
             list[Self] | Optional[Self]: 
                 - A list of municipality matching the given name (when `return_single_best_match` is False).
                 - A single `Municipality` object or `None` when `return_single_best_match` is True.
+        
+        Raises:
+            requests.exceptions.RequestException: whenever something goes wrong with the search on agatha.
 
         Example:
             >>> ajax = "https://agatha.arch.be/search/genealogie/ajax.php"
@@ -167,6 +170,9 @@ class Municipality(BaseModel):
 
         Returns:
             list[Parish]: the list of known parishes in this municipality.
+        
+        Raises:
+            requests.exceptions.RequestException: whenever something goes wrong with the search on agatha.
 
         Examples:
             >>> ajax = "https://agatha.arch.be/search/genealogie/ajax.php"
@@ -186,3 +192,62 @@ class Municipality(BaseModel):
         })
         return [ Parish(**x) for x in r.json() ]
 
+class Job(BaseModel):
+    """Someone's profession.
+    
+    Attributes:
+        id (int): The identifier of the profession that has been retrieved
+        label (str): A string representation of this job (user facing)
+        value (str): A string representation of this job
+    """
+
+    model_config = ConfigDict(validate_by_name=True, validate_by_alias=True)
+
+    id: Annotated[int, Field(alias="ID")]
+    label: str
+    value: str
+
+    @classmethod
+    def by_name(cls, name: str, ajax: str) -> Self:
+        """Find the job matching the given name.
+        
+        Arguments:
+            name (str): The name of the municipality we'd like to retrieve.
+            ajax (str): The url of the ajax service to use to perform the lookup on AGATHA.
+
+        Returns:
+            Self: a job corresponding to the given name.
+
+        Raises:
+            requests.exceptions.RequestException: whenever something goes wrong with the search on agatha.
+        
+        Example:
+            >>> ajax = "https://agatha.arch.be/search/analyses/ajax.php"
+
+            # the name need not be a full match
+            >>> Job.by_name("paint", ajax=ajax)
+            Job(id=630, label="painter", value="painter")
+        """
+
+        response = requests.post(
+            url  = ajax, 
+            data = {
+                "method": "getJobs",
+                "term": name,
+            })
+        results = [ cls(**x) for x in response.json()]
+        if results:
+            distance = [ levenshtein(name, x.label) for x in results ]
+            argmin, dmin = min(enumerate(distance), key=lambda x: x[1])
+            #
+            if dmin >= 5:
+                return cls(id=-1, label=name, value=name)
+            else:
+                return results[argmin]
+        else:
+            return cls(id=-1, label=name, value=name)
+
+
+if __name__ == '__main__':
+    ajax = "https://agatha.arch.be/search/analyses/ajax.php"
+    print(Job.by_name("paint", ajax=ajax))

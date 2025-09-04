@@ -455,34 +455,34 @@ def genealogy_search_church_registers_prior_to_1796(
         requests.exceptions.RequestException: whenever something goes wrong with the search on agatha.
 
     Examples:
-      # There can be one result
-      >>> genealogy_search_church_registers_prior_to_1796(
-      >>>     municipality_name = "sterrebeek",
-      >>>     act_types         = [ParishActType.DEATH],
-      >>>     start_year        = 1795,
-      >>> )
-      [GenealogySearchResult(
-          description='Funeral and death certificates', 
-          start_date='01/01/1793', 
-          end_date='31/12/1796', 
-          ...),
-      ]
-
-      # or there can be many
-      >>> res = genealogy_search_church_registers_prior_to_1796(
-      >>>     municipality_name = "sterrebeek",
-      >>>     act_types         = [ParishActType.BAPTISM],
-      >>>     start_year        = 1790,
-      >>> )
-      >>> sorted(res, key=lambda x: x.start_date)
-      [
-        GenealogySearchResult(start_date='02/01/1791', end_date='17/12/1791', ...), 
-        GenealogySearchResult(start_date='02/01/1793', end_date='18/12/1793', ...), 
-        GenealogySearchResult(start_date='05/01/1790', end_date='22/12/1790', ...), 
-        GenealogySearchResult(start_date='16/01/1796', end_date='12/12/1796', ...), 
-        GenealogySearchResult(start_date='18/01/1792', end_date='23/12/1792', ...), 
-        GenealogySearchResult(start_date='29/01/1778', end_date='08/10/1796', ...), 
-      ]
+        # There can be one result
+        >>> genealogy_search_church_registers_prior_to_1796(
+        >>>     municipality_name = "sterrebeek",
+        >>>     act_types         = [ParishActType.DEATH],
+        >>>     start_year        = 1795,
+        >>> )
+        [GenealogySearchResult(
+            description='Funeral and death certificates', 
+            start_date='01/01/1793', 
+            end_date='31/12/1796', 
+            ...),
+        ]
+  
+        # or there can be many
+        >>> res = genealogy_search_church_registers_prior_to_1796(
+        >>>     municipality_name = "sterrebeek",
+        >>>     act_types         = [ParishActType.BAPTISM],
+        >>>     start_year        = 1790,
+        >>> )
+        >>> sorted(res, key=lambda x: x.start_date)
+        [
+          GenealogySearchResult(start_date='02/01/1791', end_date='17/12/1791', ...), 
+          GenealogySearchResult(start_date='02/01/1793', end_date='18/12/1793', ...), 
+          GenealogySearchResult(start_date='05/01/1790', end_date='22/12/1790', ...), 
+          GenealogySearchResult(start_date='16/01/1796', end_date='12/12/1796', ...), 
+          GenealogySearchResult(start_date='18/01/1792', end_date='23/12/1792', ...), 
+          GenealogySearchResult(start_date='29/01/1778', end_date='08/10/1796', ...), 
+        ]
 
     """
     municipality = Municipality.by_name(municipality_name, AJAX_URL, return_single_best_match=True)
