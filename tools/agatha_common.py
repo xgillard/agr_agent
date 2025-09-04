@@ -226,7 +226,7 @@ class Job(BaseModel):
 
             # the name need not be a full match
             >>> Job.by_name("paint", ajax=ajax)
-            Job(id=630, label="painter", value="painter")
+            Job(id=630, label='painter', value='painter')
         """
 
         response = requests.post(

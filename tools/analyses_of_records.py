@@ -26,7 +26,7 @@ def _clean(x: str|None) -> str|None:
         Args:
             x (str|None): the value we wish to clean
         
-        Return: 
+        Returns: 
             str|None:
                 - the same value as x when x is different from 'NN'
                 - None whenever x is None or x == 'NN'
@@ -323,7 +323,7 @@ def free_search_in_analyses_of_records(req: AnalysesFreeSearchRequest) -> Simpli
     and civil status registers. But the search engine also allows access to analyses of notarial deeds,building permits,
     property records, militia registers, foreigners' files, etc.
 
-    Arguments: 
+    Args: 
         req (AnalysesFreeSearchRequest): request object comprising all the search criterion to perform a free search
             in the analyses of records
 
@@ -460,7 +460,6 @@ class AnalysesSearchPersonRequest(BaseModel):
 
     Attributes:
         persons (str | None): The list of persons you wish to find in the act you are searching for.
-            
         location (str | None): In most cases, the municipality where the document was created or a municipality 
             linked to a person (e.g. place of birth or death).
 
@@ -507,11 +506,11 @@ def search_person_in_analyses_of_records(req: AnalysesSearchPersonRequest) -> No
     The more precise the search criteria, the more relevant the results! 
     BUT... The more search criteria you use,the less likely you are to get results!
 
-    Arguments: 
+    Args: 
         req (AnalysesFreeSearchRequest): request object comprising all the search criterion to perform a free search
             in the analyses of records
 
-    Return:
+    Returns:
         SimplifiedAnalysesSearchResponse: a response comprising the total number of identified matches corresponding
             to the given search criteria as well as the (up to 20 first) records that have been found.
     
@@ -521,5 +520,8 @@ def search_person_in_analyses_of_records(req: AnalysesSearchPersonRequest) -> No
 
     # TODO
     ...
+
+
+
 
 

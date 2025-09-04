@@ -58,5 +58,5 @@ exclude = ["./corpus"]
 convention = "google"
 
 [tool.pytest.ini_options]
-addopts = "--doctest-modules --ignore=main.py --ignore=agents/customer_support.py"
+addopts = "--doctest-modules --ignore=.ipynb_checkpoints/ --ignore=main.py --ignore=agents/customer_support.py"
 norecursedirs = "venv .venv"
