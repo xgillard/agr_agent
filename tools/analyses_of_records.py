@@ -492,6 +492,7 @@ class AnalysesSearchPersonRequest(BaseModel):
     project:      Annotated[AnalysesProject | None, Field(alias="PROJECT_ID")] = None
 
 
+@tool(parse_docstring=True)
 def search_person_in_analyses_of_records(req: AnalysesSearchPersonRequest) -> SimplifiedAnalysesSearchResponse:
     """Find documents about a person using their last name and/or first name in the specific fields provided. 
 
@@ -561,15 +562,3 @@ def search_person_in_analyses_of_records(req: AnalysesSearchPersonRequest) -> Si
     
     return AnalysesSearchResponse(**(results.json()["response"])).simplified
 
-
-if __name__ == "__main__":
-
-    crit = AnalysesSearchPersonRequest(
-        persons=[
-            PersonCriterion(name="Rubens", profession="painter", role=AnalysesActRole.WITNESS),
-            PersonCriterion(name="Breugel", profession="painter", role=AnalysesActRole.WITNESS),
-            
-        ]
-    )
-
-    print(search_person_in_analyses_of_records(crit).model_dump_json(indent=4))
