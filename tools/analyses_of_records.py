@@ -11,7 +11,7 @@ import requests
 from langchain_core.tools import tool
 from pydantic import BaseModel, ConfigDict, Field
 
-from .agatha_common import Municipality, PeriodSelector
+from .agatha_common import Job, Municipality, PeriodSelector
 from .generated import AnalysesActRole, AnalysesActType, AnalysesProject
 
 ## Constants
@@ -288,23 +288,23 @@ class AnalysesSearchResponse(BaseModel):
     """A raw search response from the call to agatha.
     
     Attributes:
-        numFound (int): the number of results corresponding to the search request
+        numFound (int | None): the number of results corresponding to the search request
         start (int): offset of the 1st document in the complete list of possible results
-        docs (list[AnalysesSearchResponseDocument]): the list of actual documents that
+        docs (list[AnalysesSearchResponseDocument] | None): the list of actual documents that
             matched with the user's search request.
     """
 
-    numFound: int
-    start: int
-    docs: list[AnalysesSearchResponseDocument]
+    numFound: int | None = None
+    start: int | None = None
+    docs: list[AnalysesSearchResponseDocument] | None = None
 
     @cached_property
     def simplified(self) -> SimplifiedAnalysesSearchResponse:
         """Return a simplfied representation of this search response."""
 
         return SimplifiedAnalysesSearchResponse(
-            nb_matches_total = self.numFound,
-            docs = [ d.act for d in self.docs ]
+            nb_matches_total = self.numFound if self.numFound else 0,
+            docs = [ d.act for d in self.docs ] if self.docs is not None else []
         )
 
 @tool(parse_docstring=True)
@@ -492,7 +492,7 @@ class AnalysesSearchPersonRequest(BaseModel):
     project:      Annotated[AnalysesProject | None, Field(alias="PROJECT_ID")] = None
 
 
-def search_person_in_analyses_of_records(req: AnalysesSearchPersonRequest) -> None:
+def search_person_in_analyses_of_records(req: AnalysesSearchPersonRequest) -> SimplifiedAnalysesSearchResponse:
     """Find documents about a person using their last name and/or first name in the specific fields provided. 
 
     Note:
@@ -518,10 +518,58 @@ def search_person_in_analyses_of_records(req: AnalysesSearchPersonRequest) -> No
         requests.exceptions.RequestException: whenever something goes wrong with the search on agatha.
     """
 
-    # TODO
-    ...
+    data = req.model_dump(by_alias=True, exclude_none=True)
+
+    if req.location:
+        location = Municipality.by_name(
+            req.location, 
+            ajax=AJAX_URL, 
+            return_single_best_match=True
+        )
+
+        if location is not None:
+            data["ALL_PLACES"] = location.value
+    
+    for i, pers in enumerate(req.persons, start=1):
+        suffix = f"_{i}" if i > 1 else ""
+        pers_dict = pers.model_dump(by_alias=True, exclude_none=True)
+        if pers_dict["JOB"]:
+            job = Job.by_name(pers_dict["JOB"], ajax=AJAX_URL)
+            pers_dict["JOB"] = job.value
+            pers_dict["JOB_ID"] = job.id
+        if pers_dict["ROLE"]:
+            pers_dict["ROLE"] = pers_dict["ROLE"].code
+        pers_data = { f"{k}{suffix}": v for k,v in pers_dict.items() }
+        data.update(**pers_data)
+
+    if data["persons"]:
+        del data["persons"]
+
+    data["CHOOSE_DATE_PERIODE"] = req.period.code
+    data["WHICH_TAB"] = "PERS"
+    ##
+    search  = requests.post(FORM_URL, data = data)
+    cookies = dict(search.cookies)
+    ## fetch results
+    results = requests.post(AJAX_URL, 
+                      data = {
+                          "method": "getResults", 
+                          "pageSize": 20, 
+                          "pageNumber": 1,
+                      },
+                      cookies = cookies)
+    
+    return AnalysesSearchResponse(**(results.json()["response"])).simplified
 
 
+if __name__ == "__main__":
 
+    crit = AnalysesSearchPersonRequest(
+        persons=[
+            PersonCriterion(name="Rubens", profession="painter", role=AnalysesActRole.WITNESS),
+            PersonCriterion(name="Breugel", profession="painter", role=AnalysesActRole.WITNESS),
+            
+        ]
+    )
 
-
+    print(search_person_in_analyses_of_records(crit).model_dump_json(indent=4))
