@@ -262,7 +262,7 @@ class AnalysesFreeSearchRequest(BaseModel):
 
     search_terms: Annotated[str | None, Field(alias="SHORT_ALL_TEXTS")] = None
     location:     Annotated[str | None, Field(alias="ALL_PLACES")] = None
-    period:       Annotated[PeriodSelector, Field(alias="CHOOSE_DATE_PERIODE")] = PeriodSelector.BETWEEN
+    period:       Annotated[Optional[PeriodSelector], Field(alias="CHOOSE_DATE_PERIODE")] = None
     start_date:   Annotated[str | None, Field(alias="exactYear")] = None
     end_date:     Annotated[str | None, Field(alias="SHOW_PERIODE")] = None
     act_type:     Annotated[AnalysesActType | None, Field(alias="ACTTYPE")] = None
@@ -307,8 +307,7 @@ class AnalysesSearchResponse(BaseModel):
             docs = [ d.act for d in self.docs ] if self.docs is not None else []
         )
 
-@tool(parse_docstring=True)
-def free_search_in_analyses_of_records(req: AnalysesFreeSearchRequest) -> SimplifiedAnalysesSearchResponse:
+def __free_search_in_analyses_of_records(req: AnalysesFreeSearchRequest) -> SimplifiedAnalysesSearchResponse:
     """This is the way to perform a general search in the analyses of records. 
 
     Note: 
@@ -334,6 +333,8 @@ def free_search_in_analyses_of_records(req: AnalysesFreeSearchRequest) -> Simpli
     Raises:
         requests.exceptions.RequestException: whenever something goes wrong with the search on agatha.
     """
+
+    req.period = req.period if req.period is not None else PeriodSelector.BETWEEN
     data = req.model_dump(by_alias=True, exclude_none=True)
 
     if req.location:
@@ -346,6 +347,12 @@ def free_search_in_analyses_of_records(req: AnalysesFreeSearchRequest) -> Simpli
         if location is not None:
             data["ALL_PLACES"] = location.value
     
+    if "ACTTYPE" in data and data["ACTTYPE"]:
+        data["ACTTYPE"] = data["ACTTYPE"].code
+
+    if "PROJECT_ID" in data and data["PROJECT_ID"]:
+        data["PROJECT_ID"] = data["PROJECT_ID"].code
+
     data["CHOOSE_DATE_PERIODE"] = req.period.code
     data["WHICH_TAB"] = "FREE"
     ##
@@ -362,6 +369,131 @@ def free_search_in_analyses_of_records(req: AnalysesFreeSearchRequest) -> Simpli
 
     return AnalysesSearchResponse(**(results.json()["response"])).simplified
 
+@tool(
+    parse_docstring=True,
+    description=
+    f"""This is the way to perform a general search in the analyses of records. 
+
+    The Analyses of records search engine is the result of decades of work by our numerous volunteers and thestaff 
+    of the State Archives. Thousands of pages of archives have been systematically analysed to provide asuccinct 
+    description of the document (content, date, place). In addition, the names of all the people mentionedin the 
+    document were noted, and if possible other data such as place of residence, profession, date of birth,etc.
+
+    Most of the information available via the search engine comes from genealogical documents, such as church registers 
+    and civil status registers. But the search engine also allows access to analyses of notarial deeds,building permits,
+    property records, militia registers, foreigners' files, etc.
+
+    Args: 
+        search_terms (str | None): Keyword(s) to define the search: e.g. person, building, object, place, etc.
+            Example:
+                The results of a search for the word “brasseur” (brewer) will include records mentioning a person named
+                “Brasseur”, records mentioning someone practising the profession of brewer, and notarial deeds in which
+                the word “brasseur” is mentioned in the description and/or remarks.
+            Note:
+                Inverted commas may be used for exact searches. The search engine will then display the keywords in the
+                same order as indicated in the search field.
+
+                Example:
+                    - Without inverted commas = vente moulin (sale mill) > the search engine looks for the
+                        occurrence of the words “vente” and “moulin” regardless of the order or presence of 
+                        these keywords together.
+                    - With inverted commas = “Vente moulin” > the engine searches only scans for those occurrences 
+                        of the terms in which the keywords Vente moulin are written together and in the same order.
+            Note:
+                You can use asterisk (*) and a question mark (?) to search for names that match one or more characters
+                at the beginning or at the end of a search term (*) or for which a letter is not known (?).
+                
+                Example:
+                    - *Mart* will match Demarteau, Jacquemart, Martin or Martens.
+                    - De ?oninck for De Coninck or De Koninck.
+        location (str | None): In most cases, the municipality where the document was created or a municipality 
+            linked to a person (e.g. place of birth or death).
+
+            Note:
+                It is possible that a volunteer has made a spelling error (e.g. Arhcennes instead of Archennes), 
+                that the old spelling of a place name was used (e.g. Messency instead of Messancy) 
+                or that a place name has been translated (e.g. Graafschap Namen instead of Comté de Namur).
+                The list of results may contain analyses of records drawn up in the place searched for 
+                (visible the 'actplace' field of the document responses) 
+                or analyses of records in which the place searched for is mentioned as the place of birth of a deceased 
+                person or in remarks on the sale of an estate in this place.
+
+        period (PeriodSelector): a specifier for the kind of period you wish to search 
+            
+            Accepted Values: 
+                {str(PeriodSelector.all_values())}
+
+        start_date (str | None): Exact date of the record (format DD/MM/YYYY), start date (or year) of the 
+            interval in which one or more records were created.
+        end_date (str | None): End date (or year) of the interval in which one or more records were created.
+        act_type (AnalysesActType | None): Written documents that record a change of status (baptism, marriage, burial,
+            conscription, etc.) and have legal value (notarial act, judgment, etc.).
+
+            Accepted Values: 
+                {str(AnalysesActType.all_values())}
+
+        project (AnalysesProject | None): List of projects executed by volunteers or staff of the State Archives.
+
+            Accepted Values: 
+                {str(AnalysesProject.all_values())}
+
+    Returns:
+        SimplifiedAnalysesSearchResponse: a response comprising the total number of identified matches corresponding
+            to the given search criteria as well as the (up to 20 first) records that have been found.
+    """
+)
+def free_search_in_analyses_of_records(
+    search_terms: str | None = None,
+    location:     str | None = None,
+    period:       PeriodSelector | None = None,
+    start_date:   str | None = None,
+    end_date:     str | None = None,
+    act_type:     AnalysesActType | None = None,
+    project:      AnalysesProject | None = None,
+) -> SimplifiedAnalysesSearchResponse:
+    """This is the way to perform a general search in the analyses of records. 
+
+    The Analyses of records search engine is the result of decades of work by our numerous volunteers and thestaff 
+    of the State Archives. Thousands of pages of archives have been systematically analysed to provide asuccinct 
+    description of the document (content, date, place). In addition, the names of all the people mentionedin the 
+    document were noted, and if possible other data such as place of residence, profession, date of birth,etc.
+
+    Most of the information available via the search engine comes from genealogical documents, such as church registers 
+    and civil status registers. But the search engine also allows access to analyses of notarial deeds,building permits,
+    property records, militia registers, foreigners' files, etc.
+
+    Args: 
+        search_terms (str | None): Keyword(s) to define the search: e.g. person, building, object, place, etc.
+        location (str | None): In most cases, the municipality where the document was created or a municipality 
+            linked to a person (e.g. place of birth or death).
+        period (PeriodSelector): a specifier for the kind of period you wish to search 
+            (exact date, between, before, after).
+        start_date (str | None): Exact date of the record (format DD/MM/YYYY), start date (or year) of the 
+            interval in which one or more records were created.
+        end_date (str | None): End date (or year) of the interval in which one or more records were created.
+        act_type (AnalysesActType | None): Written documents that record a change of status (baptism, marriage, burial,
+            conscription, etc.) and have legal value (notarial act, judgment, etc.).
+        project (AnalysesProject | None): List of projects executed by volunteers or staff of the State Archives.
+
+    Returns:
+        SimplifiedAnalysesSearchResponse: a response comprising the total number of identified matches corresponding
+            to the given search criteria as well as the (up to 20 first) records that have been found.
+    
+    Raises:
+        requests.exceptions.RequestException: whenever something goes wrong with the search on agatha.
+    """
+
+    req = AnalysesFreeSearchRequest(
+        search_terms=search_terms,
+        location=location,
+        period=period,
+        start_date=start_date,
+        end_date=end_date,
+        act_type=act_type,
+        project=project,
+    )
+    return __free_search_in_analyses_of_records(req)
+    
 
 class PersonCriterion(BaseModel):
     """The data used to find a given person during a search person request.
@@ -471,7 +603,7 @@ class AnalysesSearchPersonRequest(BaseModel):
                 (visible the 'actplace' field of the document responses) 
                 or analyses of records in which the place searched for is mentioned as the place of birth of a deceased 
                 person or in remarks on the sale of an estate in this place.
-        period (PeriodSelector): a specifier for the kind of period you wish to search 
+        period (Optional[PeriodSelector]): a specifier for the kind of period you wish to search 
             (exact date, between, before, after).
         start_date (str | None): Exact date of the record (format DD/MM/YYYY), start date (or year) of the 
             interval in which one or more records were created.
@@ -485,15 +617,14 @@ class AnalysesSearchPersonRequest(BaseModel):
 
     persons:      list[PersonCriterion]
     location:     Annotated[str | None, Field(alias="ALL_PLACES")] = None
-    period:       Annotated[PeriodSelector, Field(alias="CHOOSE_DATE_PERIODE")] = PeriodSelector.BETWEEN
+    period:       Annotated[Optional[PeriodSelector], Field(alias="CHOOSE_DATE_PERIODE")] = None
     start_date:   Annotated[str | None, Field(alias="exactYear")] = None
     end_date:     Annotated[str | None, Field(alias="SHOW_PERIODE")] = None
     act_type:     Annotated[AnalysesActType | None, Field(alias="ACTTYPE")] = None
     project:      Annotated[AnalysesProject | None, Field(alias="PROJECT_ID")] = None
 
 
-@tool(parse_docstring=True)
-def search_person_in_analyses_of_records(req: AnalysesSearchPersonRequest) -> SimplifiedAnalysesSearchResponse:
+def __search_person_in_analyses_of_records(req: AnalysesSearchPersonRequest) -> SimplifiedAnalysesSearchResponse:
     """Find documents about a person using their last name and/or first name in the specific fields provided. 
 
     Note:
@@ -519,6 +650,8 @@ def search_person_in_analyses_of_records(req: AnalysesSearchPersonRequest) -> Si
         requests.exceptions.RequestException: whenever something goes wrong with the search on agatha.
     """
 
+    req.period = req.period if req.period is not None else PeriodSelector.BETWEEN
+
     data = req.model_dump(by_alias=True, exclude_none=True)
 
     if req.location:
@@ -543,8 +676,14 @@ def search_person_in_analyses_of_records(req: AnalysesSearchPersonRequest) -> Si
         pers_data = { f"{k}{suffix}": v for k,v in pers_dict.items() }
         data.update(**pers_data)
 
-    if data["persons"]:
+    if "persons" in data["persons"]:
         del data["persons"]
+
+    if "ACTTYPE" in data and data["ACTTYPE"]:
+        data["ACTTYPE"] = data["ACTTYPE"].code
+
+    if "PROJECT_ID" in data and data["PROJECT_ID"]:
+        data["PROJECT_ID"] = data["PROJECT_ID"].code
 
     data["CHOOSE_DATE_PERIODE"] = req.period.code
     data["WHICH_TAB"] = "PERS"
@@ -561,4 +700,96 @@ def search_person_in_analyses_of_records(req: AnalysesSearchPersonRequest) -> Si
                       cookies = cookies)
     
     return AnalysesSearchResponse(**(results.json()["response"])).simplified
+
+
+## ACTUAL TOOL WITH EXPANDED DESCRIPTION #############################################################################
+@tool(
+    parse_docstring=True,
+    description=
+    f"""Find documents about a person using their last name and/or first name in the specific fields provided. 
+
+    Args:
+        persons (list[PersonCriterion]): The list of persons you wish to find in the act you are searching for.
+            Example:
+                [
+                    {{"name": "Poirot", "first_name": "Hercules", "profession": "Detective" }},
+                    {{"name": "Brel", "first_name": "Jacques", "profession": "Singer", "role": "Groom"}},
+                    {{"name": "Simenon", "first_name": "Georges"}},
+                ]
+            
+            Note: 
+                If specified, the possible values for the 'role' field of each individial person criterion must be
+                one of the following accepted values:
+                {str(AnalysesActRole.all_values())}
+
+        location (str | None): In most cases, the municipality where the document was created or a municipality 
+            linked to a person (e.g. place of birth or death).
+            Note:
+                It is possible that a volunteer has made a spelling error (e.g. Arhcennes instead of Archennes), 
+                that the old spelling of a place name was used (e.g. Messency instead of Messancy) 
+                or that a place name has been translated (e.g. Graafschap Namen instead of Comté de Namur).
+                The list of results may contain analyses of records drawn up in the place searched for 
+                (visible the 'actplace' field of the document responses) 
+                or analyses of records in which the place searched for is mentioned as the place of birth of a deceased 
+                person or in remarks on the sale of an estate in this place.
+        period (PeriodSelector): a specifier for the kind of period you wish to search 
+            
+            Authorized Values:
+                {str(PeriodSelector.all_values())}
+        start_date (str | None): Exact date of the record (format DD/MM/YYYY), start date (or year) of the 
+            interval in which one or more records were created.
+        end_date (str | None): End date (or year) of the interval in which one or more records were created.
+        act_type (AnalysesActType | None): Written documents that record a change of status (baptism, marriage, burial,
+            conscription, etc.) and have legal value (notarial act, judgment, etc.).
+
+            Authorized Values:
+                {str(AnalysesActType.all_values())}
+        project (AnalysesProject | None): List of projects executed by volunteers or staff of the State Archives.
+
+            Authorized Values:
+                {str(AnalysesProject.all_codes())}
+
+    Returns:
+        SimplifiedAnalysesSearchResponse: a response comprising the total number of identified matches corresponding
+            to the given search criteria as well as the (up to 20 first) records that have been found.
+    """
+)
+def search_person_in_analyses_of_records(
+    persons: list[PersonCriterion],
+    location: Optional[str] = None,
+    period: Optional[PeriodSelector] = None,
+    start_date: Optional[str] = None,
+    end_date: Optional[str] = None,
+    act_type: Optional[AnalysesActType] = None,
+    project: Optional[AnalysesProject] = None,
+) -> SimplifiedAnalysesSearchResponse:
+    """Find documents about a person using their last name and/or first name in the specific fields provided. 
+
+    Args:
+        persons (list[PersonCriterion]): The list of persons you wish to find in the act you are searching for.
+        location (str | None): In most cases, the municipality where the document was created or a municipality 
+            linked to a person (e.g. place of birth or death).
+        period (PeriodSelector): a specifier for the kind of period you wish to search 
+        start_date (str | None): Exact date of the record (format DD/MM/YYYY), start date (or year) of the 
+            interval in which one or more records were created.
+        end_date (str | None): End date (or year) of the interval in which one or more records were created.
+        act_type (AnalysesActType | None): Written documents that record a change of status (baptism, marriage, burial,
+            conscription, etc.) and have legal value (notarial act, judgment, etc.).
+        project (AnalysesProject | None): List of projects executed by volunteers or staff of the State Archives.
+
+    Returns:
+        SimplifiedAnalysesSearchResponse: a response comprising the total number of identified matches corresponding
+            to the given search criteria as well as the (up to 20 first) records that have been found.
+    """
+
+    req  = AnalysesSearchPersonRequest(
+        persons=persons,
+        location=location,
+        period=period,
+        start_date=start_date,
+        end_date=end_date,
+        act_type=act_type,
+        project=project,
+    )
+    return __search_person_in_analyses_of_records(req)
 

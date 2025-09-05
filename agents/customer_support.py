@@ -47,9 +47,8 @@ customer_support = agent(
         of AGATHA, the new gateway to search the Belgian State Archives.""",
     tools = available_tools,
     model = init_chat_model(
-        'deepseek-r1:1.5b', 
-        model_provider="ollama",
-        temperature = 0.2,
+        'gemini-2.0-flash-lite', 
+        model_provider="google_genai",
     ),
     debug = True,
 )

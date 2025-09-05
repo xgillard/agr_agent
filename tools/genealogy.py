@@ -554,7 +554,32 @@ class GenealogyDocument(BaseModel):
         )
 
 ## Definition of the actual tools
-@tool(parse_docstring=True)
+@tool(
+    parse_docstring=True,
+    description=
+    f"""Search genealogic data in the Church Registers (prior to 1796).
+
+    Args:
+        municipality_name (str): Name of the municipality
+        parish_name (Optional[str]): Name of the parish
+        act_types (Optional[list[ParishActType]]): The kind of document we are searching for
+            Accepted Values:
+                {str(ParishActType.all_values())}
+        other_types (Optional[list[OtherParishActType]]): Mandatory precision when act_types is OTHER
+            Accepted Values:
+                {str(OtherParishActType.all_values())}
+        index_types (Optional[list[ParishIndex]]): The kind of index where to search data
+            Accepted Values:
+                {str(ParishIndex.all_values())}
+        start_year (Optional[int]): Start year of the period considered for this search
+        end_year (Optional[int]): End year of the period considered for this search
+
+    Note: 
+        - Providing at least one 'act_types' or 'index_types' in mandatory.
+
+    Returns: 
+        list[GenealogySearchResult]: a possibly empty list of genealogical search results.
+    """)
 def genealogy_search_church_registers_prior_to_1796(
     municipality_name: str,
     parish_name:       Optional[str] = None,
@@ -667,7 +692,32 @@ def genealogy_search_church_registers_prior_to_1796(
     return [GenealogyDocument(**x).simplified() for x in results]
 
 
-@tool(parse_docstring=True)
+@tool(
+    parse_docstring=True,
+    description=
+    f"""Search genealogic data in the Civil State Registers (after 1796).
+
+    Args:
+        municipality_name (str): Name of the municipality
+        act_types (Optional[list[CivilActType]]): The kind of document we are searching for
+            Accepted Values:
+                {str(CivilActType.all_values())}
+        other_types (Optional[list[OtherCivilActType]]): Mandatory precision when act_types is OTHER
+            Accepted Values:
+                {str(OtherCivilActType.all_values())}
+        index_types (Optional[list[CivilIndex]]): The kind of index where to search data
+            Accepted Values:
+                {str(CivilIndex.all_values())}
+        start_year (Optional[int]): Start year of the period considered for this search
+        end_year (Optional[int]): End year of the period considered for this search
+
+    Note: 
+        - Providing at least one 'act_types' or 'index_types' in mandatory.
+
+    Returns: 
+        list[GenealogySearchResult]: a possibly empty list of genealogical search results.
+    """
+)
 def genealogy_search_civil_state_registers(
     municipality_name: str,
     act_types:         Optional[list[CivilActType]] =  None,

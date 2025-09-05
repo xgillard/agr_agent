@@ -16,7 +16,6 @@ help_usr = task(f"""
 
     Answer to the following user email with factual information.
     Be kind, use professional tone. 
-    Please note that humans rarely live longer than 100 years.
     Make sure to formulate your final answer in the same language as the user's original email. 
 """)
 

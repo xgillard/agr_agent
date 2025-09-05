@@ -30,7 +30,8 @@ _SYTEM_TEMPLATE_WITH_TOOLS = """You are {role}
 {backstory}
         
 Your personal goal is: {goal}
-You ONLY have access to the following tools, and should NEVER make up tools that are not listed here:
+You ONLY have access to the following tools, and should NEVER make up tools that are not listed below.
+You should stricly adhere to the imposed schema when calling those tools.
 
 {tools}
 
