@@ -152,7 +152,8 @@ def example_rubens()-> str:
         Je sais que vous avez dans vos collections un acte de mariage dans lequel
         le célèbre peintre primitif flamand pierre paul rubens était témoin. Dans l'idéal 
         j'aimerais pouvoir mettre la main sur une copie numérique de ce document.
-        Pouvez vous m'aider ?
+        Pouvez vous m'aider ? S'il n'y a pas moyen, pourriez vous au moins me dire 
+        de qui c'était le marriage et quel lien il y avait entre ces personnes et le peintre ?
 
         Merci d'avance, 
         Malik
@@ -164,6 +165,12 @@ def example_rubens()-> str:
 def main():
     """Execute un ou plusieurs tests facilement."""
     print(example_rubens())
+    print("#" * 80)
+    #print(exemple_bapteme())
+    #print("#" * 80)
+    #print(exemple_redirect())
+    #print("#" * 80)
+    print(exemple_recherche())
 
 
 if __name__ == "__main__":
