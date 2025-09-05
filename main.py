@@ -131,9 +131,40 @@ def exemple_redirect() -> str:
     response = response["messages"][-1].content.split("[__FINAL_ANSWER__]")[-1]
     return response
 
+
+def example_rubens()-> str:
+    """Renvoie le résultat d'un exemple dans lequel l'utilisateur cherche à trouver le scan d'un acte.
+
+    L'utilisateur veut trouver un acte de mariage dans lequel le célèbre peintre pierre paul rubens
+    était témoin. Il faut commencer par chercher dans les analyses d'acte sur base des personnes
+    puis retrouver le scan (ou essayer du moins) en faisant une recherche dans les sources généalogiques.
+
+    Returns:
+        str: Le résultat d'un appel à l'agent en utilisant un faux email d'exemple à des fins de test.
+    """
+
+    response = (help_usr | customer_support).invoke({
+        "input":
+        """
+        MAIL FROM: malik.alkadem@gmail.com
+        RCPT TO: contact@arch.be
+        SUBJECT: Je ne m'en sors pas 
+    
+        Je sais que vous avez dans vos collections un acte de mariage dans lequel
+        le célèbre peintre primitif flamand pierre paul rubens était témoin. Dans l'idéal 
+        j'aimerais pouvoir mettre la main sur une copie numérique de ce document.
+        Pouvez vous m'aider ?
+
+        Merci d'avance, 
+        Malik
+        """,
+    })
+    response = response["messages"][-1].content.split("[__FINAL_ANSWER__]")[-1]
+    return response
+
 def main():
     """Execute un ou plusieurs tests facilement."""
-    print(exemple_bapteme())
+    print(example_rubens())
 
 
 if __name__ == "__main__":

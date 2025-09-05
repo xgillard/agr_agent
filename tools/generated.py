@@ -551,7 +551,25 @@ class AnalysesActType(StrEnum):
                 return AnalysesActType.WILL
             case _:
                 raise ValueError(f"Code '{code}' has no known correspondance in AnalysesActType")
+        
+    @classmethod    
+    def all_values(cls) -> list[str]:
+      """Return all the authorized values for this enum.
+      
+      Returns:
+        list[str]: all the authorized values for this enum.
+      """
+      return [ v._value_ for v in cls.__members__.values() ]
     
+    @classmethod
+    def all_codes(cls) -> list[str]:
+      """Return all the authorized codes for this enum.
+      
+      Returns:
+        list[str]: all the authorized codes for this enum.
+      """
+      return [ v.code for v in cls.__members__.values() ]
+
 
 
 
@@ -1333,7 +1351,25 @@ class AnalysesProject(StrEnum):
                 return AnalysesProject.ZEELUI
             case _:
                 raise ValueError(f"Code '{code}' has no known correspondance in AnalysesProject")
+        
+    @classmethod    
+    def all_values(cls) -> list[str]:
+      """Return all the authorized values for this enum.
+      
+      Returns:
+        list[str]: all the authorized values for this enum.
+      """
+      return [ v._value_ for v in cls.__members__.values() ]
     
+    @classmethod
+    def all_codes(cls) -> list[str]:
+      """Return all the authorized codes for this enum.
+      
+      Returns:
+        list[str]: all the authorized codes for this enum.
+      """
+      return [ v.code for v in cls.__members__.values() ]
+
 
 
 
@@ -1803,5 +1839,23 @@ class AnalysesActRole(StrEnum):
                 return AnalysesActRole.WITNESS
             case _:
                 raise ValueError(f"Code '{code}' has no known correspondance in AnalysesActRole")
+        
+    @classmethod    
+    def all_values(cls) -> list[str]:
+      """Return all the authorized values for this enum.
+      
+      Returns:
+        list[str]: all the authorized values for this enum.
+      """
+      return [ v._value_ for v in cls.__members__.values() ]
     
+    @classmethod
+    def all_codes(cls) -> list[str]:
+      """Return all the authorized codes for this enum.
+      
+      Returns:
+        list[str]: all the authorized codes for this enum.
+      """
+      return [ v.code for v in cls.__members__.values() ]
+
 

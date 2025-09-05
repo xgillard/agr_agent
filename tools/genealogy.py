@@ -44,7 +44,25 @@ class GenealogySource(StrEnum):
                 return "PR"
             case GenealogySource.CIVIL_STATE:
                 return "CS"
-
+    
+        
+    @classmethod    
+    def all_values(cls) -> list[str]:
+      """Return all the authorized values for this enum.
+      
+      Returns:
+        list[str]: all the authorized values for this enum.
+      """
+      return [ v._value_ for v in cls.__members__.values() ]
+    
+    @classmethod
+    def all_codes(cls) -> list[str]:
+      """Return all the authorized codes for this enum.
+      
+      Returns:
+        list[str]: all the authorized codes for this enum.
+      """
+      return [ v.code for v in cls.__members__.values() ]
 
 
 ## Types relating to a genealogical search within church registers
@@ -80,6 +98,26 @@ class ParishActType(StrEnum):
                 return "3"
             case ParishActType.OTHER:
                 return "OTHER"
+    
+        
+    @classmethod    
+    def all_values(cls) -> list[str]:
+      """Return all the authorized values for this enum.
+      
+      Returns:
+        list[str]: all the authorized values for this enum.
+      """
+      return [ v._value_ for v in cls.__members__.values() ]
+    
+    @classmethod
+    def all_codes(cls) -> list[str]:
+      """Return all the authorized codes for this enum.
+      
+      Returns:
+        list[str]: all the authorized codes for this enum.
+      """
+      return [ v.code for v in cls.__members__.values() ]
+
 
 
 class OtherParishActType(StrEnum):
@@ -132,6 +170,24 @@ class OtherParishActType(StrEnum):
             case OtherParishActType.STATUS_ANIMARUM: 
                 return "28"
         
+    @classmethod    
+    def all_values(cls) -> list[str]:
+      """Return all the authorized values for this enum.
+      
+      Returns:
+        list[str]: all the authorized values for this enum.
+      """
+      return [ v._value_ for v in cls.__members__.values() ]
+    
+    @classmethod
+    def all_codes(cls) -> list[str]:
+      """Return all the authorized codes for this enum.
+      
+      Returns:
+        list[str]: all the authorized codes for this enum.
+      """
+      return [ v.code for v in cls.__members__.values() ]
+        
 
 class ParishIndex(StrEnum):
     """Possible indexes where to look up documents in the church registers (prior to 1796).
@@ -161,6 +217,25 @@ class ParishIndex(StrEnum):
                 return "2"
             case ParishIndex.DEATH: 
                 return "3"
+    
+        
+    @classmethod    
+    def all_values(cls) -> list[str]:
+      """Return all the authorized values for this enum.
+      
+      Returns:
+        list[str]: all the authorized values for this enum.
+      """
+      return [ v._value_ for v in cls.__members__.values() ]
+    
+    @classmethod
+    def all_codes(cls) -> list[str]:
+      """Return all the authorized codes for this enum.
+      
+      Returns:
+        list[str]: all the authorized codes for this enum.
+      """
+      return [ v.code for v in cls.__members__.values() ]
 
 
 ## Types relating to a genealogical search within civil registers
@@ -196,6 +271,24 @@ class CivilActType(StrEnum):
                 return "3"
             case CivilActType.OTHER: 
                 return "OTHER"
+    
+    @classmethod    
+    def all_values(cls) -> list[str]:
+      """Return all the authorized values for this enum.
+      
+      Returns:
+        list[str]: all the authorized values for this enum.
+      """
+      return [ v._value_ for v in cls.__members__.values() ]
+    
+    @classmethod
+    def all_codes(cls) -> list[str]:
+      """Return all the authorized codes for this enum.
+      
+      Returns:
+        list[str]: all the authorized codes for this enum.
+      """
+      return [ v.code for v in cls.__members__.values() ]
 
 
 class OtherCivilActType(StrEnum):
@@ -238,6 +331,25 @@ class OtherCivilActType(StrEnum):
                 return "BS_E"
             case OtherCivilActType.NATURALISATION:
                 return "BS_N"
+        
+    @classmethod    
+    def all_values(cls) -> list[str]:
+      """Return all the authorized values for this enum.
+      
+      Returns:
+        list[str]: all the authorized values for this enum.
+      """
+      return [ v._value_ for v in cls.__members__.values() ]
+    
+    @classmethod
+    def all_codes(cls) -> list[str]:
+      """Return all the authorized codes for this enum.
+      
+      Returns:
+        list[str]: all the authorized codes for this enum.
+      """
+      return [ v.code for v in cls.__members__.values() ]
+
 
 class CivilIndex(StrEnum):
     """Possible indexes where to look up documents in the civil state registers (after 1796).
@@ -279,6 +391,24 @@ class CivilIndex(StrEnum):
                 return "BS_Ex"
             case CivilIndex.DECENNAL_INDEX_OF_NATURALISATION:
                 return "BS_Nx"
+        
+    @classmethod    
+    def all_values(cls) -> list[str]:
+      """Return all the authorized values for this enum.
+      
+      Returns:
+        list[str]: all the authorized values for this enum.
+      """
+      return [ v._value_ for v in cls.__members__.values() ]
+    
+    @classmethod
+    def all_codes(cls) -> list[str]:
+      """Return all the authorized codes for this enum.
+      
+      Returns:
+        list[str]: all the authorized codes for this enum.
+      """
+      return [ v.code for v in cls.__members__.values() ]
 
 
 ## Results of a search in the genealogical sources.

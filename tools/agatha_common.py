@@ -48,6 +48,25 @@ class PeriodSelector(StrEnum):
                 return "2"
             case PeriodSelector.AFTER:
                 return "3"
+        
+    @classmethod    
+    def all_values(cls) -> list[str]:
+      """Return all the authorized values for this enum.
+      
+      Returns:
+        list[str]: all the authorized values for this enum.
+      """
+      return [ v._value_ for v in cls.__members__.values() ]
+    
+    @classmethod
+    def all_codes(cls) -> list[str]:
+      """Return all the authorized codes for this enum.
+      
+      Returns:
+        list[str]: all the authorized codes for this enum.
+      """
+      return [ v.code for v in cls.__members__.values() ]
+
 
 
 class Parish(BaseModel):

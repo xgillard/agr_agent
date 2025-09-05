@@ -534,11 +534,11 @@ def search_person_in_analyses_of_records(req: AnalysesSearchPersonRequest) -> Si
     for i, pers in enumerate(req.persons, start=1):
         suffix = f"_{i}" if i > 1 else ""
         pers_dict = pers.model_dump(by_alias=True, exclude_none=True)
-        if pers_dict["JOB"]:
+        if "JOB" in pers_dict and pers_dict["JOB"]:
             job = Job.by_name(pers_dict["JOB"], ajax=AJAX_URL)
             pers_dict["JOB"] = job.value
             pers_dict["JOB_ID"] = job.id
-        if pers_dict["ROLE"]:
+        if "ROLE" in pers_dict and pers_dict["ROLE"]:
             pers_dict["ROLE"] = pers_dict["ROLE"].code
         pers_data = { f"{k}{suffix}": v for k,v in pers_dict.items() }
         data.update(**pers_data)

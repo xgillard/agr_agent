@@ -59,7 +59,25 @@ class {enum_name}(StrEnum):
         match code:{from_cases}
             case _:
                 raise ValueError(f"Code '{{code}}' has no known correspondance in {enum_name}")
+        
+    @classmethod    
+    def all_values(cls) -> list[str]:
+      \"\"\"Return all the authorized values for this enum.
+      
+      Returns:
+        list[str]: all the authorized values for this enum.
+      \"\"\"
+      return [ v._value_ for v in cls.__members__.values() ]
     
+    @classmethod
+    def all_codes(cls) -> list[str]:
+      \"\"\"Return all the authorized codes for this enum.
+      
+      Returns:
+        list[str]: all the authorized codes for this enum.
+      \"\"\"
+      return [ v.code for v in cls.__members__.values() ]
+
 """
 
 CASE_FORMAT = """case {name}.{k}: 
