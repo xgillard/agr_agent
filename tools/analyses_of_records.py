@@ -499,7 +499,7 @@ class PersonCriterion(BaseModel):
     """The data used to find a given person during a search person request.
     
     Attributes:
-        name (Optional[str]): Name of the person sought, which may be a compound name (with a hyphen) 
+        family_name (Optional[str]): Family name of the person sought, which may be a compound name (with a hyphen) 
             or several names in a row.
 
             Use this search field to enter the last name of the person you are looking for. 
@@ -581,7 +581,7 @@ class PersonCriterion(BaseModel):
 
     # note: a suffix _2, _3 etc... must be added to all the persons that are searched for in addtion to 
     #  the first person when creating the request data 
-    name: Annotated[Optional[str], Field(alias="NAME")] = None
+    family_name: Annotated[Optional[str], Field(alias="NAME")] = None
     first_name: Annotated[Optional[str], Field(alias="FIRST_NAME")] = None
     # note: if a match is found, I must also populate "JOB_ID" else I should leave it empty with value = -1
     profession: Annotated[Optional[str], Field(alias="JOB")] = None
