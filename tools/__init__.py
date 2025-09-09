@@ -3,8 +3,8 @@
 
 from .agatha_help import agatha_knowledge
 from .analyses_of_records import (
-    free_search_in_analyses_of_records,
-    search_person_in_analyses_of_records,
+    tool_free_search_in_analyses_of_records,
+    tool_search_person_in_analyses_of_records,
 )
 from .genealogy import (
     CivilActType,
@@ -25,8 +25,8 @@ __ALL__ = [
     genealogy_search_church_registers_prior_to_1796,
     genealogy_search_civil_state_registers,
     #
-    free_search_in_analyses_of_records,
-    search_person_in_analyses_of_records,
+    tool_free_search_in_analyses_of_records,
+    tool_search_person_in_analyses_of_records,
     # useful types to re-export
     CivilActType,
     CivilIndex,

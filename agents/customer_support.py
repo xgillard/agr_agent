@@ -6,10 +6,10 @@ from langchain.tools import tool
 
 from tools import (
     agatha_knowledge,
-    free_search_in_analyses_of_records,
     genealogy_search_church_registers_prior_to_1796,
     genealogy_search_civil_state_registers,
-    search_person_in_analyses_of_records,
+    tool_free_search_in_analyses_of_records,
+    tool_search_person_in_analyses_of_records,
 )
 
 from .common import agent
@@ -33,8 +33,8 @@ available_tools = [
     _knowledge, 
     genealogy_search_church_registers_prior_to_1796,
     genealogy_search_civil_state_registers,
-    search_person_in_analyses_of_records,
-    free_search_in_analyses_of_records, 
+    tool_search_person_in_analyses_of_records,
+    tool_free_search_in_analyses_of_records, 
     manually_activate_user_account,
 ]
 
@@ -73,8 +73,8 @@ customer_support = agent(
         """,
     tools = available_tools,
     model = init_chat_model(
-        'gemini-2.0-flash-lite', 
-        model_provider="google_genai",
+        'mistral-small:24b', 
+        model_provider="ollama",
     ),
 )
 

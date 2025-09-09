@@ -307,7 +307,7 @@ class AnalysesSearchResponse(BaseModel):
             docs = [ d.act for d in self.docs ] if self.docs is not None else []
         )
 
-def __free_search_in_analyses_of_records(req: AnalysesFreeSearchRequest) -> SimplifiedAnalysesSearchResponse:
+def free_search_in_analyses_of_records(req: AnalysesFreeSearchRequest) -> SimplifiedAnalysesSearchResponse:
     """This is the way to perform a general search in the analyses of records. 
 
     Note: 
@@ -442,7 +442,7 @@ def __free_search_in_analyses_of_records(req: AnalysesFreeSearchRequest) -> Simp
             to the given search criteria as well as the (up to 20 first) records that have been found.
     """
 )
-def free_search_in_analyses_of_records(
+def tool_free_search_in_analyses_of_records(
     search_terms: str | None = None,
     location:     str | None = None,
     period:       PeriodSelector | None = None,
@@ -492,7 +492,7 @@ def free_search_in_analyses_of_records(
         act_type=act_type,
         project=project,
     )
-    return __free_search_in_analyses_of_records(req)
+    return free_search_in_analyses_of_records(req)
     
 
 class PersonCriterion(BaseModel):
@@ -624,7 +624,7 @@ class AnalysesSearchPersonRequest(BaseModel):
     project:      Annotated[AnalysesProject | None, Field(alias="PROJECT_ID")] = None
 
 
-def __search_person_in_analyses_of_records(req: AnalysesSearchPersonRequest) -> SimplifiedAnalysesSearchResponse:
+def search_person_in_analyses_of_records(req: AnalysesSearchPersonRequest) -> SimplifiedAnalysesSearchResponse:
     """Find documents about a person using their last name and/or first name in the specific fields provided. 
 
     Note:
@@ -754,7 +754,7 @@ def __search_person_in_analyses_of_records(req: AnalysesSearchPersonRequest) -> 
             to the given search criteria as well as the (up to 20 first) records that have been found.
     """
 )
-def search_person_in_analyses_of_records(
+def tool_search_person_in_analyses_of_records(
     persons: list[PersonCriterion],
     location: Optional[str] = None,
     period: Optional[PeriodSelector] = None,
@@ -791,5 +791,5 @@ def search_person_in_analyses_of_records(
         act_type=act_type,
         project=project,
     )
-    return __search_person_in_analyses_of_records(req)
+    return search_person_in_analyses_of_records(req)
 

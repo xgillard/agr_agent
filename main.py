@@ -150,7 +150,7 @@ def example_rubens()-> str:
         SUBJECT: Je ne m'en sors pas 
     
         Je sais que vous avez dans vos collections un acte de mariage dans lequel
-        le célèbre peintre primitif flamand pierre paul rubens était témoin. Dans l'idéal 
+        le peintre pierre paul rubens était témoin. Dans l'idéal 
         j'aimerais pouvoir mettre la main sur une copie numérique de ce document.
         Pouvez vous m'aider ? S'il n'y a pas moyen, pourriez vous au moins me dire 
         de qui c'était le marriage et quel lien il y avait entre ces personnes et le peintre ?
