@@ -14,6 +14,7 @@ from tools.analyses_of_records import (
 
 from ..common.llm import LLM
 from ..common.steps import (
+    step_deliver_raw_data,
     step_fill_location,
     step_fill_period,
     step_fill_project,
@@ -42,41 +43,41 @@ async def step_fill_family_name(state: AddPersonWizzardState) -> AddPersonWizzar
     rsp = cast(FamilyName, 
         await (LLM.with_structured_output(FamilyName))
         .ainvoke( 
-            state["outer_context"] + 
+            state["messages"] + 
             [ HumanMessage(family_name.format(full_name=state["full_name"])) ]
         )
     )
-    return {"family_name": rsp.family_name}
+    return {"family_name": rsp.family_name} # type: ignore
 
 async def step_fill_first_name(state: AddPersonWizzardState) -> AddPersonWizzardState:
     rsp = cast(FirstName,
         await (LLM.with_structured_output(FirstName))
         .ainvoke( 
-            state["outer_context"] + 
+            state["messages"] + 
             [ HumanMessage(first_name.format(full_name=state["full_name"])) ]
         )
     )
-    return {"first_name": rsp.first_name}
+    return {"first_name": rsp.first_name} # type: ignore
 
 async def step_fill_job(state: AddPersonWizzardState) -> AddPersonWizzardState:
     rsp = cast(Profession,
         await (LLM.with_structured_output(Profession))
         .ainvoke( 
-            state["outer_context"] + 
+            state["messages"] + 
             [ HumanMessage(job_name.format(full_name=state["full_name"])) ]
         )
     )
-    return {"profession": rsp.profession}
+    return {"profession": rsp.profession} # type: ignore
 
 async def step_fill_role(state: AddPersonWizzardState) -> AddPersonWizzardState:
     rsp = cast(RoleChoice,
         await (LLM.with_structured_output(RoleChoice))
         .ainvoke( 
-            state["outer_context"] + 
+            state["messages"] + 
             [ HumanMessage(role_name.format(full_name=state["full_name"])) ]
         )
     )
-    return {"role": rsp.role} if rsp else {}
+    return {"role": rsp.role} if rsp else {} # type: ignore
 
 __ADD_PERSON_WIZZARD = (
     StateGraph(AddPersonWizzardState)
@@ -106,22 +107,22 @@ async def step_list_people(state: SearchPersonWizzardState) -> SearchPersonWizza
     known_people = cast(ListOfPeople,
         await LLM
         .with_structured_output(ListOfPeople)
-        .ainvoke( state["outer_context"] + [ HumanMessage( list_known_people ) ])
+        .ainvoke( state["messages"] + [ HumanMessage( list_known_people ) ])
     )
-    return { "known_people": known_people.list_of_names }
+    return { "known_people": known_people.list_of_names } # type: ignore
 
-async def _substep_add_person(person: str, outer_context: list) -> PersonCriterion:
+async def _substep_add_person(person: str, messages: list) -> PersonCriterion:
     """Run the add person wizzard for one single person.
     
     Args:
         person (str): the name or ... whatever means the llm has used to identify someone.
-        outer_context (list): the outer conversation between user and llm.
+        messages (list): the outer conversation between user and llm.
         
     Returns:
         PersonCriterion: a means to encode that person into a search request.
     """
 
-    sub = AddPersonWizzardState(full_name=person, outer_context=outer_context)
+    sub = AddPersonWizzardState(full_name=person, messages=messages)
     sub = cast(AddPersonWizzardState, 
                await __ADD_PERSON_WIZZARD.ainvoke(sub))  # type: ignore[arg-type]
     return PersonCriterion(
@@ -133,25 +134,25 @@ async def _substep_add_person(person: str, outer_context: list) -> PersonCriteri
 
 async def step_add_pers_wizzard(state: SearchPersonWizzardState) -> SearchPersonWizzardState:
     """Goes through all the steps of the add person wizard state"""
-    outer = state["outer_context"]
+    outer = state["messages"]
     tasks = [_substep_add_person(p, outer) for p in state["known_people"]]
     persons = await asyncio.gather( *tasks )
-    return {"persons": persons}
+    return {"persons": persons} # type: ignore
 
 async def step_call_tool(state: SearchPersonWizzardState) -> SearchPersonWizzardState:
     """Performs a call to the Agatha tool"""
-    call = search_person_in_analyses_of_records(
-        AnalysesSearchPersonRequest(
-            persons=state["persons"],
-            location=state["location"],
-            period=state["period_selector"],
-            start_date=state["start_date"],
-            end_date=state["end_date"],
-            act_type=state["act_type"],
-            project=state["project"],
-        )
+
+    request = AnalysesSearchPersonRequest(
+        persons=state["persons"],
+        location=state["location"],
+        period=state["period_selector"],
+        start_date=state["start_date"],
+        end_date=state["end_date"],
+        act_type=state["act_type"],
+        project=state["project"],
     )
-    return {"call_data": call}
+    call = search_person_in_analyses_of_records(request)
+    return {"call_data": call} # type: ignore
 
 SEARCH_PERSON_IN_ANALYSES_OF_RECORDS = (
     StateGraph(SearchPersonWizzardState)
@@ -162,6 +163,7 @@ SEARCH_PERSON_IN_ANALYSES_OF_RECORDS = (
         .add_node("fill_act_type", step_fill_record_type)
         .add_node("fill_project", step_fill_project)
         .add_node("call_tool", step_call_tool)
+        .add_node("deliver_raw_data", step_deliver_raw_data)
         #
         .add_edge(START, "list_people")
         .add_edge(START, "fill_location")
@@ -177,7 +179,8 @@ SEARCH_PERSON_IN_ANALYSES_OF_RECORDS = (
                 "fill_act_type",
                 "fill_project"
             ], "call_tool")
-        .add_edge("call_tool", END)
+        .add_edge("call_tool", "deliver_raw_data")
+        .add_edge("deliver_raw_data", END)
         #
         .compile()
 )

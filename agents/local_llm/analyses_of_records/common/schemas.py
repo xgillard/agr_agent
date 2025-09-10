@@ -1,7 +1,7 @@
 """Common data types to implement the search in analyses of records tool."""
 
-from typing import TypedDict
 
+from langgraph.graph import MessagesState
 from pydantic import BaseModel
 
 from tools.agatha_common import PeriodSelector
@@ -12,12 +12,11 @@ from tools.analyses_of_records import (
 )
 
 
-class SearchAnalysesState(TypedDict, total=False):
+class SearchAnalysesState(MessagesState, total=False):
     """The base data type to implement the steps to search in analyses of records.
 
     Attributes:
-        outer_context (list): the outer context (= conversation that has happened outside of this wizzard)
-        call_data (SimplifiedAnalysesSearchResponse | None): the result of a call to the tool that uses
+        call_data (SimplifiedAnalysesSearchResponse): the result of a call to the tool that uses
             the agatha search person in analyses of records tool.
         location (str|None): the location where the act has taken place
         period_selector (PeriodSelector|None): a precision on how to interpret the dates
@@ -26,9 +25,7 @@ class SearchAnalysesState(TypedDict, total=False):
         act_type (AnalysesActType | None): the kind of act which is beign sought after.
         project (AnalysesProject | None): the project which led to this record being analyzed.
     """
-
-    outer_context: list
-    call_data: SimplifiedAnalysesSearchResponse | None
+    call_data: SimplifiedAnalysesSearchResponse
 
     location: str | None
     period_selector: PeriodSelector|None

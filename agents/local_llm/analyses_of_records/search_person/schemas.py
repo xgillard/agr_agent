@@ -1,7 +1,6 @@
 """Data types to implement the search person in analyses of records tool call."""
 
-from typing import TypedDict
-
+from langgraph.graph import MessagesState
 from pydantic import BaseModel
 
 from tools.analyses_of_records import (
@@ -13,21 +12,19 @@ from ..common.schemas import SearchAnalysesState
 
 ###### ADD PERSON WIZZARD #######################################################
 
-class AddPersonWizzardState(TypedDict, total=False):
+class AddPersonWizzardState(MessagesState, total=False):
     """The internal state of the wizzard process to add a person criterion.
     
     Attributes:
         full_name (str): the full name (or the way the person to add is known in the original unstructured output)
-        outer_context (list): the outer context (= conversation that has happened outside of this wizzard)
-
+        
         first_name (str | None): the persons's first name if available (e.g. Jean, Jan, Michel, Xavier)
         family_name (str | None): the person's family name if available (e.g. Dupoont, Verbruggen)
         profession (str | None): the person's profession if known (e.g. farmer, accountant, housewive)
         act_role (AnalysesActRole | None): the role played by this person in the act we are searching for
     """
 
-    full_name: str 
-    outer_context: list
+    full_name: str
     
     first_name: str | None
     family_name: str | None

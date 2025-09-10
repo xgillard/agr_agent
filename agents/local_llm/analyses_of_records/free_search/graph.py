@@ -11,6 +11,7 @@ from tools.analyses_of_records import (
 
 from ..common.llm import LLM
 from ..common.steps import (
+    step_deliver_raw_data,
     step_fill_location,
     step_fill_period,
     step_fill_project,
@@ -24,27 +25,27 @@ async def step_search_terms(state: FreeSearchWizzardState) -> FreeSearchWizzardS
     """Request llm to fill in the search terms input parameter."""
 
     terms = await (LLM | StrOutputParser()).ainvoke(
-        state["outer_context"] + 
+        state["messages"] + 
         [HumanMessage(search_terms)]
     )
 
-    return {"search_terms": terms}
+    return {"search_terms": terms} # type: ignore
 
 async def step_call_tool(state: FreeSearchWizzardState) -> FreeSearchWizzardState:
     """Performs a call to the Agatha tool"""
 
-    call = free_search_in_analyses_of_records(
-        AnalysesFreeSearchRequest(
-            search_terms=state["search_terms"],
-            location=state["location"],
-            period=state["period_selector"],
-            start_date=state["start_date"],
-            end_date=state["end_date"],
-            act_type=state["act_type"],
-            project=state["project"],
-        )
+    request = AnalysesFreeSearchRequest(
+        search_terms=state["search_terms"],
+        location=state["location"],
+        period=state["period_selector"],
+        start_date=state["start_date"],
+        end_date=state["end_date"],
+        act_type=state["act_type"],
+        project=state["project"],
     )
-    return {"call_data": call}
+    
+    call = free_search_in_analyses_of_records(request)
+    return {"call_data": call} # type: ignore
 
 FREE_SEARCH_IN_ANALYSES_OF_RECORDS = (
     StateGraph(FreeSearchWizzardState)
@@ -54,6 +55,7 @@ FREE_SEARCH_IN_ANALYSES_OF_RECORDS = (
         .add_node("fill_act_type", step_fill_record_type)
         .add_node("fill_project", step_fill_project)
         .add_node("call_tool", step_call_tool)
+        .add_node("deliver_raw_data", step_deliver_raw_data)
         #
         .add_edge(START, "fill_keywords")
         .add_edge(START, "fill_location")
@@ -68,7 +70,8 @@ FREE_SEARCH_IN_ANALYSES_OF_RECORDS = (
                 "fill_act_type",
                 "fill_project"
             ], "call_tool")
-        .add_edge("call_tool", END)
+        .add_edge("call_tool", "deliver_raw_data")
+        .add_edge("deliver_raw_data", END)
         #
         .compile()
 )

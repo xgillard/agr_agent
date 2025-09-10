@@ -362,7 +362,7 @@ def free_search_in_analyses_of_records(req: AnalysesFreeSearchRequest) -> Simpli
     results = requests.post(AJAX_URL, 
                       data = {
                           "method": "getResults", 
-                          "pageSize": 20, 
+                          "pageSize": 5, 
                           "pageNumber": 1,
                       },
                       cookies = cookies)
@@ -694,7 +694,7 @@ def search_person_in_analyses_of_records(req: AnalysesSearchPersonRequest) -> Si
     results = requests.post(AJAX_URL, 
                       data = {
                           "method": "getResults", 
-                          "pageSize": 20, 
+                          "pageSize": 5, 
                           "pageNumber": 1,
                       },
                       cookies = cookies)
