@@ -8,6 +8,7 @@ from tools.agatha_common import PeriodSelector
 from tools.analyses_of_records import (
     AnalysesActType,
     AnalysesProject,
+    SimplifiedAnalysesSearchResponse,
 )
 
 
@@ -16,6 +17,8 @@ class SearchAnalysesState(TypedDict, total=False):
 
     Attributes:
         outer_context (list): the outer context (= conversation that has happened outside of this wizzard)
+        call_data (SimplifiedAnalysesSearchResponse | None): the result of a call to the tool that uses
+            the agatha search person in analyses of records tool.
         location (str|None): the location where the act has taken place
         period_selector (PeriodSelector|None): a precision on how to interpret the dates
         start_date (str|None): the start date or exact date
@@ -25,6 +28,7 @@ class SearchAnalysesState(TypedDict, total=False):
     """
 
     outer_context: list
+    call_data: SimplifiedAnalysesSearchResponse | None
 
     location: str | None
     period_selector: PeriodSelector|None

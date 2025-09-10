@@ -4,12 +4,12 @@ from typing import TypedDict
 
 from pydantic import BaseModel
 
-from agents.local_llm.analyses_of_records.common_schemas import SearchAnalysesState
 from tools.analyses_of_records import (
     AnalysesActRole,
     PersonCriterion,
-    SimplifiedAnalysesSearchResponse,
 )
+
+from ..common.schemas import SearchAnalysesState
 
 ###### ADD PERSON WIZZARD #######################################################
 
@@ -93,11 +93,8 @@ class SearchPersonWizzardState(SearchAnalysesState, total=False):
         known_people (list[str]): a list comprising the name of all the persons that should be added to
             the search request.
         persons (list(PersonCriterion)): the list of people that are used to retrieve a given act.
-        call_data (SimplifiedAnalysesSearchResponse | None): the result of a call to the tool that uses
-            the agatha search person in analyses of records tool.
     """
 
     known_people: list[str]
     persons: list[PersonCriterion]
-    call_data: SimplifiedAnalysesSearchResponse | None
 
