@@ -6,21 +6,23 @@ from typing import cast
 from langchain_core.messages import HumanMessage
 from langgraph.graph import END, START, StateGraph
 
-from tools.analyses_of_records import (
+from ....tools.analyses_of_records import (
     AnalysesSearchPersonRequest,
     PersonCriterion,
     search_person_in_analyses_of_records,
 )
-
-from ..common.llm import LLM
+from ...common.llm import LLM
+from ...common.steps import (
+    step_fill_period,
+)
 from ..common.steps import (
     step_deliver_raw_data,
     step_fill_location,
-    step_fill_period,
     step_fill_project,
     step_fill_record_type,
 )
 from .prompts import (
+    context,
     family_name,
     first_name,
     job_name,
@@ -44,7 +46,7 @@ async def step_fill_family_name(state: AddPersonWizzardState) -> AddPersonWizzar
         await (LLM.with_structured_output(FamilyName))
         .ainvoke( 
             state["messages"] + 
-            [ HumanMessage(family_name.format(full_name=state["full_name"])) ]
+            [ family_name.format(full_name=state.get("full_name")) ]
         )
     )
     return {"family_name": rsp.family_name} # type: ignore
@@ -54,7 +56,7 @@ async def step_fill_first_name(state: AddPersonWizzardState) -> AddPersonWizzard
         await (LLM.with_structured_output(FirstName))
         .ainvoke( 
             state["messages"] + 
-            [ HumanMessage(first_name.format(full_name=state["full_name"])) ]
+            [ first_name.format(full_name=state.get("full_name")) ]
         )
     )
     return {"first_name": rsp.first_name} # type: ignore
@@ -64,7 +66,7 @@ async def step_fill_job(state: AddPersonWizzardState) -> AddPersonWizzardState:
         await (LLM.with_structured_output(Profession))
         .ainvoke( 
             state["messages"] + 
-            [ HumanMessage(job_name.format(full_name=state["full_name"])) ]
+            [ job_name.format(full_name=state.get("full_name")) ]
         )
     )
     return {"profession": rsp.profession} # type: ignore
@@ -74,7 +76,7 @@ async def step_fill_role(state: AddPersonWizzardState) -> AddPersonWizzardState:
         await (LLM.with_structured_output(RoleChoice))
         .ainvoke( 
             state["messages"] + 
-            [ HumanMessage(role_name.format(full_name=state["full_name"])) ]
+            [ role_name.format(full_name=state.get("full_name")) ]
         )
     )
     return {"role": rsp.role} if rsp else {} # type: ignore
@@ -126,16 +128,16 @@ async def _substep_add_person(person: str, messages: list) -> PersonCriterion:
     sub = cast(AddPersonWizzardState, 
                await __ADD_PERSON_WIZZARD.ainvoke(sub))  # type: ignore[arg-type]
     return PersonCriterion(
-        family_name=sub["family_name"],
-        first_name=sub["first_name"],
-        profession=sub["profession"],
-        role=sub["role"],
+        family_name=sub.get("family_name"),
+        first_name=sub.get("first_name"),
+        profession=sub.get("profession"),
+        role=sub.get("role"),
     )
 
 async def step_add_pers_wizzard(state: SearchPersonWizzardState) -> SearchPersonWizzardState:
     """Goes through all the steps of the add person wizard state"""
     outer = state["messages"]
-    tasks = [_substep_add_person(p, outer) for p in state["known_people"]]
+    tasks = [_substep_add_person(p, outer) for p in state.get("known_people", [])]
     persons = await asyncio.gather( *tasks )
     return {"persons": persons} # type: ignore
 
@@ -143,13 +145,13 @@ async def step_call_tool(state: SearchPersonWizzardState) -> SearchPersonWizzard
     """Performs a call to the Agatha tool"""
 
     request = AnalysesSearchPersonRequest(
-        persons=state["persons"],
-        location=state["location"],
-        period=state["period_selector"],
-        start_date=state["start_date"],
-        end_date=state["end_date"],
-        act_type=state["act_type"],
-        project=state["project"],
+        persons=state.get("persons", []),
+        location=state.get("location"),
+        period=state.get("period_selector"),
+        start_date=state.get("start_date"),
+        end_date=state.get("end_date"),
+        act_type=state.get("act_type"),
+        project=state.get("project"),
     )
     call = search_person_in_analyses_of_records(request)
     return {"call_data": call} # type: ignore
@@ -159,7 +161,7 @@ SEARCH_PERSON_IN_ANALYSES_OF_RECORDS = (
         .add_node("list_people", step_list_people)
         .add_node("add_persons", step_add_pers_wizzard)
         .add_node("fill_location", step_fill_location)
-        .add_node("fill_period", step_fill_period)
+        .add_node("fill_period", step_fill_period(context=context))
         .add_node("fill_act_type", step_fill_record_type)
         .add_node("fill_project", step_fill_project)
         .add_node("call_tool", step_call_tool)

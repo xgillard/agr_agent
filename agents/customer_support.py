@@ -4,15 +4,14 @@ from logging import Logger
 from langchain.chat_models import init_chat_model
 from langchain.tools import tool
 
-from tools import (
+from .common import agent
+from .tools import (
     agatha_knowledge,
     genealogy_search_church_registers_prior_to_1796,
     genealogy_search_civil_state_registers,
     tool_free_search_in_analyses_of_records,
     tool_search_person_in_analyses_of_records,
 )
-
-from .common import agent
 
 log = Logger(__name__)
 

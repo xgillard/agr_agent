@@ -10,6 +10,7 @@ wheels/
 corpus.zip
 corpus/digita_sent/*/*.txt
 corpus/digita_sent/*/*/*.txt
+corpus/
 
 # notebooks
 .ipynb_checkpoints

@@ -1,70 +1,56 @@
 """Common steps to perform a search in the analyses of records."""
 
-from typing import cast
+from typing import TypeVar, cast
 
-from langchain_core.messages import AIMessage, HumanMessage
+from langchain_core.messages import AIMessage
 
-from .llm import LLM
+from ...common.llm import LLM
 from .prompts import (
     act_type,
+    context,
     location,
-    period,
     project_type,
 )
 from .schemas import (
     ActTypeChoice,
     Location,
-    Period,
     ProjectChoice,
     SearchAnalysesState,
 )
 
+T = TypeVar("T", bound=SearchAnalysesState)
 
-async def step_fill_location(state: SearchAnalysesState) -> SearchAnalysesState:
+async def step_fill_location(state: T) -> T:
     """Fill the location field"""
 
     loc = cast(Location,
         await LLM
         .with_structured_output(Location)
-        .ainvoke( state["messages"] + [ HumanMessage( location ) ])
+        .ainvoke( state["messages"] + [ location.format(context=context) ])
     )
     return { "location": loc.location } # type: ignore
 
-async def step_fill_period(state: SearchAnalysesState) -> SearchAnalysesState:
-    """Fill the search period."""
-
-    when = cast(Period,
-        await LLM
-        .with_structured_output(Period)
-        .ainvoke( state["messages"] + [ HumanMessage( period ) ])
-    )
-    return { 
-        "period_selector": when.selector, 
-        "start_date": when.start_date,
-        "end_date": when.end_date,
-    } # type: ignore
-
-async def step_fill_record_type(state: SearchAnalysesState) -> SearchAnalysesState:
+async def step_fill_record_type(state: T) -> T:
     """Fill the record type."""
 
     rsp = cast(ActTypeChoice,
         await LLM
         .with_structured_output(ActTypeChoice)
-        .ainvoke( state["messages"] + [ HumanMessage( act_type ) ])
+        .ainvoke( state["messages"] + [ act_type.format(context=context) ])
     )
     return {"act_type": rsp.act_type } # type: ignore
 
-async def step_fill_project(state: SearchAnalysesState) -> SearchAnalysesState:
+async def step_fill_project(state: T) -> T:
     """Fill the project name."""
 
     rsp = cast(ProjectChoice,
         await LLM
         .with_structured_output(ProjectChoice)
-        .ainvoke( state["messages"] + [ HumanMessage( project_type ) ])
+        .ainvoke( state["messages"] + [ project_type.format(context=context) ])
     )
     return {"project": rsp.project } # type: ignore
 
-async def step_deliver_raw_data(state: SearchAnalysesState) -> SearchAnalysesState:
+async def step_deliver_raw_data(state: T) -> T:
     """Deliver the raw data as an AI message."""
 
     return { # type: ignore

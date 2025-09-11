@@ -2,10 +2,9 @@
 
 from typing import Literal, cast
 
-from langchain_core.messages import HumanMessage
 from langgraph.graph import END, START, MessagesState, StateGraph
 
-from .common.llm import LLM
+from ..common.llm import LLM
 from .free_search import FREE_SEARCH_IN_ANALYSES_OF_RECORDS
 from .prompts import triage
 from .schemas import AnalysesOfRecordsTool, TriageChoice
@@ -18,7 +17,7 @@ async def step_triage(state: MessagesState) -> Literal["free_search", "search_pe
     response = cast(TriageChoice,
         await (
             LLM.with_structured_output(TriageChoice)
-                .ainvoke(state["messages"] + [HumanMessage(triage)])
+                .ainvoke(state["messages"] + [triage])
         )
     )
     if AnalysesOfRecordsTool.SEARCH_PERSON == response.choice:

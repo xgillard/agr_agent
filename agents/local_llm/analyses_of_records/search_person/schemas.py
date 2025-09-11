@@ -3,11 +3,10 @@
 from langgraph.graph import MessagesState
 from pydantic import BaseModel
 
-from tools.analyses_of_records import (
+from ....tools.analyses_of_records import (
     AnalysesActRole,
     PersonCriterion,
 )
-
 from ..common.schemas import SearchAnalysesState
 
 ###### ADD PERSON WIZZARD #######################################################

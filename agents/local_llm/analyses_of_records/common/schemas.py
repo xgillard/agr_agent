@@ -1,18 +1,17 @@
 """Common data types to implement the search in analyses of records tool."""
 
 
-from langgraph.graph import MessagesState
 from pydantic import BaseModel
 
-from tools.agatha_common import PeriodSelector
-from tools.analyses_of_records import (
+from ....local_llm.common.schemas import AgathaToolState
+from ....tools.analyses_of_records import (
     AnalysesActType,
     AnalysesProject,
     SimplifiedAnalysesSearchResponse,
 )
 
 
-class SearchAnalysesState(MessagesState, total=False):
+class SearchAnalysesState(AgathaToolState, total=False):
     """The base data type to implement the steps to search in analyses of records.
 
     Attributes:
@@ -28,9 +27,6 @@ class SearchAnalysesState(MessagesState, total=False):
     call_data: SimplifiedAnalysesSearchResponse
 
     location: str | None
-    period_selector: PeriodSelector|None
-    start_date: str | None
-    end_date: str | None
     act_type: AnalysesActType | None
     project: AnalysesProject | None
 
@@ -43,19 +39,6 @@ class Location(BaseModel):
     """
 
     location: str | None = None
-
-class Period(BaseModel):
-    """Period when the act might have happened.
-    
-    Attributes:
-        selector (PeriodSelector|None): a precision on how to interpret the dates
-        start_date (str|None): the start date or exact date
-        end_date (str|None): the end date.
-    """
-
-    selector: PeriodSelector | None = PeriodSelector.BETWEEN
-    start_date: str | None = None
-    end_date: str | None = None
 
 
 class ActTypeChoice(BaseModel):

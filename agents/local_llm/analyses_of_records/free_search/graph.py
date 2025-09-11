@@ -1,23 +1,26 @@
 """Implement the logic to call a search_person_in_analyses_of_records as if the agent went through a wizzard."""
 
-from langchain_core.messages import HumanMessage
 from langchain_core.output_parsers import StrOutputParser
 from langgraph.graph import END, START, StateGraph
 
-from tools.analyses_of_records import (
+from ....tools.analyses_of_records import (
     AnalysesFreeSearchRequest,
     free_search_in_analyses_of_records,
 )
-
-from ..common.llm import LLM
+from ...common.llm import LLM
+from ...common.steps import (
+    step_fill_period,
+)
 from ..common.steps import (
     step_deliver_raw_data,
     step_fill_location,
-    step_fill_period,
     step_fill_project,
     step_fill_record_type,
 )
-from .prompts import search_terms
+from .prompts import (
+    context,
+    search_terms,
+)
 from .schemas import FreeSearchWizzardState
 
 
@@ -26,7 +29,7 @@ async def step_search_terms(state: FreeSearchWizzardState) -> FreeSearchWizzardS
 
     terms = await (LLM | StrOutputParser()).ainvoke(
         state["messages"] + 
-        [HumanMessage(search_terms)]
+        [search_terms.format(context=context)]
     )
 
     return {"search_terms": terms} # type: ignore
@@ -35,13 +38,13 @@ async def step_call_tool(state: FreeSearchWizzardState) -> FreeSearchWizzardStat
     """Performs a call to the Agatha tool"""
 
     request = AnalysesFreeSearchRequest(
-        search_terms=state["search_terms"],
-        location=state["location"],
-        period=state["period_selector"],
-        start_date=state["start_date"],
-        end_date=state["end_date"],
-        act_type=state["act_type"],
-        project=state["project"],
+        search_terms=state.get("search_terms"),
+        location=state.get("location"),
+        period=state.get("period_selector"),
+        start_date=state.get("start_date"),
+        end_date=state.get("end_date"),
+        act_type=state.get("act_type"),
+        project=state.get("project"),
     )
     
     call = free_search_in_analyses_of_records(request)
@@ -51,7 +54,7 @@ FREE_SEARCH_IN_ANALYSES_OF_RECORDS = (
     StateGraph(FreeSearchWizzardState)
         .add_node("fill_keywords", step_search_terms)
         .add_node("fill_location", step_fill_location)
-        .add_node("fill_period", step_fill_period)
+        .add_node("fill_period", step_fill_period(context))
         .add_node("fill_act_type", step_fill_record_type)
         .add_node("fill_project", step_fill_project)
         .add_node("call_tool", step_call_tool)

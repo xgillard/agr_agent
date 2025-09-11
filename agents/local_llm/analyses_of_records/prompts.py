@@ -1,8 +1,10 @@
 """The prompts related to the creation of a search person request."""
 
+from langchain_core.messages import HumanMessage
+
 from .schemas import AnalysesOfRecordsTool
 
-triage = f"""
+triage = HumanMessage(f"""
 < Context >
 You want to search a document using the search in analyses of records capabilities 
 from AGATHA. For this purpose, the platform offers two possibilities:
@@ -18,4 +20,4 @@ from AGATHA. For this purpose, the platform offers two possibilities:
 < Instruction >
 Which tool would you like to use among these two ?
 </ Instruction >
-"""
+""")

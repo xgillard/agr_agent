@@ -1,34 +1,40 @@
 """The prompts related to the creation of a search person request."""
 
-from tools.analyses_of_records import AnalysesActRole
+from langchain_core.prompts import HumanMessagePromptTemplate
+
+from ....tools.analyses_of_records import AnalysesActRole
 
 ###### ADD PERSON WIZZARD ####################################################
 
-family_name = """
+family_name = HumanMessagePromptTemplate.from_template("""
 What is the **FAMILY NAME** of {full_name} ? (When unknown, respond with an empty string)
-"""
+""")
 
-first_name = """
+first_name = HumanMessagePromptTemplate.from_template("""
 What is the **FIRST NAME** of {full_name} ? (When unknown, respond with an empty string)
-"""
+""")
 
-job_name = """
+job_name = HumanMessagePromptTemplate.from_template("""
 What is the **PROFESSION** (or occupation) of {full_name} ? (When unknown, respond with an empty string)
-"""
+""")
 
-role_name = f"""
+role_name = HumanMessagePromptTemplate.from_template(f"""
 In the document you are searching, what was the role played by {{full_name}}
 (choose one among the following propositions) ?
 
 {AnalysesActRole.all_values()}
-"""
+""")
 
 ###### SEARCH PERSON WIZZARD ####################################################
-list_known_people = """
+context = """
 < Context >
 You want to use the search_person_in_analyses_of_records because you know
 some people that partake to the archived document you are looking for.
 </ Context >
+"""
+
+list_known_people = """
+{context}
 
 < Instructions >
 List the full name of all people whoa participated in the act you are looking for.
