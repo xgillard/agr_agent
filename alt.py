@@ -42,7 +42,7 @@ async def example_rubens()-> str:
         Malik
         """)
     
-    response = await SEARCH_IN_ANALYSES_OF_RECORDS.ainvoke({
+    response = await SEARCH_IN_ANALYSES_OF_RECORDS.ainvoke({ # type: ignore
         "messages": [sytem, email]
     })
 

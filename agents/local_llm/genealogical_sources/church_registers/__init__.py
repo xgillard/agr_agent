@@ -1,0 +1,1 @@
+"""Implement the search in church registers prior to 1796."""
