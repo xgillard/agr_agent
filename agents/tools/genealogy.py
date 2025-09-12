@@ -12,7 +12,7 @@ import requests
 from langchain_core.tools import tool
 from pydantic import BaseModel, ConfigDict, Field
 
-from .agatha_common import Municipality
+from .agatha_common import Municipality, Parish, PeriodSelector
 
 ## Constants
 BASE_URL  = "https://agatha.arch.be/search"
@@ -553,52 +553,29 @@ class GenealogyDocument(BaseModel):
             url         = self.url,
         )
 
+
 ## Definition of the actual tools
-@tool(
-    parse_docstring=True,
-    description=
-    f"""Search genealogic data in the Church Registers (prior to 1796).
-
-    Args:
-        municipality_name (str): Name of the municipality
-        parish_name (Optional[str]): Name of the parish
-        act_types (Optional[list[ParishActType]]): The kind of document we are searching for
-            Accepted Values:
-                {str(ParishActType.all_values())}
-        other_types (Optional[list[OtherParishActType]]): Mandatory precision when act_types is OTHER
-            Accepted Values:
-                {str(OtherParishActType.all_values())}
-        index_types (Optional[list[ParishIndex]]): The kind of index where to search data
-            Accepted Values:
-                {str(ParishIndex.all_values())}
-        start_year (Optional[int]): Start year of the period considered for this search
-        end_year (Optional[int]): End year of the period considered for this search
-
-    Note: 
-        - Providing at least one 'act_types' or 'index_types' in mandatory.
-
-    Returns: 
-        list[GenealogySearchResult]: a possibly empty list of genealogical search results.
-    """)
 def genealogy_search_church_registers_prior_to_1796(
-    municipality_name: str,
-    parish_name:       Optional[str] = None,
+    municipality:      Municipality,
+    parishes:          list[Parish],
     act_types:         Optional[list[ParishActType]] =  None,
     other_types:       Optional[list[OtherParishActType]] = None,
     index_types:       Optional[list[ParishIndex]] = None,
-    start_year:        Optional[int] = None,
-    end_year:          Optional[int] = None,
+    period_selector:   Optional[PeriodSelector] = None,
+    start_year:        Optional[str] = None,
+    end_year:          Optional[str] = None,
 ) -> list[GenealogySearchResult]:
     """Search genealogic data in the Church Registers (prior to 1796).
 
     Args:
-        municipality_name (str): Name of the municipality
-        parish_name (Optional[str]): Name of the parish
+        municipality (Municipality): the municipality where to perform search
+        parishes (list[Parish]): the parishes where to perform search
         act_types (Optional[list[ParishActType]]): The kind of document we are searching for
         other_types (Optional[list[OtherParishActType]]): Mandatory precision when act_types is OTHER
         index_types (Optional[list[ParishIndex]]): The kind of index where to search data
-        start_year (Optional[int]): Start year of the period considered for this search
-        end_year (Optional[int]): End year of the period considered for this search
+        period_selector (Optional[PeriodSelector]): specify how to interpret period
+        start_year (Optional[str]): Start year of the period considered for this search
+        end_year (Optional[str]): End year of the period considered for this search
 
     Note: 
         - Providing at least one 'act_types' or 'index_types' in mandatory.
@@ -608,48 +585,8 @@ def genealogy_search_church_registers_prior_to_1796(
 
     Raises:
         requests.exceptions.RequestException: whenever something goes wrong with the search on agatha.
-
-    Examples:
-        # There can be one result
-        >>> genealogy_search_church_registers_prior_to_1796(
-        >>>     municipality_name = "sterrebeek",
-        >>>     act_types         = [ParishActType.DEATH],
-        >>>     start_year        = 1795,
-        >>> )
-        [GenealogySearchResult(
-            description='Funeral and death certificates', 
-            start_date='01/01/1793', 
-            end_date='31/12/1796', 
-            ...),
-        ]
-  
-        # or there can be many
-        >>> res = genealogy_search_church_registers_prior_to_1796(
-        >>>     municipality_name = "sterrebeek",
-        >>>     act_types         = [ParishActType.BAPTISM],
-        >>>     start_year        = 1790,
-        >>> )
-        >>> sorted(res, key=lambda x: x.start_date)
-        [
-          GenealogySearchResult(start_date='02/01/1791', end_date='17/12/1791', ...), 
-          GenealogySearchResult(start_date='02/01/1793', end_date='18/12/1793', ...), 
-          GenealogySearchResult(start_date='05/01/1790', end_date='22/12/1790', ...), 
-          GenealogySearchResult(start_date='16/01/1796', end_date='12/12/1796', ...), 
-          GenealogySearchResult(start_date='18/01/1792', end_date='23/12/1792', ...), 
-          GenealogySearchResult(start_date='29/01/1778', end_date='08/10/1796', ...), 
-        ]
-
     """
-    municipality = Municipality.by_name(municipality_name, AJAX_URL, return_single_best_match=True)
-    if municipality is None:
-        return []
-    
-    parishes = municipality.parishes(AJAX_URL)
 
-    if parish_name is not None:
-        parishes = [ p for p in parishes if parish_name in p.place_name.lower() ]
-    
-    #
     request_data = {
         "WHICH_TAB":         GenealogySource.CHURCH_REGISTERS.code,
         "PLACEPOINT_ID_PR" : municipality.placepoint_id,
@@ -667,13 +604,14 @@ def genealogy_search_church_registers_prior_to_1796(
     if index_types is not None:
         request_data["TYPEINDEX_PR[]"] = ",".join( i.code for i in index_types )
 
+    selector = period_selector if period_selector is not None else PeriodSelector.BETWEEN
+    request_data["CHOOSE_DATE_PERIODE"] = selector.code
+
     if start_year is not None:
         request_data["exactYear"] = start_year
-        request_data["CHOOSE_DATE_PERIODE"] = "1"
 
     if end_year is not None:
         request_data["SHOW_PERIODE"] = end_year
-        request_data["CHOOSE_DATE_PERIODE"] = "1"
     
     ## search genea
     search  = requests.post(GENEA_URL, data = request_data)
@@ -691,48 +629,52 @@ def genealogy_search_church_registers_prior_to_1796(
     results = results["response"]["docs"]
     return [GenealogyDocument(**x).simplified() for x in results]
 
-
 @tool(
     parse_docstring=True,
     description=
-    f"""Search genealogic data in the Civil State Registers (after 1796).
+    f"""Search genealogic data in the Church Registers (prior to 1796).
 
     Args:
         municipality_name (str): Name of the municipality
-        act_types (Optional[list[CivilActType]]): The kind of document we are searching for
+        parish_name (Optional[str]): Name of the parish
+        act_types (Optional[list[ParishActType]]): The kind of document we are searching for
             Accepted Values:
-                {str(CivilActType.all_values())}
-        other_types (Optional[list[OtherCivilActType]]): Mandatory precision when act_types is OTHER
+                {str(ParishActType.all_values())}
+        other_types (Optional[list[OtherParishActType]]): Mandatory precision when act_types is OTHER
             Accepted Values:
-                {str(OtherCivilActType.all_values())}
-        index_types (Optional[list[CivilIndex]]): The kind of index where to search data
+                {str(OtherParishActType.all_values())}
+        index_types (Optional[list[ParishIndex]]): The kind of index where to search data
             Accepted Values:
-                {str(CivilIndex.all_values())}
-        start_year (Optional[int]): Start year of the period considered for this search
-        end_year (Optional[int]): End year of the period considered for this search
+                {str(ParishIndex.all_values())}
+        period_selector (Optional[PeriodSelector]): specify how to interpret period
+        start_year (Optional[str]): Start year of the period considered for this search
+        end_year (Optional[str]): End year of the period considered for this search
 
     Note: 
         - Providing at least one 'act_types' or 'index_types' in mandatory.
 
     Returns: 
         list[GenealogySearchResult]: a possibly empty list of genealogical search results.
-    """
-)
-def genealogy_search_civil_state_registers(
+    """)
+def tool_genealogy_search_church_registers_prior_to_1796(
     municipality_name: str,
-    act_types:         Optional[list[CivilActType]] =  None,
-    other_types:       Optional[list[OtherCivilActType]] = None,
-    index_types:       Optional[list[CivilIndex]] = None,
-    start_year:        Optional[int] = None,
-    end_year:          Optional[int] = None,
+    parish_name:       Optional[str] = None,
+    act_types:         Optional[list[ParishActType]] =  None,
+    other_types:       Optional[list[OtherParishActType]] = None,
+    index_types:       Optional[list[ParishIndex]] = None,
+    period_selector:   Optional[PeriodSelector] = None,
+    start_year:        Optional[str] = None,
+    end_year:          Optional[str] = None,
 ) -> list[GenealogySearchResult]:
-    """Search genealogic data in the Civil State Registers (after 1796).
+    """Search genealogic data in the Church Registers (prior to 1796).
 
     Args:
         municipality_name (str): Name of the municipality
-        act_types (Optional[list[CivilActType]]): The kind of document we are searching for
-        other_types (Optional[list[OtherCivilActType]]): Mandatory precision when act_types is OTHER
-        index_types (Optional[list[CivilIndex]]): The kind of index where to search data
+        parish_name (Optional[str]): Name of the parish
+        act_types (Optional[list[ParishActType]]): The kind of document we are searching for
+        other_types (Optional[list[OtherParishActType]]): Mandatory precision when act_types is OTHER
+        index_types (Optional[list[ParishIndex]]): The kind of index where to search data
+        period_selector (Optional[PeriodSelector]): specify how to interpret period
         start_year (Optional[int]): Start year of the period considered for this search
         end_year (Optional[int]): End year of the period considered for this search
 
@@ -744,39 +686,91 @@ def genealogy_search_civil_state_registers(
 
     Raises:
         requests.exceptions.RequestException: whenever something goes wrong with the search on agatha.
+    """
+
+    municipality = Municipality.by_name(municipality_name, AJAX_URL, return_single_best_match=True)
+    if municipality is None:
+        return []
+    
+    parishes = municipality.parishes(AJAX_URL)
+
+    if parish_name is not None:
+        parishes = [ p for p in parishes if parish_name in p.place_name.lower() ]
+    
+    return genealogy_search_church_registers_prior_to_1796(
+        municipality=municipality,
+        parishes=parishes,
+        act_types=act_types,
+        other_types=other_types,
+        index_types=index_types,
+        period_selector=period_selector,
+        start_year=start_year,
+        end_year=end_year
+    )
+
+
+def genealogy_search_civil_state_registers(
+    municipality:      Municipality | None,
+    act_types:         Optional[list[CivilActType]] =  None,
+    other_types:       Optional[list[OtherCivilActType]] = None,
+    index_types:       Optional[list[CivilIndex]] = None,
+    period_selector:   Optional[PeriodSelector] = None,
+    start_year:        Optional[str] = None,
+    end_year:          Optional[str] = None,
+) -> list[GenealogySearchResult]:
+    """Search genealogic data in the Civil State Registers (after 1796).
+
+    Args:
+        municipality (str): The municipality where the act has happened
+        act_types (Optional[list[CivilActType]]): The kind of document we are searching for
+        other_types (Optional[list[OtherCivilActType]]): Mandatory precision when act_types is OTHER
+        index_types (Optional[list[CivilIndex]]): The kind of index where to search data
+        period_selector (Optional[PeriodSelector]): specify how to interpret period
+        start_year (Optional[str]): Start year of the period considered for this search
+        end_year (Optional[str]): End year of the period considered for this search
+
+    Note: 
+        - Providing at least one 'act_types' or 'index_types' in mandatory.
+
+    Returns: 
+        list[GenealogySearchResult]: a possibly empty list of genealogical search results.
+
+    Raises:
+        requests.exceptions.RequestException: whenever something goes wrong with the search on agatha.
 
     Examples:
+      # start by fetching municipality and parish
+      >>> sterrebeek = Municipality.by_name("sterrebeek", AJAX_URL, return_single_best_match=True)
+      >>> rixensart  = Municipality.by_name("rixensart", AJAX_URL, return_single_best_match=True)
+      >>> bruxelles  = Municipality.by_name("bruxelles", AJAX_URL, return_single_best_match=True)
+      
       # There can be no result
       >>> res = genealogy_search_civil_state_registers(
-      >>>     municipality_name = "sterrebeek",
-      >>>     act_types         = [CivilActType.DEATH],
-      >>>     start_year        = 1948,
-      >>> )
+      ...     municipality      = sterrebeek,
+      ...     act_types         = [CivilActType.DEATH],
+      ...     start_year        = "1948",
+      ... )
       >>> sorted(res, key=lambda x: x.start_date)
       []
 
       # There can be one result
-      >>> genealogy_search_civil_state_registers(
-      >>>     municipality_name = "rixensart",
-      >>>     act_types         = [CivilActType.BIRTH],
-      >>>     start_year        = 1900,
-      >>> )
-      [GenealogySearchResult(
-          description='Birth certificates', 
-          start_date='01/01/1894', 
-          end_date='31/12/1912',
-          ...),
-      ]
+      >>> len(genealogy_search_civil_state_registers(
+      ...     municipality      = rixensart,
+      ...     act_types         = [CivilActType.BIRTH],
+      ...     start_year        = "1900",
+      ... ))
+      1
 
       # There can be many (max 20)
       >>> rx = genealogy_search_civil_state_registers(
-      >>>     municipality_name = "bruxelles",
-      >>>     act_types         = [CivilActType.DEATH],
-      >>>     start_year        = 1798,
-      >>> )
+      ...     municipality      = bruxelles,
+      ...     act_types         = [CivilActType.DEATH],
+      ...     start_year        = "1798",
+      ... )
       >>> len(rx)
+      20
     """
-    municipality = Municipality.by_name(municipality_name, AJAX_URL, return_single_best_match=True)
+
     if municipality is None:
         return []
     
@@ -796,13 +790,14 @@ def genealogy_search_civil_state_registers(
     if index_types is not None:
         request_data["TYPEINDEX_CS[]"] = ",".join( i.code for i in index_types )
 
+    selector = PeriodSelector.BETWEEN if period_selector is None else period_selector
+    request_data["CHOOSE_DATE_PERIODE"] = selector.code
+
     if start_year is not None:
         request_data["exactYear"] = start_year
-        request_data["CHOOSE_DATE_PERIODE"] = "1"
 
     if end_year is not None:
         request_data["SHOW_PERIODE"] = end_year
-        request_data["CHOOSE_DATE_PERIODE"] = "1"
     
     ## search genea
     search  = requests.post(GENEA_URL, data = request_data)
@@ -820,3 +815,102 @@ def genealogy_search_civil_state_registers(
     results = results["response"]["docs"]
     return [GenealogyDocument(**x).simplified() for x in results]
 
+@tool(
+    parse_docstring=True,
+    description=
+    f"""Search genealogic data in the Civil State Registers (after 1796).
+
+    Args:
+        municipality_name (str): Name of the municipality
+        act_types (Optional[list[CivilActType]]): The kind of document we are searching for
+            Accepted Values:
+                {str(CivilActType.all_values())}
+        other_types (Optional[list[OtherCivilActType]]): Mandatory precision when act_types is OTHER
+            Accepted Values:
+                {str(OtherCivilActType.all_values())}
+        index_types (Optional[list[CivilIndex]]): The kind of index where to search data
+            Accepted Values:
+                {str(CivilIndex.all_values())}
+        period_selector (Optional[PeriodSelector]): specify how to interpret period
+        start_year (Optional[str]): Start year of the period considered for this search
+        end_year (Optional[str]): End year of the period considered for this search
+
+    Note: 
+        - Providing at least one 'act_types' or 'index_types' in mandatory.
+
+    Returns: 
+        list[GenealogySearchResult]: a possibly empty list of genealogical search results.
+    """
+)
+def tool_genealogy_search_civil_state_registers(
+    municipality_name: str,
+    act_types:         Optional[list[CivilActType]] =  None,
+    other_types:       Optional[list[OtherCivilActType]] = None,
+    index_types:       Optional[list[CivilIndex]] = None,
+    period_selector:   Optional[PeriodSelector] = None,
+    start_year:        Optional[str] = None,
+    end_year:          Optional[str] = None,
+) -> list[GenealogySearchResult]:
+    """Search genealogic data in the Civil State Registers (after 1796).
+
+    Args:
+        municipality_name (str): Name of the municipality
+        act_types (Optional[list[CivilActType]]): The kind of document we are searching for
+        other_types (Optional[list[OtherCivilActType]]): Mandatory precision when act_types is OTHER
+        index_types (Optional[list[CivilIndex]]): The kind of index where to search data
+        period_selector (Optional[PeriodSelector]): specify how to interpret period
+        start_year (Optional[str]): Start year of the period considered for this search
+        end_year (Optional[str]): End year of the period considered for this search
+
+    Note: 
+        - Providing at least one 'act_types' or 'index_types' in mandatory.
+
+    Returns: 
+        list[GenealogySearchResult]: a possibly empty list of genealogical search results.
+
+    Raises:
+        requests.exceptions.RequestException: whenever something goes wrong with the search on agatha.
+
+    Examples:
+      # There can be no result
+      >>> res = genealogy_search_civil_state_registers(
+      >>>     municipality_name = "sterrebeek",
+      >>>     act_types         = [CivilActType.DEATH],
+      >>>     start_year        = "1948",
+      >>> )
+      >>> sorted(res, key=lambda x: x.start_date)
+      []
+
+      # There can be one result
+      >>> genealogy_search_civil_state_registers(
+      >>>     municipality_name = "rixensart",
+      >>>     act_types         = [CivilActType.BIRTH],
+      >>>     start_year        = "1900",
+      >>> )
+      [GenealogySearchResult(
+          description='Birth certificates', 
+          start_date='01/01/1894', 
+          end_date='31/12/1912',
+          ...),
+      ]
+
+      # There can be many (max 20)
+      >>> rx = genealogy_search_civil_state_registers(
+      >>>     municipality_name = "bruxelles",
+      >>>     act_types         = [CivilActType.DEATH],
+      >>>     start_year        = "1798",
+      >>> )
+      >>> len(rx)
+    """
+    
+    municipality = Municipality.by_name(municipality_name, AJAX_URL, return_single_best_match=True)
+    return genealogy_search_civil_state_registers(
+        municipality=municipality,
+        act_types=act_types,
+        other_types=other_types,
+        index_types=index_types,
+        period_selector=period_selector,
+        start_year=start_year,
+        end_year=end_year,
+    )
+    

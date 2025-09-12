@@ -2,8 +2,6 @@
 
 from typing import TypeVar, cast
 
-from langchain_core.messages import AIMessage
-
 from ...common.llm import LLM
 from .prompts import (
     act_type,
@@ -49,15 +47,3 @@ async def step_fill_project(state: T) -> T:
         .ainvoke( state["messages"] + [ project_type.format(context=context) ])
     )
     return {"project": rsp.project } # type: ignore
-
-async def step_deliver_raw_data(state: T) -> T:
-    """Deliver the raw data as an AI message."""
-
-    return { # type: ignore
-        "messages": AIMessage( # type: ignore
-            f"""
-            I have searched the analysed records in the archives, and here is the raw data I found:
-            {state["call_data"].model_dump_json(by_alias=False, exclude_none=True)}
-            """
-        ),
-    }

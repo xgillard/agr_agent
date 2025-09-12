@@ -6,6 +6,7 @@ from langchain_core.output_parsers import StrOutputParser
 
 from agents.local_llm.analyses_of_records import SEARCH_IN_ANALYSES_OF_RECORDS
 from agents.local_llm.common.llm import LLM
+from agents.local_llm.genealogical_sources.graph import SEARCH_IN_GENEALOGIC_SOURCES
 
 
 async def example_rubens()-> str:
@@ -46,8 +47,29 @@ async def example_rubens()-> str:
         "messages": [sytem, email]
     })
 
+    print(">>>>" * 20)
+    print(response["messages"][-1].content)
+    print(">>>>" * 20)
+
+    response2 = await SEARCH_IN_GENEALOGIC_SOURCES.ainvoke({ # type: ignore
+        "messages": response["messages"] + [
+            HumanMessage("""
+            You have found a record that corresponds to the user's request.
+            Now, you would like to find a find a digitized copy of that 
+            record. For that purpose, you will try to find that document using 
+            the search in genealogical sources capabilities from AGATHA as they
+            are the one source capable of giving you a link to the scan of the
+            original register where that act is stored.
+            """),
+        ]
+    })
+
+    print("<<<<<" * 20)
+    print(response2["messages"][-1].content)
+    print("<<<<<" * 20)
+
     user_facing = await (LLM | StrOutputParser()).ainvoke(
-            response["messages"] +
+            response2["messages"] +
             [ HumanMessage("""
             < Instructions >
             Respond to the user request in his own language. 

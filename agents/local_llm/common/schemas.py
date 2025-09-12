@@ -13,11 +13,13 @@ class AgathaToolState(MessagesState, total=False):
         period_selector (PeriodSelector|None): a precision on how to interpret the dates
         start_date (str|None): the start date or exact date
         end_date (str|None): the end date.
+        call_data (BaseModel | None): the outcome of a tool call
     """
 
     period_selector: PeriodSelector|None
     start_date: str | None
     end_date: str | None
+    call_data: BaseModel | list[BaseModel] | None
 
 
 class Period(BaseModel):

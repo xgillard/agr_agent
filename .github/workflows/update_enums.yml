@@ -28,7 +28,7 @@ jobs:
         run: uv sync
 
       - name: "Regenerate enums"
-        run: uv run -m tools.agatha2enum
+        run: uv run -m agents.tools.agatha2enum
 
       - name: "Create PR if somehting changed"
         uses: peter-evans/create-pull-request@v6

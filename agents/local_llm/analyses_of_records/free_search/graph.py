@@ -9,10 +9,10 @@ from ....tools.analyses_of_records import (
 )
 from ...common.llm import LLM
 from ...common.steps import (
+    step_deliver_raw_data,
     step_fill_period,
 )
 from ..common.steps import (
-    step_deliver_raw_data,
     step_fill_location,
     step_fill_project,
     step_fill_record_type,

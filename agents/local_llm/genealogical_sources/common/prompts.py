@@ -6,6 +6,7 @@ municipality = HumanMessagePromptTemplate.from_template("""
 {context}
 
 < Instructions >
-Where did the act you are searching took place ? (Municipality)
+Where did the act you are searching took place ? Respond using the municipality
+name only.
 </ Instructions >
 """)

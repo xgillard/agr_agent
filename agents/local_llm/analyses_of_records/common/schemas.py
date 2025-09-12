@@ -7,7 +7,6 @@ from ....local_llm.common.schemas import AgathaToolState
 from ....tools.analyses_of_records import (
     AnalysesActType,
     AnalysesProject,
-    SimplifiedAnalysesSearchResponse,
 )
 
 
@@ -15,8 +14,6 @@ class SearchAnalysesState(AgathaToolState, total=False):
     """The base data type to implement the steps to search in analyses of records.
 
     Attributes:
-        call_data (SimplifiedAnalysesSearchResponse): the result of a call to the tool that uses
-            the agatha search person in analyses of records tool.
         location (str|None): the location where the act has taken place
         period_selector (PeriodSelector|None): a precision on how to interpret the dates
         start_date (str|None): the start date or exact date
@@ -24,7 +21,6 @@ class SearchAnalysesState(AgathaToolState, total=False):
         act_type (AnalysesActType | None): the kind of act which is beign sought after.
         project (AnalysesProject | None): the project which led to this record being analyzed.
     """
-    call_data: SimplifiedAnalysesSearchResponse
 
     location: str | None
     act_type: AnalysesActType | None
