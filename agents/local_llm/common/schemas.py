@@ -13,3 +13,26 @@ class AgathaToolState(MessagesState, total=False):
 
     call_data: BaseModel | list[BaseModel] | None
 
+
+class Choices[Choice](BaseModel):
+    """A generic choice
+
+    Attributes:
+        choices (list[Choice]): the chosen options
+    """
+
+    choices: list[Choice]
+
+    def options(self) -> list[Choice]:
+        return self.choices
+
+
+class SingleChoice[Choice](BaseModel):
+    """A generic choice
+
+    Attributes:
+        choice (Choice): the chosen option
+    """
+
+    choice: Choice
+

@@ -17,10 +17,11 @@ from ....tools.genealogy import (
     genealogy_search_civil_state_registers,
 )
 from ...common.llm import LLM
+from ...common.schemas import Choices
 from ...common.steps import (
     step_deliver_raw_data,
 )
-from ..common.schemas import Choices, TypeOfDocument, YearPeriod
+from ..common.schemas import TypeOfDocument, YearPeriod
 from ..common.steps import (
     step_fill_year_period,
     step_municipality,

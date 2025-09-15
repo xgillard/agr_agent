@@ -12,6 +12,7 @@ from ....tools.agatha_common import (
 )
 from ....tools.genealogy import AJAX_URL
 from ...common.llm import LLM
+from ...common.schemas import SingleChoice
 from .prompts import (
     document_type,
     municipality,
@@ -19,7 +20,6 @@ from .prompts import (
 )
 from .schemas import (
     GeneaSearchState,
-    SingleChoice,
     TypeOfDocument,
     YearPeriod,
 )

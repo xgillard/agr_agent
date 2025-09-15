@@ -17,10 +17,11 @@ from ....tools.genealogy import (
     genealogy_search_church_registers_prior_to_1796,
 )
 from ...common.llm import LLM
+from ...common.schemas import Choices
 from ...common.steps import (
     step_deliver_raw_data,
 )
-from ..common.schemas import Choices, TypeOfDocument, YearPeriod
+from ..common.schemas import TypeOfDocument, YearPeriod
 from ..common.steps import step_fill_year_period, step_municipality, step_type_of_doc
 from .prompts import (
     act_type,

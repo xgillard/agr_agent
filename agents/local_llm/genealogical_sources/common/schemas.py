@@ -8,29 +8,6 @@ from ....tools.agatha_common import Municipality, PeriodSelector
 from ...common.schemas import AgathaToolState
 
 
-class Choices[Choice](BaseModel):
-    """A generic choice
-    
-    Attributes:
-        choices (list[Choice]): the chosen options
-    """
-
-    choices: list[Choice]
-
-    def options(self) -> list[Choice]:
-        return self.choices
-
-
-class SingleChoice[Choice](BaseModel):
-    """A generic choice
-    
-    Attributes:
-        choice (Choice): the chosen option
-    """
-
-    choice: Choice
-
-
 class TypeOfDocument(StrEnum):
     """What type of document do you wish to consider (acts or indexes)
     
