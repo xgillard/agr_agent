@@ -14,15 +14,15 @@ from ....tools.analyses_of_records import (
 from ...common.llm import LLM
 from ...common.steps import (
     step_deliver_raw_data,
-    step_fill_period,
 )
+from ..common.schemas import Period
 from ..common.steps import (
     step_fill_location,
+    step_fill_period,
     step_fill_project,
     step_fill_record_type,
 )
 from .prompts import (
-    context,
     family_name,
     first_name,
     job_name,
@@ -143,13 +143,13 @@ async def step_add_pers_wizzard(state: SearchPersonWizzardState) -> SearchPerson
 
 async def step_call_tool(state: SearchPersonWizzardState) -> SearchPersonWizzardState:
     """Performs a call to the Agatha tool"""
-
+    period = cast(Period, state.get("period", Period()))
     request = AnalysesSearchPersonRequest(
         persons=state.get("persons", []),
         location=state.get("location"),
-        period=state.get("period_selector"),
-        start_date=state.get("start_date"),
-        end_date=state.get("end_date"),
+        period=period.selector,
+        start_date=period.start_date,
+        end_date=period.end_date,
         act_type=state.get("act_type"),
         project=state.get("project"),
     )
@@ -161,7 +161,7 @@ SEARCH_PERSON_IN_ANALYSES_OF_RECORDS = (
         .add_node("list_people", step_list_people)
         .add_node("add_persons", step_add_pers_wizzard)
         .add_node("fill_location", step_fill_location)
-        .add_node("fill_period", step_fill_period(context=context))
+        .add_node("fill_period", step_fill_period)
         .add_node("fill_act_type", step_fill_record_type)
         .add_node("fill_project", step_fill_project)
         .add_node("call_tool", step_call_tool)

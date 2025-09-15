@@ -76,9 +76,9 @@ class ParishActType(StrEnum):
         OTHER (str): other kind of documents
     """
     
-    BAPTISM = "baptism"
-    WEDDING = "wedding"
-    DEATH   = "death"
+    BAPTISM = "birth-or-baptism-certificate"
+    WEDDING = "wedding-certificate"
+    DEATH   = "death-certificate"
     OTHER   = "other"
 
     @property
@@ -198,9 +198,9 @@ class ParishIndex(StrEnum):
         DEATH (str): Death / funeral certificates
     """
     
-    BAPTISM = "baptism"
-    WEDDING = "wedding" 
-    DEATH   = "death"
+    BAPTISM = "baptism-certificates"
+    WEDDING = "wedding-certificates" 
+    DEATH   = "death-certificates"
 
     @property
     def code(self) -> str:
@@ -249,9 +249,9 @@ class CivilActType(StrEnum):
         OTHER (str): Other kind of documents
     """
     
-    BIRTH   = "birth"
-    WEDDING = "wedding"
-    DEATH   = "death"
+    BIRTH   = "birth-certificate"
+    WEDDING = "wedding-certificate"
+    DEATH   = "death-certificate"
     OTHER   = "other"
 
     @property
@@ -352,6 +352,58 @@ class OtherCivilActType(StrEnum):
 
 
 class CivilIndex(StrEnum):
+    """Possible indexes where to look up documents in the church registers (prior to 1796).
+
+    Attributes:
+        BIRTH (str): Birth certificates
+        WEDDING (str): Wedding certificates
+        DEATH (str): Death / funeral certificates
+    """
+    
+    BIRTH   = "birth-certificates"
+    WEDDING = "wedding-certificates" 
+    DEATH   = "death-certificates"
+    OTHER   = "other"
+
+    @property
+    def code(self) -> str:
+        """The code that is being used to represent this enum by the AGATHA api.
+        
+        Returns:
+            str: the code that is used by the underlying AGATHA API.
+        """
+
+        match self:
+            case CivilIndex.BIRTH: 
+                return "1"
+            case CivilIndex.WEDDING:
+                return "2"
+            case CivilIndex.DEATH: 
+                return "3"
+            case CivilIndex.OTHER:
+                return "OTHER"
+    
+        
+    @classmethod    
+    def all_values(cls) -> list[str]:
+      """Return all the authorized values for this enum.
+      
+      Returns:
+        list[str]: all the authorized values for this enum.
+      """
+      return [ v._value_ for v in cls.__members__.values() ]
+    
+    @classmethod
+    def all_codes(cls) -> list[str]:
+      """Return all the authorized codes for this enum.
+      
+      Returns:
+        list[str]: all the authorized codes for this enum.
+      """
+      return [ v.code for v in cls.__members__.values() ]
+
+
+class OtherCivilIndex(StrEnum):
     """Possible indexes where to look up documents in the civil state registers (after 1796).
 
     Attributes:
@@ -379,17 +431,17 @@ class CivilIndex(StrEnum):
         """
 
         match self:
-            case CivilIndex.ANNUAL_INDEX_OF_DIVORCE:
+            case OtherCivilIndex.ANNUAL_INDEX_OF_DIVORCE:
                 return "BS_Ei"
-            case CivilIndex.ANNUAL_INDEX_OF_NATURALISATION:
+            case OtherCivilIndex.ANNUAL_INDEX_OF_NATURALISATION:
                 return "BS_Ni"
-            case CivilIndex.ANNUAL_INDEX_OF_ADDITIONAL_REGISTER:
+            case OtherCivilIndex.ANNUAL_INDEX_OF_ADDITIONAL_REGISTER:
                 return "BS_Ui"
-            case CivilIndex.DECENNAL_INDEX_OF_ADOPTION:
+            case OtherCivilIndex.DECENNAL_INDEX_OF_ADOPTION:
                 return "BS_Ax"
-            case CivilIndex.DECENNAL_INDEX_OF_DIVORCE:
+            case OtherCivilIndex.DECENNAL_INDEX_OF_DIVORCE:
                 return "BS_Ex"
-            case CivilIndex.DECENNAL_INDEX_OF_NATURALISATION:
+            case OtherCivilIndex.DECENNAL_INDEX_OF_NATURALISATION:
                 return "BS_Nx"
         
     @classmethod    
@@ -562,8 +614,8 @@ def genealogy_search_church_registers_prior_to_1796(
     other_types:       Optional[list[OtherParishActType]] = None,
     index_types:       Optional[list[ParishIndex]] = None,
     period_selector:   Optional[PeriodSelector] = None,
-    start_year:        Optional[str] = None,
-    end_year:          Optional[str] = None,
+    start_year:        Optional[int] = None,
+    end_year:          Optional[int] = None,
 ) -> list[GenealogySearchResult]:
     """Search genealogic data in the Church Registers (prior to 1796).
 
@@ -574,8 +626,8 @@ def genealogy_search_church_registers_prior_to_1796(
         other_types (Optional[list[OtherParishActType]]): Mandatory precision when act_types is OTHER
         index_types (Optional[list[ParishIndex]]): The kind of index where to search data
         period_selector (Optional[PeriodSelector]): specify how to interpret period
-        start_year (Optional[str]): Start year of the period considered for this search
-        end_year (Optional[str]): End year of the period considered for this search
+        start_year (Optional[int]): Start year of the period considered for this search
+        end_year (Optional[int]): End year of the period considered for this search
 
     Note: 
         - Providing at least one 'act_types' or 'index_types' in mandatory.
@@ -663,8 +715,8 @@ def tool_genealogy_search_church_registers_prior_to_1796(
     other_types:       Optional[list[OtherParishActType]] = None,
     index_types:       Optional[list[ParishIndex]] = None,
     period_selector:   Optional[PeriodSelector] = None,
-    start_year:        Optional[str] = None,
-    end_year:          Optional[str] = None,
+    start_year:        Optional[int] = None,
+    end_year:          Optional[int] = None,
 ) -> list[GenealogySearchResult]:
     """Search genealogic data in the Church Registers (prior to 1796).
 
@@ -714,9 +766,10 @@ def genealogy_search_civil_state_registers(
     act_types:         Optional[list[CivilActType]] =  None,
     other_types:       Optional[list[OtherCivilActType]] = None,
     index_types:       Optional[list[CivilIndex]] = None,
+    other_indexes:     Optional[list[OtherCivilIndex]] = None,
     period_selector:   Optional[PeriodSelector] = None,
-    start_year:        Optional[str] = None,
-    end_year:          Optional[str] = None,
+    start_year:        Optional[int] = None,
+    end_year:          Optional[int] = None,
 ) -> list[GenealogySearchResult]:
     """Search genealogic data in the Civil State Registers (after 1796).
 
@@ -725,9 +778,10 @@ def genealogy_search_civil_state_registers(
         act_types (Optional[list[CivilActType]]): The kind of document we are searching for
         other_types (Optional[list[OtherCivilActType]]): Mandatory precision when act_types is OTHER
         index_types (Optional[list[CivilIndex]]): The kind of index where to search data
+        other_indexes (Optional[list[OtherCivilIndex]]): Mandatory precision when index_types is OTHER
         period_selector (Optional[PeriodSelector]): specify how to interpret period
-        start_year (Optional[str]): Start year of the period considered for this search
-        end_year (Optional[str]): End year of the period considered for this search
+        start_year (Optional[int]): Start year of the period considered for this search
+        end_year (Optional[int]): End year of the period considered for this search
 
     Note: 
         - Providing at least one 'act_types' or 'index_types' in mandatory.
@@ -748,7 +802,7 @@ def genealogy_search_civil_state_registers(
       >>> res = genealogy_search_civil_state_registers(
       ...     municipality      = sterrebeek,
       ...     act_types         = [CivilActType.DEATH],
-      ...     start_year        = "1948",
+      ...     start_year        = 1948,
       ... )
       >>> sorted(res, key=lambda x: x.start_date)
       []
@@ -757,7 +811,7 @@ def genealogy_search_civil_state_registers(
       >>> len(genealogy_search_civil_state_registers(
       ...     municipality      = rixensart,
       ...     act_types         = [CivilActType.BIRTH],
-      ...     start_year        = "1900",
+      ...     start_year        = 1900,
       ... ))
       1
 
@@ -765,7 +819,7 @@ def genealogy_search_civil_state_registers(
       >>> rx = genealogy_search_civil_state_registers(
       ...     municipality      = bruxelles,
       ...     act_types         = [CivilActType.DEATH],
-      ...     start_year        = "1798",
+      ...     start_year        = 1798,
       ... )
       >>> len(rx)
       20
@@ -789,6 +843,9 @@ def genealogy_search_civil_state_registers(
 
     if index_types is not None:
         request_data["TYPEINDEX_CS[]"] = ",".join( i.code for i in index_types )
+    
+    if other_indexes is not None:
+        request_data["TYPEINDEX_OTHER_CS[]"] = ",".join(i.code for i in other_indexes)
 
     selector = PeriodSelector.BETWEEN if period_selector is None else period_selector
     request_data["CHOOSE_DATE_PERIODE"] = selector.code
@@ -831,9 +888,12 @@ def genealogy_search_civil_state_registers(
         index_types (Optional[list[CivilIndex]]): The kind of index where to search data
             Accepted Values:
                 {str(CivilIndex.all_values())}
+        other_indexes (Optional[list[OtherCivilIndex]]): mandatory precision when index is OTHER
+            Accepted Values:
+                {str(OtherCivilIndex.all_values())}
         period_selector (Optional[PeriodSelector]): specify how to interpret period
-        start_year (Optional[str]): Start year of the period considered for this search
-        end_year (Optional[str]): End year of the period considered for this search
+        start_year (Optional[int]): Start year of the period considered for this search
+        end_year (Optional[int]): End year of the period considered for this search
 
     Note: 
         - Providing at least one 'act_types' or 'index_types' in mandatory.
@@ -847,9 +907,10 @@ def tool_genealogy_search_civil_state_registers(
     act_types:         Optional[list[CivilActType]] =  None,
     other_types:       Optional[list[OtherCivilActType]] = None,
     index_types:       Optional[list[CivilIndex]] = None,
+    other_indexes:     Optional[list[OtherCivilIndex]] = None,
     period_selector:   Optional[PeriodSelector] = None,
-    start_year:        Optional[str] = None,
-    end_year:          Optional[str] = None,
+    start_year:        Optional[int] = None,
+    end_year:          Optional[int] = None,
 ) -> list[GenealogySearchResult]:
     """Search genealogic data in the Civil State Registers (after 1796).
 
@@ -858,9 +919,10 @@ def tool_genealogy_search_civil_state_registers(
         act_types (Optional[list[CivilActType]]): The kind of document we are searching for
         other_types (Optional[list[OtherCivilActType]]): Mandatory precision when act_types is OTHER
         index_types (Optional[list[CivilIndex]]): The kind of index where to search data
+        other_indexes (Optional[list[OtherCivilIndex]]): mandatory precision when index is OTHER
         period_selector (Optional[PeriodSelector]): specify how to interpret period
-        start_year (Optional[str]): Start year of the period considered for this search
-        end_year (Optional[str]): End year of the period considered for this search
+        start_year (Optional[int]): Start year of the period considered for this search
+        end_year (Optional[int]): End year of the period considered for this search
 
     Note: 
         - Providing at least one 'act_types' or 'index_types' in mandatory.
@@ -876,7 +938,7 @@ def tool_genealogy_search_civil_state_registers(
       >>> res = genealogy_search_civil_state_registers(
       >>>     municipality_name = "sterrebeek",
       >>>     act_types         = [CivilActType.DEATH],
-      >>>     start_year        = "1948",
+      >>>     start_year        = 1948,
       >>> )
       >>> sorted(res, key=lambda x: x.start_date)
       []
@@ -885,7 +947,7 @@ def tool_genealogy_search_civil_state_registers(
       >>> genealogy_search_civil_state_registers(
       >>>     municipality_name = "rixensart",
       >>>     act_types         = [CivilActType.BIRTH],
-      >>>     start_year        = "1900",
+      >>>     start_year        = 1900,
       >>> )
       [GenealogySearchResult(
           description='Birth certificates', 
@@ -898,7 +960,7 @@ def tool_genealogy_search_civil_state_registers(
       >>> rx = genealogy_search_civil_state_registers(
       >>>     municipality_name = "bruxelles",
       >>>     act_types         = [CivilActType.DEATH],
-      >>>     start_year        = "1798",
+      >>>     start_year        = 1798,
       >>> )
       >>> len(rx)
     """
@@ -909,6 +971,7 @@ def tool_genealogy_search_civil_state_registers(
         act_types=act_types,
         other_types=other_types,
         index_types=index_types,
+        other_indexes=other_indexes,
         period_selector=period_selector,
         start_year=start_year,
         end_year=end_year,

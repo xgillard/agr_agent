@@ -7,29 +7,28 @@ from typing import (
 
 from langgraph.graph import END, START, StateGraph
 
-from ....tools.agatha_common import (
-    PeriodSelector,
-)
 from ....tools.genealogy import (
     CivilActType,
     CivilIndex,
     Municipality,
     OtherCivilActType,
+    OtherCivilIndex,
     genealogy_search_civil_state_registers,
 )
 from ...common.llm import LLM
 from ...common.steps import (
     step_deliver_raw_data,
-    step_fill_period,
 )
-from ..common.schemas import Choices
+from ..common.schemas import Choices, YearPeriod
 from ..common.steps import (
+    step_fill_year_period,
     step_municipality,
 )
 from .prompts import (
     act_type,
     context,
     index_type,
+    other_index_type,
     other_type,
 )
 from .schemas import (
@@ -48,19 +47,23 @@ async def step_act_type(state: T) -> T:
             .ainvoke(state["messages"] + [ act_type ] )
         )
     )
-    return { "act_type": options.options() } # type: ignore
+    return { "act_types": options.options() } # type: ignore
 
 async def step_other_act_type(state: T) -> T:
     """fill the other act type."""
 
-    options = cast(Choices[OtherCivilActType],
-        await (
-            LLM
-            .with_structured_output(Choices[OtherCivilActType])
-            .ainvoke(state["messages"] + [ other_type ] )
+    act_types = cast(list[CivilActType], state.get("act_types", []))
+    if CivilActType.OTHER in act_types:
+        options = cast(Choices[OtherCivilActType],
+            await (
+                LLM
+                .with_structured_output(Choices[OtherCivilActType])
+                .ainvoke(state["messages"] + [ other_type ] )
+            )
         )
-    )
-    return { "other_act_types": options.options() } # type: ignore
+        return { "other_act_types": options.options() } # type: ignore
+    else:
+        return {} # type: ignore
 
 async def step_index(state: T) -> T:
     """fill the index type."""
@@ -74,24 +77,42 @@ async def step_index(state: T) -> T:
     )
     return { "indexes": options.options() } # type: ignore
 
+async def step_other_index(state: T) -> T:
+    """fill the index type."""
+
+    indexes = cast(list[CivilIndex], state.get("indexes", []))
+    if CivilIndex.OTHER in indexes:
+        options = cast(Choices[OtherCivilIndex],
+            await (
+                LLM
+                .with_structured_output(Choices[CivilIndex])
+                .ainvoke(state["messages"] + [ other_index_type ] )
+            )
+        )
+        return { "other_indexes": options.options() } # type: ignore
+    else:
+        return {} # type: ignore
+
+## TODO: other index step.
 
 async def step_call_tool(state: T) -> T:
     """Actually calls the tool using state information."""
     # deal with required
     municipality = state.get("municipality")
     
-
     if municipality is None:
         return {"call_data": None} # type: ignore
 
+    period = cast(YearPeriod, state.get("period", YearPeriod()))
     call_data = genealogy_search_civil_state_registers(
         municipality=cast(Municipality, municipality),
-        act_types=cast(list[CivilActType]|None, state.get("act_type")),
-        other_types=cast(list[OtherCivilActType]|None, state.get("other_act_type")),
-        index_types=cast(list[CivilIndex]|None, state.get("index_type")),
-        period_selector=cast(PeriodSelector|None, state.get("period_selector")),
-        start_year=cast(str|None, state.get("start_date")),
-        end_year=cast(str|None, state.get("end_date")),
+        act_types=cast(list[CivilActType]|None, state.get("act_types")),
+        other_types=cast(list[OtherCivilActType]|None, state.get("other_act_types")),
+        index_types=cast(list[CivilIndex]|None, state.get("indexes")),
+        other_indexes=cast(list[OtherCivilIndex]|None, state.get("other_indexes")),
+        period_selector=period.selector,
+        start_year=period.start_year,
+        end_year=period.end_year,
     )
     return {"call_data": call_data} # type: ignore
 
@@ -101,7 +122,8 @@ SEARCH_CIVIL_REGISTERS = (
         .add_node("act_type", step_act_type)
         .add_node("other_act_type", step_other_act_type)
         .add_node("index", step_index)
-        .add_node("period", step_fill_period(context))
+        .add_node("other_index", step_other_index)
+        .add_node("period", step_fill_year_period(context))
         .add_node("call_tool", step_call_tool)
         .add_node("deliver_raw_data", step_deliver_raw_data)
         .add_edge(START, "municipality")
@@ -109,10 +131,11 @@ SEARCH_CIVIL_REGISTERS = (
         .add_edge(START, "index")
         .add_edge(START, "period")
         .add_edge("act_type", "other_act_type")
+        .add_edge("index", "other_index")
         .add_edge([
             "municipality", 
             "other_act_type",
-            "index",
+            "other_index",
             "period",
         ], "call_tool")
         .add_edge("call_tool", "deliver_raw_data")

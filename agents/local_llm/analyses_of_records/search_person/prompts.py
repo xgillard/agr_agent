@@ -26,13 +26,6 @@ In the document you are searching, what was the role played by {{full_name}}
 """)
 
 ###### SEARCH PERSON WIZZARD ####################################################
-context = """
-< Context >
-You want to use the search_person_in_analyses_of_records because you know
-some people that partake to the archived document you are looking for.
-</ Context >
-"""
-
 list_known_people = """
 {context}
 

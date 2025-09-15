@@ -20,6 +20,14 @@ Where did the act you are searching took place ? (Leave empty unless the informa
 </ Instructions >
 """)
 
+period = HumanMessagePromptTemplate.from_template("""
+{context}
+
+< Instructions >
+When did the act happen ? (Leave empty unless the information was explicitly given).
+</ Instructions >
+""")
+
 act_type = HumanMessagePromptTemplate.from_template(f"""
 {{context}}
 

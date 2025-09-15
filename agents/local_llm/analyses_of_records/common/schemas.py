@@ -4,10 +4,25 @@
 from pydantic import BaseModel
 
 from ....local_llm.common.schemas import AgathaToolState
+from ....tools.agatha_common import PeriodSelector
 from ....tools.analyses_of_records import (
     AnalysesActType,
     AnalysesProject,
 )
+
+
+class Period(BaseModel):
+    """Period when the act might have happened.
+    
+    Attributes:
+        selector (PeriodSelector|None): a precision on how to interpret the dates
+        start_date (str|None): the start date or exact date
+        end_date (str|None): the end date.
+    """
+
+    selector: PeriodSelector | None = PeriodSelector.BETWEEN
+    start_date: str | None = None
+    end_date: str | None = None
 
 
 class SearchAnalysesState(AgathaToolState, total=False):
@@ -23,6 +38,7 @@ class SearchAnalysesState(AgathaToolState, total=False):
     """
 
     location: str | None
+    period: Period | None
     act_type: AnalysesActType | None
     project: AnalysesProject | None
 

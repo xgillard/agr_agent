@@ -1,12 +1,17 @@
 """An example to validate the behavior of the agent."""
-import asyncio
 
-from langchain_core.messages import HumanMessage, SystemMessage
-from langchain_core.output_parsers import StrOutputParser
+from dotenv import load_dotenv
 
-from agents.local_llm.analyses_of_records import SEARCH_IN_ANALYSES_OF_RECORDS
-from agents.local_llm.common.llm import LLM
-from agents.local_llm.genealogical_sources.graph import SEARCH_IN_GENEALOGIC_SOURCES
+load_dotenv()
+
+import asyncio  # noqa: E402
+
+from langchain_core.messages import HumanMessage, SystemMessage  # noqa: E402
+from langchain_core.output_parsers import StrOutputParser  # noqa: E402
+
+from agents.local_llm.analyses_of_records import SEARCH_IN_ANALYSES_OF_RECORDS  # noqa: E402
+from agents.local_llm.common.llm import LLM  # noqa: E402
+from agents.local_llm.genealogical_sources.graph import SEARCH_IN_GENEALOGIC_SOURCES  # noqa: E402
 
 
 async def example_rubens()-> str:

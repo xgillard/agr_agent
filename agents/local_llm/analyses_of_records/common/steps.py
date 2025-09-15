@@ -7,11 +7,13 @@ from .prompts import (
     act_type,
     context,
     location,
+    period,
     project_type,
 )
 from .schemas import (
     ActTypeChoice,
     Location,
+    Period,
     ProjectChoice,
     SearchAnalysesState,
 )
@@ -27,6 +29,18 @@ async def step_fill_location(state: T) -> T:
         .ainvoke( state["messages"] + [ location.format(context=context) ])
     )
     return { "location": loc.location } # type: ignore
+
+
+async def step_fill_period(state: T) -> T:
+    """Fill the search period."""
+
+    when = cast(Period,
+        await LLM
+        .with_structured_output(Period)
+        .ainvoke( state["messages"] + [ period.format(context=context) ])
+    )
+    return { "period": when } # type: ignore
+
 
 async def step_fill_record_type(state: T) -> T:
     """Fill the record type."""

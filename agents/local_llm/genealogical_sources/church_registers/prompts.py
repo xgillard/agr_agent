@@ -11,8 +11,9 @@ from ....tools.genealogy import (
 
 context = """
 < Context >
-You want to search the digitized copy of an administrative act in the 
-genealogical sources of AGATHA.
+You want to use the "search in genealogical sources" capabilities from AGATHA
+because you think that finding the appropriate register will help you retrieve
+the digitized copy of an administrative act you wish to find.
 </ Context >
 """
 
@@ -31,7 +32,7 @@ act_type = HumanMessage(f"""
 {context}
                                                        
 < Instructions >
-What type of records do you wish to retrieve ? Select 0, 1 or more options
+What type of document do you wish to retrieve ? Select 0, 1 or more options
 among the following:
 {ParishActType.all_values()}
 </ Instructions >
@@ -41,7 +42,7 @@ other_type = HumanMessage(f"""
 {context}
                                                        
 < Instructions >
-What type of records do you wish to retrieve ? Select 0, 1 or more options
+What type of document do you wish to retrieve ? Select 0, 1 or more options
 among the following:
 {OtherParishActType.all_values()}
 </ Instructions >

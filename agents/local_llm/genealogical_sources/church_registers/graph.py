@@ -7,7 +7,7 @@ from typing import (
 
 from langgraph.graph import END, START, StateGraph
 
-from ....tools.agatha_common import Municipality, Parish, PeriodSelector
+from ....tools.agatha_common import Municipality, Parish
 from ....tools.genealogy import (
     AJAX_URL,
     OtherParishActType,
@@ -18,10 +18,10 @@ from ....tools.genealogy import (
 from ...common.llm import LLM
 from ...common.steps import (
     step_deliver_raw_data,
-    step_fill_period,
 )
-from ..common.schemas import Choices
+from ..common.schemas import Choices, YearPeriod
 from ..common.steps import (
+    step_fill_year_period,
     step_municipality,
 )
 from .prompts import (
@@ -69,19 +69,23 @@ async def step_act_type(state: T) -> T:
             .ainvoke(state["messages"] + [ act_type ] )
         )
     )
-    return { "act_type": options.options() } # type: ignore
+    return { "act_types": options.options() } # type: ignore
 
 async def step_other_act_type(state: T) -> T:
     """fill the other act type."""
 
-    options = cast(Choices[OtherParishActType],
-        await (
-            LLM
-            .with_structured_output(Choices[OtherParishActType])
-            .ainvoke(state["messages"] + [ other_type ] )
+    act_types = cast(list[ParishActType], state.get("act_types", []))
+    if ParishActType.OTHER in act_types:
+        options = cast(Choices[OtherParishActType],
+            await (
+                LLM
+                .with_structured_output(Choices[OtherParishActType])
+                .ainvoke(state["messages"] + [ other_type ] )
+            )
         )
-    )
-    return { "other_act_types": options.options() } # type: ignore
+        return { "other_act_types": options.options() } # type: ignore
+    else:
+        return {} # type: ignore
 
 async def step_index(state: T) -> T:
     """fill the index type."""
@@ -100,7 +104,9 @@ async def step_call_tool(state: T) -> T:
     """Actually calls the tool using state information."""
     # deal with required
     municipality = state.get("municipality")
-    parishes = state.get("paris")
+    parishes = state.get("parish")
+
+    period = cast(YearPeriod, state.get("period", YearPeriod()))
 
     if municipality is None or parishes is None:
         return {"call_data": None} # type: ignore
@@ -108,12 +114,12 @@ async def step_call_tool(state: T) -> T:
     call_data = genealogy_search_church_registers_prior_to_1796(
         municipality=cast(Municipality, municipality),
         parishes=cast(list[Parish], parishes),
-        act_types=cast(list[ParishActType]|None, state.get("act_type")),
-        other_types=cast(list[OtherParishActType]|None, state.get("other_act_type")),
-        index_types=cast(list[ParishIndex]|None, state.get("index_type")),
-        period_selector=cast(PeriodSelector|None, state.get("period_selector")),
-        start_year=cast(str|None, state.get("start_date")),
-        end_year=cast(str|None, state.get("end_date")),
+        act_types=cast(list[ParishActType]|None, state.get("act_types")),
+        other_types=cast(list[OtherParishActType]|None, state.get("other_act_types")),
+        index_types=cast(list[ParishIndex]|None, state.get("indexes")),
+        period_selector=period.selector,
+        start_year=period.start_year,
+        end_year=period.end_year,
     )
     return {"call_data": call_data} # type: ignore
 
@@ -124,7 +130,7 @@ SEARCH_CHURCH_REGISTERS = (
         .add_node("act_type", step_act_type)
         .add_node("other_act_type", step_other_act_type)
         .add_node("index", step_index)
-        .add_node("period", step_fill_period(context))
+        .add_node("period", step_fill_year_period(context))
         .add_node("call_tool", step_call_tool)
         .add_node("deliver_raw_data", step_deliver_raw_data)
         .add_edge(START, "municipality")

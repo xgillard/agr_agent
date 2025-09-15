@@ -14,9 +14,11 @@ from ....tools.genealogy import AJAX_URL
 from ...common.llm import LLM
 from .prompts import (
     municipality,
+    year_period,
 )
 from .schemas import (
     GeneaSearchState,
+    YearPeriod,
 )
 
 _State = TypeVar("_State", bound=GeneaSearchState)
@@ -41,3 +43,22 @@ def step_municipality(context: str) -> Runnable[_State, _State]:
             }
     
     return RunnableLambda(_step_municipality)
+
+
+def step_fill_year_period(context: str) -> Runnable[_State, _State]:
+    """Create a contextualized step to fill yearlt period.
+    
+    Args:
+        context (str): the context in which this step will occur.
+    """
+    async def _step_fill_period(state: _State) -> _State:
+        """Fill the search period."""
+
+        period = cast(YearPeriod,
+            await LLM
+            .with_structured_output(YearPeriod)
+            .ainvoke( state["messages"] + [ year_period.format(context=context) ])
+        )
+        return { "period": period } # type: ignore
+    
+    return RunnableLambda(_step_fill_period)
