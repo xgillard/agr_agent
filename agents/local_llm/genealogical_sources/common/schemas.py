@@ -1,5 +1,7 @@
 """Datatypes for a research in the genealogical sources."""
 
+from enum import StrEnum
+
 from pydantic import BaseModel
 
 from ....tools.agatha_common import Municipality, PeriodSelector
@@ -17,6 +19,42 @@ class Choices[Choice](BaseModel):
 
     def options(self) -> list[Choice]:
         return self.choices
+
+
+class SingleChoice[Choice](BaseModel):
+    """A generic choice
+    
+    Attributes:
+        choice (Choice): the chosen option
+    """
+
+    choice: Choice
+
+
+class TypeOfDocument(StrEnum):
+    """What type of document do you wish to consider (acts or indexes)
+    
+    Attributes:
+        ACTS (str): when you want to search the scan of an official actual act
+        INDEX (str): when you want to search the scan of an index (long list of names
+            associated with some documents)
+        BOTH (str): when you want to search both in the acts registers as well as in
+            the index registers.
+    """
+
+    ACTS = "acts"
+    INDEXES = "indexes"
+    BOTH = "both"
+
+    @classmethod
+    def all_values(cls) -> list[str]:
+        """All possible values for this enum.
+        
+        Returns:
+            list[str]: the list of all possible values of this enum
+        """
+
+        return [ m._value_ for m in cls.__members__.values() ]
 
 
 class YearPeriod(BaseModel):
@@ -40,7 +78,9 @@ class GeneaSearchState(AgathaToolState, total=False):
     Attributes:
         municipality (str): the municipality whose registers need to be searched
         period (YearPeriod): the period when the act might have happened.
+        type_of_doc (TypeOfDocument): the kind of document we wish to find in the results.
     """
     
     municipality: Municipality
     period: YearPeriod
+    type_of_doc: TypeOfDocument

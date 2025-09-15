@@ -1,6 +1,7 @@
 """Workflow to search in church registers prior to 1796."""
 
 from typing import (
+    Literal,
     TypeVar,
     cast,
 )
@@ -19,11 +20,8 @@ from ...common.llm import LLM
 from ...common.steps import (
     step_deliver_raw_data,
 )
-from ..common.schemas import Choices, YearPeriod
-from ..common.steps import (
-    step_fill_year_period,
-    step_municipality,
-)
+from ..common.schemas import Choices, TypeOfDocument, YearPeriod
+from ..common.steps import step_fill_year_period, step_municipality, step_type_of_doc
 from .prompts import (
     act_type,
     context,
@@ -123,26 +121,57 @@ async def step_call_tool(state: T) -> T:
     )
     return {"call_data": call_data} # type: ignore
 
+
+DocTypePath = Literal["act_type", "index", "act_type_and_index"]
+def route_on_type_of_doc(state: T) -> DocTypePath:
+    """Route the flow based on type of doc."""
+
+    tod = cast(TypeOfDocument, state.get("type_of_doc", TypeOfDocument.ACTS))
+    match tod:
+        case TypeOfDocument.ACTS:
+            return "act_type"
+        case TypeOfDocument.INDEXES:
+            return "index"
+        case TypeOfDocument.BOTH:
+            return "act_type_and_index"
+
+
+def _do_nothing(state: T) -> T:
+    """Do nothing"""
+
+    return {} # type: ignore
+
 SEARCH_CHURCH_REGISTERS = (
     StateGraph(SearchChurchRegisterState)
         .add_node("municipality", step_municipality(context))
         .add_node("parish", step_parish)
+        .add_node("type_of_doc", step_type_of_doc(context))
+        #
         .add_node("act_type", step_act_type)
         .add_node("other_act_type", step_other_act_type)
         .add_node("index", step_index)
+        .add_node("act_type_and_index", _do_nothing)
+        .add_node("act_index_join", _do_nothing)
+        #
         .add_node("period", step_fill_year_period(context))
         .add_node("call_tool", step_call_tool)
         .add_node("deliver_raw_data", step_deliver_raw_data)
         .add_edge(START, "municipality")
-        .add_edge(START, "act_type")
-        .add_edge(START, "index")
+        .add_edge(START, "type_of_doc")
         .add_edge(START, "period")
+        #
+        .add_conditional_edges("type_of_doc", route_on_type_of_doc)
+        .add_edge("act_type_and_index", "act_type")
+        .add_edge("act_type_and_index", "index")
+        #
         .add_edge("municipality", "parish")
         .add_edge("act_type", "other_act_type")
+        .add_edge("index", "act_index_join")
+        .add_edge("other_act_type", "act_index_join")
+        #
         .add_edge([
             "parish", 
-            "other_act_type",
-            "index",
+            "act_index_join",
             "period",
         ], "call_tool")
         .add_edge("call_tool", "deliver_raw_data")

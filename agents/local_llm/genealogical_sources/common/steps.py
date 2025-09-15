@@ -13,11 +13,14 @@ from ....tools.agatha_common import (
 from ....tools.genealogy import AJAX_URL
 from ...common.llm import LLM
 from .prompts import (
+    document_type,
     municipality,
     year_period,
 )
 from .schemas import (
     GeneaSearchState,
+    SingleChoice,
+    TypeOfDocument,
     YearPeriod,
 )
 
@@ -62,3 +65,22 @@ def step_fill_year_period(context: str) -> Runnable[_State, _State]:
         return { "period": period } # type: ignore
     
     return RunnableLambda(_step_fill_period)
+
+
+def step_type_of_doc(context: str) -> Runnable[_State, _State]:
+    """Create a contextualized step to determine the desired type of doc.
+    
+    Args:
+        context (str): the context in which this step will occur.
+    """
+    async def _step_type_of_doc(state: _State) -> _State:
+        """Fill the search period."""
+
+        choice = cast(SingleChoice[TypeOfDocument],
+            await LLM
+            .with_structured_output(SingleChoice[TypeOfDocument])
+            .ainvoke( state["messages"] + [ document_type.format(context=context) ])
+        )
+        return { "type_of_doc": choice.choice } # type: ignore
+    
+    return RunnableLambda(_step_type_of_doc)
