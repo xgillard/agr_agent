@@ -9,9 +9,8 @@ import asyncio  # noqa: E402
 from langchain_core.messages import HumanMessage, SystemMessage  # noqa: E402
 from langchain_core.output_parsers import StrOutputParser  # noqa: E402
 
-from agents.local_llm.analyses_of_records import SEARCH_IN_ANALYSES_OF_RECORDS  # noqa: E402
+from agents.local_llm.agatha.graph import ASK_AGATHA  # noqa: E402
 from agents.local_llm.common.llm import LLM  # noqa: E402
-from agents.local_llm.genealogical_sources.graph import SEARCH_IN_GENEALOGIC_SOURCES  # noqa: E402
 
 
 async def example_rubens()-> str:
@@ -48,7 +47,7 @@ async def example_rubens()-> str:
         Malik
         """)
     
-    response = await SEARCH_IN_ANALYSES_OF_RECORDS.ainvoke({ # type: ignore
+    response = await ASK_AGATHA.ainvoke({ # type: ignore
         "messages": [sytem, email]
     })
 
@@ -56,17 +55,8 @@ async def example_rubens()-> str:
     print(response["messages"][-1].content)
     print(">>>>" * 20)
 
-    response2 = await SEARCH_IN_GENEALOGIC_SOURCES.ainvoke({ # type: ignore
-        "messages": response["messages"] + [
-            HumanMessage("""
-            You have found a record that corresponds to the user's request.
-            Now, you would like to find a find a digitized copy of that 
-            record. For that purpose, you will try to find that document using 
-            the search in genealogical sources capabilities from AGATHA as they
-            are the one source capable of giving you a link to the scan of the
-            original register where that act is stored.
-            """),
-        ]
+    response2 = await ASK_AGATHA.ainvoke({ # type: ignore
+        "messages": response["messages"]
     })
 
     print("<<<<<" * 20)

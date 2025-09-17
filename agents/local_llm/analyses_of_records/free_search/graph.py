@@ -10,9 +10,6 @@ from ....tools.analyses_of_records import (
     free_search_in_analyses_of_records,
 )
 from ...common.llm import LLM
-from ...common.steps import (
-    step_deliver_raw_data,
-)
 from ..common.schemas import Period
 from ..common.steps import (
     step_fill_location,
@@ -21,7 +18,6 @@ from ..common.steps import (
     step_fill_record_type,
 )
 from .prompts import (
-    context,
     search_terms,
 )
 from .schemas import FreeSearchWizzardState
@@ -30,6 +26,7 @@ from .schemas import FreeSearchWizzardState
 async def step_search_terms(state: FreeSearchWizzardState) -> FreeSearchWizzardState:
     """Request llm to fill in the search terms input parameter."""
 
+    context = state.get("intent", "== I dont know why I am here ==")
     terms = await (LLM | StrOutputParser()).ainvoke(
         state["messages"] + 
         [search_terms.format(context=context)]
@@ -62,7 +59,6 @@ FREE_SEARCH_IN_ANALYSES_OF_RECORDS = (
         .add_node("fill_act_type", step_fill_record_type)
         .add_node("fill_project", step_fill_project)
         .add_node("call_tool", step_call_tool)
-        .add_node("deliver_raw_data", step_deliver_raw_data)
         #
         .add_edge(START, "fill_keywords")
         .add_edge(START, "fill_location")
@@ -77,8 +73,7 @@ FREE_SEARCH_IN_ANALYSES_OF_RECORDS = (
                 "fill_act_type",
                 "fill_project"
             ], "call_tool")
-        .add_edge("call_tool", "deliver_raw_data")
-        .add_edge("deliver_raw_data", END)
+        .add_edge("call_tool", END)
         #
         .compile()
 )

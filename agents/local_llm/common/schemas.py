@@ -8,9 +8,11 @@ class AgathaToolState(MessagesState, total=False):
     """The base data type to implement the tool steps to search in AGATHA.
 
     Attributes:
+        intent (str): what info do you wish to find in AGATHA.
         call_data (BaseModel | None): the outcome of a tool call
     """
-
+    
+    intent: str
     call_data: BaseModel | list[BaseModel] | None
 
 

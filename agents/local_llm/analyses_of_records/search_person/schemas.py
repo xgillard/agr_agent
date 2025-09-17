@@ -23,6 +23,7 @@ class AddPersonWizzardState(MessagesState, total=False):
         act_role (AnalysesActRole | None): the role played by this person in the act we are searching for
     """
 
+    intent: str
     full_name: str
     
     first_name: str | None

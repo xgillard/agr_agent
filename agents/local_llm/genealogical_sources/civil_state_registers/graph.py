@@ -18,9 +18,6 @@ from ....tools.genealogy import (
 )
 from ...common.llm import LLM
 from ...common.schemas import Choices
-from ...common.steps import (
-    step_deliver_raw_data,
-)
 from ..common.schemas import TypeOfDocument, YearPeriod
 from ..common.steps import (
     step_fill_year_period,
@@ -29,7 +26,6 @@ from ..common.steps import (
 )
 from .prompts import (
     act_type,
-    context,
     index_type,
     other_index_type,
     other_type,
@@ -43,11 +39,12 @@ T = TypeVar("T", bound=SearchCivilRegisterState)
 async def step_act_type(state: T) -> T:
     """fill the act type."""
 
+    context = state.get("intent", "== I dont know why I am here ==")
     options = cast(Choices[CivilActType],
         await (
             LLM
             .with_structured_output(Choices[CivilActType])
-            .ainvoke(state["messages"] + [ act_type ] )
+            .ainvoke(state["messages"] + [ act_type.format(context=context) ] )
         )
     )
     return { "act_types": options.options() } # type: ignore
@@ -57,11 +54,12 @@ async def step_other_act_type(state: T) -> T:
 
     act_types = cast(list[CivilActType], state.get("act_types", []))
     if CivilActType.OTHER in act_types:
+        context = state.get("intent", "== I dont know why I am here ==")
         options = cast(Choices[OtherCivilActType],
             await (
                 LLM
                 .with_structured_output(Choices[OtherCivilActType])
-                .ainvoke(state["messages"] + [ other_type ] )
+                .ainvoke(state["messages"] + [ other_type.format(context=context) ] )
             )
         )
         return { "other_act_types": options.options() } # type: ignore
@@ -71,11 +69,12 @@ async def step_other_act_type(state: T) -> T:
 async def step_index(state: T) -> T:
     """fill the index type."""
 
+    context = state.get("intent", "== I dont know why I am here ==")
     options = cast(Choices[CivilIndex],
         await (
             LLM
             .with_structured_output(Choices[CivilIndex])
-            .ainvoke(state["messages"] + [ index_type ] )
+            .ainvoke(state["messages"] + [ index_type.format(context=context) ] )
         )
     )
     return { "indexes": options.options() } # type: ignore
@@ -85,11 +84,12 @@ async def step_other_index(state: T) -> T:
 
     indexes = cast(list[CivilIndex], state.get("indexes", []))
     if CivilIndex.OTHER in indexes:
+        context = state.get("intent", "== I dont know why I am here ==")
         options = cast(Choices[OtherCivilIndex],
             await (
                 LLM
                 .with_structured_output(Choices[CivilIndex])
-                .ainvoke(state["messages"] + [ other_index_type ] )
+                .ainvoke(state["messages"] + [ other_index_type.format(context=context) ] )
             )
         )
         return { "other_indexes": options.options() } # type: ignore
@@ -140,8 +140,8 @@ def _do_nothing(state: T) -> T:
 
 SEARCH_CIVIL_REGISTERS = (
     StateGraph(SearchCivilRegisterState)
-        .add_node("municipality", step_municipality(context))
-        .add_node("type_of_doc", step_type_of_doc(context))
+        .add_node("municipality", step_municipality)
+        .add_node("type_of_doc", step_type_of_doc)
         #
         .add_node("act_type", step_act_type)
         .add_node("other_act_type", step_other_act_type)
@@ -150,9 +150,8 @@ SEARCH_CIVIL_REGISTERS = (
         .add_node("act_type_and_index", _do_nothing)
         .add_node("act_index_join", _do_nothing)
         #
-        .add_node("period", step_fill_year_period(context))
+        .add_node("period", step_fill_year_period)
         .add_node("call_tool", step_call_tool)
-        .add_node("deliver_raw_data", step_deliver_raw_data)
         .add_edge(START, "municipality")
         .add_edge(START, "type_of_doc")
         .add_edge(START, "period")
@@ -171,7 +170,6 @@ SEARCH_CIVIL_REGISTERS = (
             "act_index_join",
         ], "call_tool")
         #
-        .add_edge("call_tool", "deliver_raw_data")
-        .add_edge("deliver_raw_data", END)
+        .add_edge("call_tool", END)
         .compile()
 )

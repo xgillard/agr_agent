@@ -6,12 +6,6 @@ from langchain.prompts import (
 
 from ....tools.analyses_of_records import AnalysesActType, AnalysesProject
 
-context  = """
-< Context >
-You want to search a document using the search in analyses of records from AGATHA.
-</ Context >
-"""
-
 location = HumanMessagePromptTemplate.from_template("""
 {context}
 

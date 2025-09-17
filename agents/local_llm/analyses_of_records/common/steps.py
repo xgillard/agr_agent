@@ -5,7 +5,6 @@ from typing import TypeVar, cast
 from ...common.llm import LLM
 from .prompts import (
     act_type,
-    context,
     location,
     period,
     project_type,
@@ -23,6 +22,7 @@ T = TypeVar("T", bound=SearchAnalysesState)
 async def step_fill_location(state: T) -> T:
     """Fill the location field"""
 
+    context = state.get("intent", "== I dont know why I am here ==")
     loc = cast(Location,
         await LLM
         .with_structured_output(Location)
@@ -34,6 +34,7 @@ async def step_fill_location(state: T) -> T:
 async def step_fill_period(state: T) -> T:
     """Fill the search period."""
 
+    context = state.get("intent", "== I dont know why I am here ==")
     when = cast(Period,
         await LLM
         .with_structured_output(Period)
@@ -45,6 +46,7 @@ async def step_fill_period(state: T) -> T:
 async def step_fill_record_type(state: T) -> T:
     """Fill the record type."""
 
+    context = state.get("intent", "== I dont know why I am here ==")
     rsp = cast(ActTypeChoice,
         await LLM
         .with_structured_output(ActTypeChoice)
@@ -55,6 +57,7 @@ async def step_fill_record_type(state: T) -> T:
 async def step_fill_project(state: T) -> T:
     """Fill the project name."""
 
+    context = state.get("intent", "== I dont know why I am here ==")
     rsp = cast(ProjectChoice,
         await LLM
         .with_structured_output(ProjectChoice)
