@@ -28,10 +28,8 @@ _State = TypeVar("_State", bound=GeneaSearchState)
 async def step_municipality(state: _State) -> _State:
     """fill the municipality."""
     
-    context = state.get("intent", "== I dont know why I am here ==")
     mun_name = cast(str, await (LLM | StrOutputParser()).ainvoke(
-        state["messages"] + 
-        [ municipality.format(context=context) ]
+        state["messages"] + [ municipality ]
     ))
 
     mun = Municipality.by_name(mun_name, AJAX_URL, return_single_best_match=True)
@@ -46,21 +44,19 @@ async def step_municipality(state: _State) -> _State:
 async def step_fill_year_period(state: _State) -> _State:
     """Fill the search period."""
     
-    context = state.get("intent", "== I dont know why I am here ==")
     period = cast(YearPeriod,
         await LLM
         .with_structured_output(YearPeriod)
-        .ainvoke( state["messages"] + [ year_period.format(context=context) ])
+        .ainvoke( state["messages"] + [ year_period ])
     )
     return { "period": period } # type: ignore
 
 async def step_type_of_doc(state: _State) -> _State:
     """Fill the search period."""
 
-    context = state.get("intent", "== I dont know why I am here ==")
     choice = cast(SingleChoice[TypeOfDocument],
         await LLM
         .with_structured_output(SingleChoice[TypeOfDocument])
-        .ainvoke( state["messages"] + [ document_type.format(context=context) ])
+        .ainvoke( state["messages"] + [ document_type ])
     )
     return { "type_of_doc": choice.choice } # type: ignore

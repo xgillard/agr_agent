@@ -22,11 +22,10 @@ T = TypeVar("T", bound=SearchAnalysesState)
 async def step_fill_location(state: T) -> T:
     """Fill the location field"""
 
-    context = state.get("intent", "== I dont know why I am here ==")
     loc = cast(Location,
         await LLM
         .with_structured_output(Location)
-        .ainvoke( state["messages"] + [ location.format(context=context) ])
+        .ainvoke( state["messages"] + [ location ])
     )
     return { "location": loc.location } # type: ignore
 
@@ -34,11 +33,10 @@ async def step_fill_location(state: T) -> T:
 async def step_fill_period(state: T) -> T:
     """Fill the search period."""
 
-    context = state.get("intent", "== I dont know why I am here ==")
     when = cast(Period,
         await LLM
         .with_structured_output(Period)
-        .ainvoke( state["messages"] + [ period.format(context=context) ])
+        .ainvoke( state["messages"] + [ period ])
     )
     return { "period": when } # type: ignore
 
@@ -46,21 +44,19 @@ async def step_fill_period(state: T) -> T:
 async def step_fill_record_type(state: T) -> T:
     """Fill the record type."""
 
-    context = state.get("intent", "== I dont know why I am here ==")
     rsp = cast(ActTypeChoice,
         await LLM
         .with_structured_output(ActTypeChoice)
-        .ainvoke( state["messages"] + [ act_type.format(context=context) ])
+        .ainvoke( state["messages"] + [ act_type ])
     )
     return {"act_type": rsp.act_type } # type: ignore
 
 async def step_fill_project(state: T) -> T:
     """Fill the project name."""
 
-    context = state.get("intent", "== I dont know why I am here ==")
     rsp = cast(ProjectChoice,
         await LLM
         .with_structured_output(ProjectChoice)
-        .ainvoke( state["messages"] + [ project_type.format(context=context) ])
+        .ainvoke( state["messages"] + [ project_type ])
     )
     return {"project": rsp.project } # type: ignore

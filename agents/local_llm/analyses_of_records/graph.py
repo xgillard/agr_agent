@@ -15,11 +15,10 @@ from .search_person import SEARCH_PERSON_IN_ANALYSES_OF_RECORDS
 async def step_triage(state: AgathaToolState) -> Literal["free_search", "search_person"]:
     """Triage between free search and search persons."""
 
-    context = state.get("intent", "== I dont know why I am here ==")
     response = cast(TriageChoice,
         await (
             LLM.with_structured_output(TriageChoice)
-                .ainvoke(state["messages"] + [triage.format(context=context)])
+                .ainvoke(state["messages"] + [triage])
         )
     )
     if AnalysesOfRecordsTool.SEARCH_PERSON == response.choice:

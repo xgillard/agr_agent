@@ -1,14 +1,12 @@
 """The prompts related to the creation of a search person request."""
 
-from langchain_core.prompts import HumanMessagePromptTemplate
+from langchain_core.messages import HumanMessage
 
 from .schemas import AnalysesOfRecordsTool
 
-triage = HumanMessagePromptTemplate.from_template(f"""
+triage = HumanMessage(f"""
 < Context >
-{{context}}
-                                            
-For this purpose, the platform offers two possibilities:
+The platform offers two possibilities:
 
 * "{AnalysesOfRecordsTool.FREE_SEARCH._value_}" which you should use when you want 
     to conduct a 'general search' using keywords to retrieve a document.

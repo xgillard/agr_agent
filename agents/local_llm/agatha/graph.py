@@ -43,7 +43,7 @@ async def step_describe_intent(state: AgathaToolState) -> AgathaToolState:
     """Describe the intent behind the call to agatha."""
 
     intent = await (LLM | StrOutputParser()).ainvoke(state['messages'] + [describe_intent] )
-    return {"intent": intent} # type: ignore
+    return {"messages": AIMessage(intent)} # type: ignore
 
 
 async def step_triage(state: AgathaToolState) -> Literal["genealogy", "analyses"]:
@@ -90,28 +90,19 @@ def _format_raw_data(state: AgathaToolState) -> str:
 async def step_deliver_response(state: AgathaToolState) -> AgathaToolState:
     """Deliver the raw data as an AI message."""
 
-    intent   = state.get("intent", " == There is no question I wish to answer ==")
     raw_data = _format_raw_data(state)
     summary  = await (
         (LLM | StrOutputParser())
             .ainvoke(
                 state["messages"] + 
                 [ summarize.format(
-                    intent = intent,
                     raw_data = raw_data,
                 ) ]
             )
     )
 
     return { # type: ignore
-        "messages": AIMessage( # type: ignore
-            f"""
-            I searched "{intent}" in AGATHA. 
-
-            Here is what I found:
-            {summary}
-            """
-        ),
+        "messages": AIMessage(summary),
     }
 
 ASK_AGATHA = (

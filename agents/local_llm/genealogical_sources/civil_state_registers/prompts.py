@@ -1,6 +1,6 @@
 """The prompts related to the searching in civil registers after 1796."""
 
-from langchain_core.prompts import HumanMessagePromptTemplate
+from langchain_core.messages import HumanMessage
 
 from ....tools.genealogy import (
     CivilActType,
@@ -9,9 +9,7 @@ from ....tools.genealogy import (
     OtherCivilIndex,
 )
 
-act_type = HumanMessagePromptTemplate.from_template(f"""
-{{context}}
-                                                       
+act_type = HumanMessage(f"""
 < Instructions >
 What type of document do you wish to retrieve ? Select 0, 1 or more options
 among the following:
@@ -19,9 +17,7 @@ among the following:
 </ Instructions >
 """)
 
-other_type = HumanMessagePromptTemplate.from_template(f"""
-{{context}}
-                                                       
+other_type = HumanMessage(f"""
 < Instructions >
 What type of document do you wish to retrieve ? Select 0, 1 or more options
 among the following:
@@ -29,9 +25,7 @@ among the following:
 </ Instructions >
 """)
 
-index_type = HumanMessagePromptTemplate.from_template(f"""
-{{context}}
-                                                       
+index_type = HumanMessage(f"""
 < Instructions >
 Which indexes should be considered during your research ? Select 0, 1 or more 
 options among the following:
@@ -40,9 +34,7 @@ options among the following:
 """)
 
 
-other_index_type = HumanMessagePromptTemplate.from_template(f"""
-{{context}}
-                                                       
+other_index_type = HumanMessage(f"""
 < Instructions >
 Which indexes should be considered during your research ? Select 0, 1 or more 
 options among the following:

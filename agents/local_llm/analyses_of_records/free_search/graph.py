@@ -26,10 +26,8 @@ from .schemas import FreeSearchWizzardState
 async def step_search_terms(state: FreeSearchWizzardState) -> FreeSearchWizzardState:
     """Request llm to fill in the search terms input parameter."""
 
-    context = state.get("intent", "== I dont know why I am here ==")
     terms = await (LLM | StrOutputParser()).ainvoke(
-        state["messages"] + 
-        [search_terms.format(context=context)]
+        state["messages"] + [search_terms]
     )
 
     return {"search_terms": terms} # type: ignore

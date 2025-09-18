@@ -28,16 +28,16 @@ You also think that AGATHA (the archives online search platform) might have the 
 
 < Instructions >
 At this point, what single question do you need to answer using AGATHA ? Be to the point.
-Formulate your question like a SCRUM user story.
+Formulate your question like a user story. Your response should consist of the user story only.
 </ Instructions >
+
+< Format >
+As a .... I want to .... so that ....
+</ Format >
 """)
 
 triage = HumanMessagePromptTemplate.from_template(f"""
 < Context >
-You have concluded that you need to consult AGATHA in order to answer the following question: 
-
-"{{intent}}"
-
 You now need to decide where to look in AGATHA. {agatha_offering}
 </ Context >
 
@@ -49,12 +49,13 @@ What tool do you want to consult ? Select one of the following:
 
 summarize = HumanMessagePromptTemplate.from_template("""
 < Instructions >
-Considering that your current objective / the question you want to answer is: 
-{intent}
-
-And considering that the following is the raw result of your AGATHA search:
+Considering your current objective (latest user story), and considering 
+that the following is the raw result of your search in AGATHA, respond to
+your question.
 {raw_data}
 
 Summarize the information which is helpful to satisfy your current objective.
+Do not answer the original user's request just yet. Focus on your current
+objective only.
 </ Instructions >
 """)

@@ -39,12 +39,11 @@ T = TypeVar("T", bound=SearchCivilRegisterState)
 async def step_act_type(state: T) -> T:
     """fill the act type."""
 
-    context = state.get("intent", "== I dont know why I am here ==")
     options = cast(Choices[CivilActType],
         await (
             LLM
             .with_structured_output(Choices[CivilActType])
-            .ainvoke(state["messages"] + [ act_type.format(context=context) ] )
+            .ainvoke(state["messages"] + [ act_type ] )
         )
     )
     return { "act_types": options.options() } # type: ignore
@@ -54,12 +53,11 @@ async def step_other_act_type(state: T) -> T:
 
     act_types = cast(list[CivilActType], state.get("act_types", []))
     if CivilActType.OTHER in act_types:
-        context = state.get("intent", "== I dont know why I am here ==")
         options = cast(Choices[OtherCivilActType],
             await (
                 LLM
                 .with_structured_output(Choices[OtherCivilActType])
-                .ainvoke(state["messages"] + [ other_type.format(context=context) ] )
+                .ainvoke(state["messages"] + [ other_type ] )
             )
         )
         return { "other_act_types": options.options() } # type: ignore
@@ -69,12 +67,11 @@ async def step_other_act_type(state: T) -> T:
 async def step_index(state: T) -> T:
     """fill the index type."""
 
-    context = state.get("intent", "== I dont know why I am here ==")
     options = cast(Choices[CivilIndex],
         await (
             LLM
             .with_structured_output(Choices[CivilIndex])
-            .ainvoke(state["messages"] + [ index_type.format(context=context) ] )
+            .ainvoke(state["messages"] + [ index_type ] )
         )
     )
     return { "indexes": options.options() } # type: ignore
@@ -84,12 +81,11 @@ async def step_other_index(state: T) -> T:
 
     indexes = cast(list[CivilIndex], state.get("indexes", []))
     if CivilIndex.OTHER in indexes:
-        context = state.get("intent", "== I dont know why I am here ==")
         options = cast(Choices[OtherCivilIndex],
             await (
                 LLM
                 .with_structured_output(Choices[CivilIndex])
-                .ainvoke(state["messages"] + [ other_index_type.format(context=context) ] )
+                .ainvoke(state["messages"] + [ other_index_type ] )
             )
         )
         return { "other_indexes": options.options() } # type: ignore

@@ -38,45 +38,41 @@ from .schemas import (
 ###### ADD PERSON WIZZARD ####################################################
 
 async def step_fill_family_name(state: AddPersonWizzardState) -> AddPersonWizzardState:
-    context = state.get("intent", "== I dont know why I am here ==")
     rsp = cast(FamilyName, 
         await (LLM.with_structured_output(FamilyName))
         .ainvoke( 
             state["messages"] + 
-            [ family_name.format(context=context, full_name=state.get("full_name")) ]
+            [ family_name.format(full_name=state.get("full_name")) ]
         )
     )
     return {"family_name": rsp.family_name} # type: ignore
 
 async def step_fill_first_name(state: AddPersonWizzardState) -> AddPersonWizzardState:
-    context = state.get("intent", "== I dont know why I am here ==")
     rsp = cast(FirstName,
         await (LLM.with_structured_output(FirstName))
         .ainvoke( 
             state["messages"] + 
-            [ first_name.format(context=context, full_name=state.get("full_name")) ]
+            [ first_name.format(full_name=state.get("full_name")) ]
         )
     )
     return {"first_name": rsp.first_name} # type: ignore
 
 async def step_fill_job(state: AddPersonWizzardState) -> AddPersonWizzardState:
-    context = state.get("intent", "== I dont know why I am here ==")
     rsp = cast(Profession,
         await (LLM.with_structured_output(Profession))
         .ainvoke( 
             state["messages"] + 
-            [ job_name.format(context=context, full_name=state.get("full_name")) ]
+            [ job_name.format(full_name=state.get("full_name")) ]
         )
     )
     return {"profession": rsp.profession} # type: ignore
 
 async def step_fill_role(state: AddPersonWizzardState) -> AddPersonWizzardState:
-    context = state.get("intent", "== I dont know why I am here ==")
     rsp = cast(RoleChoice,
         await (LLM.with_structured_output(RoleChoice))
         .ainvoke( 
             state["messages"] + 
-            [ role_name.format(context=context, full_name=state.get("full_name")) ]
+            [ role_name.format(full_name=state.get("full_name")) ]
         )
     )
     return {"role": rsp.role} if rsp else {} # type: ignore
@@ -106,19 +102,17 @@ __ADD_PERSON_WIZZARD = (
 async def step_list_people(state: SearchPersonWizzardState) -> SearchPersonWizzardState:
     """List the people."""
 
-    context = state.get("intent", "== I dont know why I am here ==")
     known_people = cast(ListOfPeople,
         await LLM
         .with_structured_output(ListOfPeople)
-        .ainvoke( state["messages"] + [ list_known_people.format(context=context) ])
+        .ainvoke( state["messages"] + [ list_known_people ])
     )
     return { "known_people": known_people.list_of_names } # type: ignore
 
-async def _substep_add_person(intent: str, person: str, messages: list) -> PersonCriterion:
+async def _substep_add_person(person: str, messages: list) -> PersonCriterion:
     """Run the add person wizzard for one single person.
     
     Args:
-        intent (str): the intent behind this request.
         person (str): the name or ... whatever means the llm has used to identify someone.
         messages (list): the outer conversation between user and llm.
         
@@ -126,7 +120,7 @@ async def _substep_add_person(intent: str, person: str, messages: list) -> Perso
         PersonCriterion: a means to encode that person into a search request.
     """
 
-    sub = AddPersonWizzardState(intent=intent,full_name=person, messages=messages)
+    sub = AddPersonWizzardState(full_name=person, messages=messages)
     sub = cast(AddPersonWizzardState, 
                await __ADD_PERSON_WIZZARD.ainvoke(sub))  # type: ignore[arg-type]
     return PersonCriterion(
@@ -139,8 +133,7 @@ async def _substep_add_person(intent: str, person: str, messages: list) -> Perso
 async def step_add_pers_wizzard(state: SearchPersonWizzardState) -> SearchPersonWizzardState:
     """Goes through all the steps of the add person wizard state"""
     outer = state["messages"]
-    intent = state.get("intent", "== I dont know why I am here ==")
-    tasks = [_substep_add_person(intent, p, outer) for p in state.get("known_people", [])]
+    tasks = [_substep_add_person(p, outer) for p in state.get("known_people", [])]
     persons = await asyncio.gather( *tasks )
     return {"persons": persons} # type: ignore
 

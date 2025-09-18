@@ -6,7 +6,7 @@ load_dotenv()
 
 import asyncio  # noqa: E402
 
-from langchain_core.messages import HumanMessage, SystemMessage  # noqa: E402
+from langchain_core.messages import AIMessage, HumanMessage, SystemMessage  # noqa: E402
 from langchain_core.output_parsers import StrOutputParser  # noqa: E402
 
 from agents.local_llm.agatha.graph import ASK_AGATHA  # noqa: E402
@@ -46,9 +46,37 @@ async def example_rubens()-> str:
         Merci d'avance, 
         Malik
         """)
+    instr = AIMessage("""
+        < Context >
+        Considering that you have an unlimited access to the AGATHA platform. And considering 
+        that AGATHA offers the following search engines:
+
+        * ANALYSES: which you should call when you would like to find an official act based on the *content*
+            of that act. For instance, if you know the name of some people that were involved in that act or
+            if you know some specific keyword that might help retrieve the act you need. This tool is
+            particularly useful when you need to answer the questions *WHO*, *WHERE*, *WHEN* or *WHAT*.
+
+        * GENEALOGY: which you should call when you would like to find scans of the original registers where
+            the act is consigned. This tool is only useful if you know **WHERE** and **WHEN** the act you 
+            search has occured.
+        </ Context >
+
+        < Instructions >
+        Create a step-by-step plan of how you would proceed to satisfy the user's request.
+        Do not respond to the user's request, focus on the creation of a detailed plan to address
+        that request using the available tools. Your response should consist of the plan only.
+        </ Instructions >
+    """)
+
+    plan = await (LLM | StrOutputParser()).ainvoke([sytem, email, instr])
     
+    print("????" * 20)
+    print(plan)
+    print("????" * 20)
+    plan = AIMessage(plan)
+
     response = await ASK_AGATHA.ainvoke({ # type: ignore
-        "messages": [sytem, email]
+        "messages": [sytem, email, plan]
     })
 
     print(">>>>" * 20)
@@ -68,7 +96,7 @@ async def example_rubens()-> str:
             [ HumanMessage("""
             < Instructions >
             Respond to the user request in his own language. 
-            Be polite and professional. 
+            Be polite and professional. Focus on answering the user's request only.
             </ Instructions >
             """)]
     )

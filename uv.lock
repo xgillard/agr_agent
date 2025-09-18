@@ -1,5 +1,5 @@
 version = 1
-revision = 2
+revision = 3
 requires-python = ">=3.13"
 resolution-markers = [
     "(python_full_version >= '3.14' and sys_platform == 'linux') or (python_full_version >= '3.14' and sys_platform == 'win32')",
@@ -57,7 +57,6 @@ dependencies = [
     { name = "langgraph-supervisor" },
     { name = "langmem" },
     { name = "pyarrow" },
-    { name = "pysolr" },
     { name = "python-dotenv" },
     { name = "scikit-learn" },
     { name = "sentence-transformers" },
@@ -94,7 +93,6 @@ requires-dist = [
     { name = "langgraph-supervisor", specifier = ">=0.0.27" },
     { name = "langmem", specifier = ">=0.0.28" },
     { name = "pyarrow", specifier = ">=21.0.0" },
-    { name = "pysolr", specifier = ">=3.10.0" },
     { name = "python-dotenv", specifier = ">=1.1.1" },
     { name = "scikit-learn", specifier = ">=1.7.0" },
     { name = "sentence-transformers", specifier = ">=5.0.0" },
@@ -3163,16 +3161,6 @@ sdist = { url = "https://files.pythonhosted.org/packages/0f/49/4cea918a08f02817a
 wheels = [
     { url = "https://files.pythonhosted.org/packages/5a/dc/491b7661614ab97483abf2056be1deee4dc2490ecbf7bff9ab5cdbac86e1/pyreadline3-3.5.4-py3-none-any.whl", hash = "sha256:eaf8e6cc3c49bcccf145fc6067ba8643d1df34d604a1ec0eccbf7a18e6d3fae6", size = 83178, upload-time = "2024-09-19T02:40:08.598Z" },
 ]
-
-[[package]]
-name = "pysolr"
-version = "3.10.0"
-source = { registry = "https://pypi.org/simple" }
-dependencies = [
-    { name = "requests" },
-    { name = "setuptools" },
-]
-sdist = { url = "https://files.pythonhosted.org/packages/6d/f5/59f3375b12172651c02615ed54b9ca8e5ca7cbf6d89a8506a5daec4ed813/pysolr-3.10.0.tar.gz", hash = "sha256:127b4a2dd169234acb1586643a6cd1e3e94b917921e69bf569d7b2a2aa0ef409", size = 59110, upload-time = "2024-09-18T22:49:01.395Z" }
 
 [[package]]
 name = "pytest"

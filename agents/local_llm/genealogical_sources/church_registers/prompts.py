@@ -1,5 +1,6 @@
 """The prompts related to the searching in church registers."""
 
+from langchain_core.messages import HumanMessage
 from langchain_core.prompts import HumanMessagePromptTemplate
 
 from ....tools.genealogy import (
@@ -9,8 +10,6 @@ from ....tools.genealogy import (
 )
 
 parish = HumanMessagePromptTemplate.from_template("""
-{context}
-
 < Instructions >
 What is the name of the parish where the act has taken place ? Select one or 
 more options among: 
@@ -19,9 +18,7 @@ more options among:
 """)
 
 
-act_type = HumanMessagePromptTemplate.from_template(f"""
-{{context}}
-                                                       
+act_type = HumanMessage(f"""
 < Instructions >
 What type of document do you wish to retrieve ? Select 0, 1 or more options
 among the following:
@@ -29,9 +26,7 @@ among the following:
 </ Instructions >
 """)
 
-other_type = HumanMessagePromptTemplate.from_template(f"""
-{{context}}
-                                                       
+other_type = HumanMessage(f"""
 < Instructions >
 What type of document do you wish to retrieve ? Select 0, 1 or more options
 among the following:
@@ -39,9 +34,7 @@ among the following:
 </ Instructions >
 """)
 
-index_type = HumanMessagePromptTemplate.from_template(f"""
-{{context}}
-                                                       
+index_type = HumanMessage(f"""
 < Instructions >
 Which indexes should be considered during your research ? Select 0, 1 or more 
 options among the following:

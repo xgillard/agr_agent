@@ -41,12 +41,11 @@ async def step_parish(state: T) -> T:
     if len(par) <= 1:
         return {"parish": par} # type: ignore
     else:
-        context = state.get("intent", "== I dont know why I am here ==")
         par_name = cast(StrList, await (
             LLM.with_structured_output(StrList)
             .ainvoke(
                 state["messages"] + 
-                [ parish.format(context=context, parish=[p.place_name for p in par]) ]
+                [ parish.format(parish=[p.place_name for p in par]) ]
             ))
         )
         par = [
@@ -58,12 +57,11 @@ async def step_parish(state: T) -> T:
 async def step_act_type(state: T) -> T:
     """fill the act type."""
 
-    context = state.get("intent", "== I dont know why I am here ==")
     options = cast(Choices[ParishActType],
         await (
             LLM
             .with_structured_output(Choices[ParishActType])
-            .ainvoke(state["messages"] + [ act_type.format(context=context) ] )
+            .ainvoke(state["messages"] + [ act_type ] )
         )
     )
     return { "act_types": options.options() } # type: ignore
@@ -73,12 +71,11 @@ async def step_other_act_type(state: T) -> T:
 
     act_types = cast(list[ParishActType], state.get("act_types", []))
     if ParishActType.OTHER in act_types:
-        context = state.get("intent", "== I dont know why I am here ==")
         options = cast(Choices[OtherParishActType],
             await (
                 LLM
                 .with_structured_output(Choices[OtherParishActType])
-                .ainvoke(state["messages"] + [ other_type.format(context=context) ] )
+                .ainvoke(state["messages"] + [ other_type ] )
             )
         )
         return { "other_act_types": options.options() } # type: ignore
@@ -88,12 +85,11 @@ async def step_other_act_type(state: T) -> T:
 async def step_index(state: T) -> T:
     """fill the index type."""
 
-    context = state.get("intent", "== I dont know why I am here ==")
     options = cast(Choices[ParishIndex],
         await (
             LLM
             .with_structured_output(Choices[ParishIndex])
-            .ainvoke(state["messages"] + [ index_type.format(context=context) ] )
+            .ainvoke(state["messages"] + [ index_type ] )
         )
     )
     return { "indexes": options.options() } # type: ignore

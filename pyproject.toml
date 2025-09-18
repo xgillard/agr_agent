@@ -14,7 +14,6 @@ dependencies    = [
     "langgraph>=0.5.2",
     "langgraph-supervisor>=0.0.27",
     "langmem>=0.0.28",
-    "pysolr>=3.10.0",
     "sentence-transformers>=5.0.0",
     "python-dotenv>=1.1.1",
     "langchain-ollama>=0.3.4",
@@ -58,5 +57,5 @@ exclude = ["./corpus"]
 convention = "google"
 
 [tool.pytest.ini_options]
-addopts = "--doctest-modules --ignore=.ipynb_checkpoints/ --ignore=main.py --ignore=agents/customer_support.py"
+addopts = "--doctest-modules --ignore=.ipynb_checkpoints/ --ignore=plot_graph.py"
 norecursedirs = "venv .venv"
