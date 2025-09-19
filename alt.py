@@ -9,7 +9,7 @@ import asyncio  # noqa: E402
 from langchain.agents import AgentExecutor, create_react_agent  # noqa: E402
 from langchain_core.prompts import PromptTemplate  # noqa: E402
 
-from agents.local_llm.agatha.graph import ask_agatha  # noqa: E402
+from agents.local_llm.agatha.graph import ask_agatha, find_act_details, find_digitized_document  # noqa: E402
 from agents.local_llm.common.llm import LLM  # noqa: E402
 
 system = PromptTemplate.from_template("""
@@ -41,7 +41,7 @@ system = PromptTemplate.from_template("""
         Thought:{agent_scratchpad}
     """)
 
-TOOLS = [ask_agatha]
+TOOLS = [find_act_details, find_digitized_document]
 AGATHA_ = create_react_agent(
     LLM,
     tools=TOOLS,
