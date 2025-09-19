@@ -9,7 +9,7 @@ import asyncio  # noqa: E402
 from langchain.agents import AgentExecutor, create_react_agent  # noqa: E402
 from langchain_core.prompts import PromptTemplate  # noqa: E402
 
-from agents.local_llm.agatha.graph import ask_agatha, find_act_details, find_digitized_document  # noqa: E402
+from agents.local_llm.agatha.graph import ask_agatha  # noqa: E402
 from agents.local_llm.common.llm import LLM  # noqa: E402
 
 system = PromptTemplate.from_template("""
@@ -41,7 +41,7 @@ system = PromptTemplate.from_template("""
         Thought:{agent_scratchpad}
     """)
 
-TOOLS = [find_act_details, find_digitized_document]
+TOOLS = [ask_agatha]
 AGATHA_ = create_react_agent(
     LLM,
     tools=TOOLS,
@@ -51,6 +51,7 @@ AGATHA = AgentExecutor(
     name="Arkey",
     agent=AGATHA_,
     tools=TOOLS,
+    handle_parsing_errors=True,
 )
 
 async def example_rubens()-> str:
@@ -82,7 +83,7 @@ async def example_rubens()-> str:
     response = await AGATHA.ainvoke({"input": email})
 
     print(response["output"])
-    return response
+    return response["output"]
 
 
 if __name__ == "__main__":
