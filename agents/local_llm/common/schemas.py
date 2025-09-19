@@ -9,9 +9,11 @@ class AgathaToolState(MessagesState, total=False):
 
     Attributes:
         call_data (BaseModel | None): the outcome of a tool call
+        output (str): the result of the search in agatha
     """
     
     call_data: BaseModel | list[BaseModel] | None
+    output: str
 
 
 class Choices[Choice](BaseModel):
