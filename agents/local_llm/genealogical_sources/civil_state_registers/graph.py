@@ -34,27 +34,33 @@ from .schemas import (
 )
 
 
+class ChoicesCivilActType(Choices[CivilActType]):
+    pass
+
 async def step_act_type(state: SearchCivilRegisterState) -> SearchCivilRegisterState:
     """fill the act type."""
 
-    options = cast(Choices[CivilActType],
+    options = cast(ChoicesCivilActType,
         await (
             LLM
-            .with_structured_output(Choices[CivilActType])
+            .with_structured_output(ChoicesCivilActType)
             .ainvoke(state["messages"] + [ act_type ] )
         )
     )
     return { "act_types": options.options() } # type: ignore
+
+class ChoicesOtherCivilActType(Choices[OtherCivilActType]):
+    pass
 
 async def step_other_act_type(state: SearchCivilRegisterState) -> SearchCivilRegisterState:
     """fill the other act type."""
 
     act_types = cast(list[CivilActType], state.get("act_types", []))
     if CivilActType.OTHER in act_types:
-        options = cast(Choices[OtherCivilActType],
+        options = cast(ChoicesOtherCivilActType,
             await (
                 LLM
-                .with_structured_output(Choices[OtherCivilActType])
+                .with_structured_output(ChoicesOtherCivilActType)
                 .ainvoke(state["messages"] + [ other_type ] )
             )
         )
@@ -62,27 +68,33 @@ async def step_other_act_type(state: SearchCivilRegisterState) -> SearchCivilReg
     else:
         return {} # type: ignore
 
+class ChoicesCivilIndex(Choices[CivilIndex]):
+    pass
+
 async def step_index(state: SearchCivilRegisterState) -> SearchCivilRegisterState:
     """fill the index type."""
 
-    options = cast(Choices[CivilIndex],
+    options = cast(ChoicesCivilIndex,
         await (
             LLM
-            .with_structured_output(Choices[CivilIndex])
+            .with_structured_output(ChoicesCivilIndex)
             .ainvoke(state["messages"] + [ index_type ] )
         )
     )
     return { "indexes": options.options() } # type: ignore
+
+class ChoicesOtherCivilIndex(Choices[OtherCivilIndex]):
+    pass
 
 async def step_other_index(state: SearchCivilRegisterState) -> SearchCivilRegisterState:
     """fill the index type."""
 
     indexes = cast(list[CivilIndex], state.get("indexes", []))
     if CivilIndex.OTHER in indexes:
-        options = cast(Choices[OtherCivilIndex],
+        options = cast(ChoicesOtherCivilIndex,
             await (
                 LLM
-                .with_structured_output(Choices[CivilIndex])
+                .with_structured_output(ChoicesCivilIndex)
                 .ainvoke(state["messages"] + [ other_index_type ] )
             )
         )

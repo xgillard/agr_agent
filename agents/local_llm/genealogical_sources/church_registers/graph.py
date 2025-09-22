@@ -51,27 +51,34 @@ async def step_parish(state: SearchChurchRegisterState) -> SearchChurchRegisterS
         ]
         return {"parish": par} # type: ignore
 
+
+class ParishActTypeChoices(Choices[ParishActType]):
+    pass
+
 async def step_act_type(state: SearchChurchRegisterState) -> SearchChurchRegisterState:
     """fill the act type."""
 
-    options = cast(Choices[ParishActType],
+    options = cast(ParishActTypeChoices,
         await (
             LLM
-            .with_structured_output(Choices[ParishActType])
+            .with_structured_output(ParishActTypeChoices)
             .ainvoke(state["messages"] + [ act_type ] )
         )
     )
     return { "act_types": options.options() } # type: ignore
+
+class OtherParishActTypeChoices(Choices[OtherParishActType]):
+    pass
 
 async def step_other_act_type(state: SearchChurchRegisterState) -> SearchChurchRegisterState:
     """fill the other act type."""
 
     act_types = cast(list[ParishActType], state.get("act_types", []))
     if ParishActType.OTHER in act_types:
-        options = cast(Choices[OtherParishActType],
+        options = cast(OtherParishActTypeChoices,
             await (
                 LLM
-                .with_structured_output(Choices[OtherParishActType])
+                .with_structured_output(OtherParishActTypeChoices)
                 .ainvoke(state["messages"] + [ other_type ] )
             )
         )
@@ -79,13 +86,17 @@ async def step_other_act_type(state: SearchChurchRegisterState) -> SearchChurchR
     else:
         return {} # type: ignore
 
+
+class ParishIndexChoices(Choices[ParishIndex]):
+    pass
+
 async def step_index(state: SearchChurchRegisterState) -> SearchChurchRegisterState:
     """fill the index type."""
 
-    options = cast(Choices[ParishIndex],
+    options = cast(ParishIndexChoices,
         await (
             LLM
-            .with_structured_output(Choices[ParishIndex])
+            .with_structured_output(ParishIndexChoices)
             .ainvoke(state["messages"] + [ index_type ] )
         )
     )

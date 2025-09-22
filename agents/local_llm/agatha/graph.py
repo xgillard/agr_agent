@@ -39,13 +39,16 @@ from .schemas import (
 )
 
 
+class SingleChoiceAgathaSearchEngine(SingleChoice[AgathaSearchEngine]):
+    pass 
+
 async def step_triage(state: AgathaToolState) -> Literal["genealogy", "analyses"]:
     """Route requests to the appropriate subflow."""
 
-    routing = cast(SingleChoice[AgathaSearchEngine], 
+    routing = cast(SingleChoiceAgathaSearchEngine, 
                    await (
                        LLM
-                        .with_structured_output(SingleChoice[AgathaSearchEngine])
+                        .with_structured_output(SingleChoiceAgathaSearchEngine)
                         .ainvoke(state["messages"] +[ triage ])
                    )
     )

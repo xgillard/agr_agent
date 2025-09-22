@@ -51,12 +51,16 @@ async def step_fill_year_period(state: _State) -> _State:
     )
     return { "period": period } # type: ignore
 
+
+class SingleChoiceTypeOfDocument(SingleChoice[TypeOfDocument]):
+    pass 
+
 async def step_type_of_doc(state: _State) -> _State:
     """Fill the search period."""
 
-    choice = cast(SingleChoice[TypeOfDocument],
+    choice = cast(SingleChoiceTypeOfDocument,
         await LLM
-        .with_structured_output(SingleChoice[TypeOfDocument])
+        .with_structured_output(SingleChoiceTypeOfDocument)
         .ainvoke( state["messages"] + [ document_type ])
     )
     return { "type_of_doc": choice.choice } # type: ignore
