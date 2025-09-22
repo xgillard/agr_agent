@@ -21,6 +21,7 @@ dependencies    = [
     "html5lib>=1.1",
     "textdistance>=4.6.3",
     "langchain-mistralai>=0.2.12",
+    "langchain-google-genai>=2.1.12",
 ]
 
 [dependency-groups]

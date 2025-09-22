@@ -6,7 +6,7 @@ load_dotenv()
 
 import asyncio  # noqa: E402
 
-from agents.local_llm.react.graph import AGENT  # noqa: E402
+from agents.local_llm.agatha.graph import ASK_AGATHA  # noqa: E402
 
 
 async def example_rubens()-> str:
@@ -35,7 +35,7 @@ async def example_rubens()-> str:
         Malik
         """
     
-    response = await AGENT.ainvoke({"input": email})
+    response = await ASK_AGATHA.ainvoke({"input": email}) # type: ignore
     messages = response["messages"][-1]
     print(messages.content)
     return ""

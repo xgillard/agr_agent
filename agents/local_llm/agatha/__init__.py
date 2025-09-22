@@ -1,1 +1,2 @@
-"""Overarching workflow to interact with AGATHA."""
+"""Code of the base ReAct behavior."""
+
