@@ -9,6 +9,9 @@ from langchain.tools import tool
 from langchain_core.messages import (
     HumanMessage,
 )
+from langchain_core.output_parsers import (
+    StrOutputParser,
+)
 from langgraph.graph import (
     END,
     START,
@@ -28,6 +31,7 @@ from ..common.schemas import (
 )
 from ..genealogical_sources.graph import SEARCH_IN_GENEALOGIC_SOURCES
 from .prompts import (
+    summarize,
     triage,
 )
 from .schemas import (
@@ -62,19 +66,13 @@ async def step_deliver_response(state: AgathaToolState) -> AgathaToolState:
         bytes_mode="utf8"
     ).decode("utf8")
 
-    print("==="*60)
-    print(f"{state.get("call_data", "__ no data found __"),}")
-    print(f"{raw_data}")
-    print("==="*60)
+    summary  = await (
+        (LLM | StrOutputParser())
+        .ainvoke( state["messages"] + [ summarize.format(raw_data = raw_data) ] )
+    )
 
     return { # type: ignore
-        "output": f"""
-        I searched in the archives. Here is the raw data I found: 
-
-        ```
-        {raw_data}
-        ```
-        """,
+        "output": summary
     }
 
 ASK_AGATHA = (
