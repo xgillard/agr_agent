@@ -9,16 +9,13 @@ from langchain.tools import tool
 from langchain_core.messages import (
     HumanMessage,
 )
-from langchain_core.output_parsers import (
-    StrOutputParser,
-)
 from langgraph.graph import (
     END,
     START,
     StateGraph,
 )
-from pydantic import (
-    BaseModel,
+from pydantic_core import (
+    to_json,
 )
 
 from ..analyses_of_records.graph import SEARCH_IN_ANALYSES_OF_RECORDS
@@ -31,7 +28,6 @@ from ..common.schemas import (
 )
 from ..genealogical_sources.graph import SEARCH_IN_GENEALOGIC_SOURCES
 from .prompts import (
-    summarize,
     triage,
 )
 from .schemas import (
@@ -55,39 +51,30 @@ async def step_triage(state: AgathaToolState) -> Literal["genealogy", "analyses"
         case AgathaSearchEngine.GENEALOGY:
             return "genealogy"
 
-def _format_raw_data(state: AgathaToolState) -> str:
-    """Format the raw data in an appropriate way.
-    
-    Returns:
-        str: a formatted representation of the raw call data.
-    """
-    
-    call_data = state.get("call_data")
-    call_text = "== no data found =="
-    
-    if call_data is None:
-        call_data = []
-
-    if isinstance(call_data, BaseModel):
-        call_text = call_data.model_dump_json(by_alias=False, exclude_none=True)
-    else:
-        call_data = cast(list, call_data)
-        call_text = f"[ {','.join(m.model_dump_json(by_alias=False, exclude_none=True) for m in call_data)} ]"
-    return call_text
-
 async def step_deliver_response(state: AgathaToolState) -> AgathaToolState:
     """Deliver the raw data as an AI message."""
 
-    raw_data = _format_raw_data(state)
-    summary  = await (
-        (LLM | StrOutputParser())
-            .ainvoke(
-                state["messages"] + [ summarize.format(raw_data = raw_data) ]
-            )
-    )
+    raw_data = to_json(
+        state.get("call_data", "__ no data found __"),
+        indent=4,
+        by_alias=False,
+        exclude_none=True,
+        bytes_mode="utf8"
+    ).decode("utf8")
+
+    print("==="*60)
+    print(f"{state.get("call_data", "__ no data found __"),}")
+    print(f"{raw_data}")
+    print("==="*60)
 
     return { # type: ignore
-        "output": summary,
+        "output": f"""
+        I searched in the archives. Here is the raw data I found: 
+
+        ```
+        {raw_data}
+        ```
+        """,
     }
 
 ASK_AGATHA = (

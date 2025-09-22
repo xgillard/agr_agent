@@ -2,7 +2,6 @@
 
 from typing import (
     Literal,
-    TypeVar,
     cast,
 )
 
@@ -31,9 +30,8 @@ from .schemas import (
     StrList,
 )
 
-T = TypeVar("T", bound=SearchChurchRegisterState)
 
-async def step_parish(state: T) -> T: 
+async def step_parish(state: SearchChurchRegisterState) -> SearchChurchRegisterState: 
     """Fill the parish."""
 
     mun = state.get("municipality")
@@ -53,8 +51,7 @@ async def step_parish(state: T) -> T:
         ]
         return {"parish": par} # type: ignore
 
-
-async def step_act_type(state: T) -> T:
+async def step_act_type(state: SearchChurchRegisterState) -> SearchChurchRegisterState:
     """fill the act type."""
 
     options = cast(Choices[ParishActType],
@@ -66,7 +63,7 @@ async def step_act_type(state: T) -> T:
     )
     return { "act_types": options.options() } # type: ignore
 
-async def step_other_act_type(state: T) -> T:
+async def step_other_act_type(state: SearchChurchRegisterState) -> SearchChurchRegisterState:
     """fill the other act type."""
 
     act_types = cast(list[ParishActType], state.get("act_types", []))
@@ -82,7 +79,7 @@ async def step_other_act_type(state: T) -> T:
     else:
         return {} # type: ignore
 
-async def step_index(state: T) -> T:
+async def step_index(state: SearchChurchRegisterState) -> SearchChurchRegisterState:
     """fill the index type."""
 
     options = cast(Choices[ParishIndex],
@@ -95,7 +92,7 @@ async def step_index(state: T) -> T:
     return { "indexes": options.options() } # type: ignore
 
 
-async def step_call_tool(state: T) -> T:
+async def step_call_tool(state: SearchChurchRegisterState) -> SearchChurchRegisterState:
     """Actually calls the tool using state information."""
     # deal with required
     municipality = state.get("municipality")
@@ -120,7 +117,7 @@ async def step_call_tool(state: T) -> T:
 
 
 DocTypePath = Literal["act_type", "index", "act_type_and_index"]
-def route_on_type_of_doc(state: T) -> DocTypePath:
+def route_on_type_of_doc(state: SearchChurchRegisterState) -> DocTypePath:
     """Route the flow based on type of doc."""
 
     tod = cast(TypeOfDocument, state.get("type_of_doc", TypeOfDocument.ACTS))
@@ -133,7 +130,7 @@ def route_on_type_of_doc(state: T) -> DocTypePath:
             return "act_type_and_index"
 
 
-def _do_nothing(state: T) -> T:
+def _do_nothing(state: SearchChurchRegisterState) -> SearchChurchRegisterState:
     """Do nothing"""
 
     return {} # type: ignore
