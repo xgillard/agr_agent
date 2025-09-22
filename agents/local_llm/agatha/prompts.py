@@ -51,7 +51,10 @@ tool_descr = (
 system_prompt = SystemMessage(f"{persona}\n\n{tool_descr}")
 
 decide = HumanMessage(f"""
-Do you think it would be useful to use your tools before to answer to the user ? ({YesNo.all_values()})
+Do you need to consult the available resources in order to give the user a conclusive reply ? 
+
+Note: Concluding that there is no data after you verified in the archives is a conclusive answer.
+(Respond with either of: {YesNo.all_values()})
 """)
 
 what_information = HumanMessage(
