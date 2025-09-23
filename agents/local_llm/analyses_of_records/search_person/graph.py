@@ -144,8 +144,8 @@ async def step_call_tool(state: SearchPersonWizzardState) -> SearchPersonWizzard
         persons=state.get("persons", []),
         location=state.get("location"),
         period=period.selector,
-        start_date=period.start_date,
-        end_date=period.end_date,
+        start_year=period.start_year,
+        end_year=period.end_year,
         act_type=state.get("act_type"),
         project=state.get("project"),
     )

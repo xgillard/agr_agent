@@ -52,11 +52,18 @@ class AgentState(MessagesState):
     
     Attributes:
         input (str): the user's request.
+        scratch (str): the agent' scratchpad where all it knows its explicited.
+
+        thought (str): the current thought (will be appended to scratchpad eventually)
         call_data (str): response to the current objective.
+
         n (int): the number of erroneous tool calls.
     """
 
     input: str
+    scratch: str
+
+    thought: str
     call_data: Any
 
     n: int

@@ -7,7 +7,6 @@ only a large-ish model will do.
 from langchain.chat_models import init_chat_model
 
 LLM = init_chat_model(
-    model = "mistral-medium-latest",
-    model_provider = "mistralai",
-    temperature=0.0,
+    model = "gemini-2.5-flash",
+    model_provider = "google-genai",
 )

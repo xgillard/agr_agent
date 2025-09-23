@@ -16,13 +16,13 @@ class Period(BaseModel):
     
     Attributes:
         selector (PeriodSelector|None): a precision on how to interpret the dates
-        start_date (str|None): the start date or exact date
-        end_date (str|None): the end date.
+        start_year (int|None): the start date or exact date
+        end_year (int|None): the end date.
     """
 
     selector: PeriodSelector | None = PeriodSelector.BETWEEN
-    start_date: str | None = None
-    end_date: str | None = None
+    start_year: int | None = None
+    end_year: int | None = None
 
 
 class SearchAnalysesState(AgathaToolState, total=False):

@@ -64,9 +64,15 @@ async def cond_decide(state: AgentState) -> _Decision:
     if state.get("n", 0) > 5: # circuit breaker
         return "respond"
     
+    scratch = state.get("scratch")
+    if scratch is None:
+        scratch = ""
+    else: 
+        scratch = f"Considering the following reasoning:\n{scratch}\n\n"
+
     enough = cast(YesNoChoice, await (
         LLM.with_structured_output(YesNoChoice)
-            .ainvoke(state["messages"] + [ decide ])
+            .ainvoke(state["messages"] + [ decide.format(scratch=scratch) ])
     ))
 
     match enough.choice:
@@ -75,27 +81,31 @@ async def cond_decide(state: AgentState) -> _Decision:
         case YesNo.NO:
             return "respond"
 
+
 async def step_respond(state: AgentState) -> AgentState:
+    scratch = state.get("scratch", "I just know the answer")
     rsp = await (LLM | StrOutputParser()).ainvoke(
-        state["messages"] + [ respond ]
+        state["messages"] + [ respond.format(scratch=scratch) ]
     )
     return {"messages": AIMessage(rsp), "output": rsp} # type: ignore
 
 
 async def step_what_info(state: AgentState) -> AgentState:
     n = state.get("n", 0) 
+    scratch = state.get("scratch", "")
     rsp = await (LLM | StrOutputParser()).ainvoke(
-        state["messages"] + [ what_information ]
+        state["messages"] + [ what_information.format(scratch=scratch) ]
     )
-    return {"n": n+1, "messages": AIMessage(rsp)} # type: ignore
+    return {"n": n+1, "thought": rsp} # type: ignore
 
 _Source = Literal["analyses_of_records", "digitized_registers", "help_resources"]
 class DSChoice(SingleChoice[DataSource]):
     pass
 async def cond_what_source(state: AgentState) -> _Source:
+    thought = state.get("thought", "== I dont need anything ==")
     rsp = cast(DSChoice, await (
         LLM.with_structured_output(DSChoice)
-            .ainvoke(state["messages"] + [ what_source ])
+            .ainvoke(state["messages"] + [ what_source.format(thought=thought) ])
     ))
     match rsp.choice:
         case DataSource.ANALYSES_OF_RECORDS: 
@@ -109,8 +119,39 @@ async def step_help(state: AgentState) -> AgentState:
     # FIXME: TODO
     return {"messages": AIMessage("The help section was unavailable")} # type: ignore
 
+async def step_analyses_of_records(state: AgentState) -> AgentState:
+    thought = state.get("thought", "")
+    context = state.get("scratch", "")
+
+    prompt = HumanMessage(f"""
+    < Context >
+    Here is my reasoning so far:
+    {context}
+    </ Context>
+    < Goal >{thought}</ Goal >""")
+
+    substate = await SEARCH_IN_ANALYSES_OF_RECORDS.ainvoke({"messages": state["messages"] + [prompt]}) # type: ignore
+    return {"call_data": substate.get("call_data", None)} # type: ignore
+
+async def step_genealogy(state: AgentState) -> AgentState:
+    thought = state.get("thought", "")
+    context = state.get("scratch", "")
+
+    prompt = HumanMessage(f"""
+    < Context >
+    Here is my reasoning so far:
+    {context}
+    </ Context>
+    < Goal >{thought}</ Goal >""")
+
+    substate = await SEARCH_IN_GENEALOGIC_SOURCES.ainvoke({"messages": state["messages"] + [prompt]}) # type: ignore
+    return {"call_data": substate.get("call_data", None)} # type: ignore
+
 async def step_observation(state: AgentState) -> AgentState:
     """Deliver the raw data as an AI message."""
+
+    scratch = state.get("scratch", "")
+    thought = state.get("thought", "I am done")
 
     raw_data = to_json(
         state.get("call_data", "__ no data found __"),
@@ -122,10 +163,16 @@ async def step_observation(state: AgentState) -> AgentState:
 
     summary  = await (
         (LLM | StrOutputParser())
-        .ainvoke( state["messages"] + [ summarize.format(raw_data = raw_data) ] )
+        .ainvoke( state["messages"] + [ 
+            summarize.format(
+                scratch = scratch,
+                thought = thought,
+                raw_data = raw_data,
+            ) 
+        ] )
     )
 
-    return { "messages": AIMessage(summary) } # type: ignore
+    return { "scratch": summary, "thought": None, "call_data": None } # type: ignore
 
 ASK_AGATHA = (
     StateGraph(AgentState)
@@ -143,10 +190,10 @@ ASK_AGATHA = (
         .add_node("what_info", step_what_info)
         .add_conditional_edges("what_info", cond_what_source)
         # analyses
-        .add_node("analyses_of_records", SEARCH_IN_ANALYSES_OF_RECORDS)
+        .add_node("analyses_of_records", step_analyses_of_records)
         .add_edge("analyses_of_records", "observation")
         # digitized
-        .add_node("digitized_registers", SEARCH_IN_GENEALOGIC_SOURCES)
+        .add_node("digitized_registers", step_genealogy)
         .add_edge("digitized_registers", "observation")
         # help
         .add_node("help_resources", step_help)

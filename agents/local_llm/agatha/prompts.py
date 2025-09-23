@@ -1,7 +1,6 @@
 """Prompts for the react-style agent that interacts with agatha."""
 
 from langchain_core.messages import (
-    HumanMessage,
     SystemMessage,
 )
 from langchain_core.prompts import (
@@ -47,19 +46,22 @@ tool_descr = (
        the AGATHA platform. This is mostly useful to answer *HOW DO I ...* questions.
 """)
 
-
 system_prompt = SystemMessage(f"{persona}\n\n{tool_descr}")
 
-decide = HumanMessage(f"""
+decide = HumanMessagePromptTemplate.from_template(f"""
+{{scratch}}
+
 Do you need to consult the available resources in order to give the user a conclusive reply ? 
 
 Note: Concluding that there is no data after you verified in the archives is a conclusive answer.
 (Respond with either of: {YesNo.all_values()})
 """)
 
-what_information = HumanMessage(
-"""What information do you need to find ? 
-(You can use previous search results -- if any -- to refine your request)
+what_information = HumanMessagePromptTemplate.from_template(
+"""
+{scratch}
+
+What what action should I take now ?
 
 Your response must be formatted as a user story that provides all the necessary context.
 It should adhere to one of the following schemas:
@@ -67,27 +69,41 @@ It should adhere to one of the following schemas:
     - I want to find the help section about [WHAT] in the user manual.
     - I want to find the FAQ section related to [TOPIC].
     - I want to find the details of [WHAT] where [RELEVANT FACTS].
+    - I want to find the details of [WHAT] where [RELEVANT FACTS] in [YEAR].
+    - I want to find the details of [WHAT] where [RELEVANT FACTS] between [YEAR] and [YEAR].
+    - I want to find the details of [WHAT] where [RELEVANT FACTS] before [YEAR].
+    - I want to find the details of [WHAT] where [RELEVANT FACTS] after [YEAR].
     - I want to find a digitized scan of [WHAT] that happened in [LOCATION] in [YEAR].
     - I want to find a digitized scan of [WHAT] that happened in [LOCATION] between [YEAR] and [YEAR].
     - I want to find a digitized scan of [WHAT] that happened in [LOCATION] before [YEAR].
     - I want to find a digitized scan of [WHAT] that happened in [LOCATION] after [YEAR].
+
+You can only search for ONE piece of information at a time. So you can only express one single user 
+story in your response.
 """)
 
-what_source = HumanMessage(
+what_source = HumanMessagePromptTemplate.from_template(
 f""""
 < Context >
 {tool_descr}
 </ Context >
 
 < Instructions >
-What tool will you use to find information ? 
+What tool will you use to find the information required to deal with the following user story ?
+{{thought}}
+
 (Select one option among: {DataSource.all_values()})
 </ Instructions >
 """)
 
 summarize = HumanMessagePromptTemplate.from_template("""
 < Context >
-I have searched in the available sources, and here is what I found: 
+Here is my reasoning so far:
+{scratch}
+
+Thought: {thought}
+Action: I have searched in the available sources
+Observation: Here is the raw data from the original sources
 {raw_data}
 < Context >
 
@@ -98,4 +114,11 @@ useful about the data.
 </ Instructions >
 """)
 
-respond = HumanMessage("Respond to the user's original request.")
+respond = HumanMessagePromptTemplate.from_template("""
+< Context >
+{scratch}
+</ Context >
+< Instructions >
+Respond to the user's original request.
+</ Instructions>
+""")
