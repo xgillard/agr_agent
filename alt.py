@@ -25,19 +25,23 @@ async def example_rubens()-> str:
         RCPT TO: contact@arch.be
         SUBJECT: Je ne m'en sors pas 
     
-        Je sais que vous avez dans vos collections un acte de mariage dans lequel
-        le peintre pierre paul rubens (ayant vécu à la fin du XIXe siècle) était témoin. Dans l'idéal 
-        j'aimerais pouvoir mettre la main sur une copie numérique de ce document.
-        Pouvez vous m'aider ? S'il n'y a pas moyen, pourriez vous au moins me dire 
-        de qui c'était le marriage et quel lien il y avait entre ces personnes et le peintre ?
+        Pourriez vous me donner le lien vers un scan de l'acte de naissance de Chrispina Ameye svp.
 
         Merci d'avance, 
         Malik
         """
     
-    response = await ASK_AGATHA.ainvoke({"input": email}) # type: ignore
-    messages = response["messages"][-1]
-    print(messages.content)
+    rsp = None
+    async for msg in ASK_AGATHA.astream({"input": email}, stream_mode="updates"): # type: ignore
+        print("***" * 60)
+        rsp = msg
+        if 'observation' in msg:
+            print(msg["observation"]["scratch"])
+        print("***" * 60)
+
+    print("$$$" * 60)
+    print(rsp["respond"]["messages"].content) # type: ignore
+    print("$$$" * 60)
     return ""
 
 

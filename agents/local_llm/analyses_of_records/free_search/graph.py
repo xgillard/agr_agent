@@ -47,7 +47,11 @@ async def step_call_tool(state: FreeSearchWizzardState) -> FreeSearchWizzardStat
     )
     
     call = free_search_in_analyses_of_records(request)
-    return {"call_data": call} # type: ignore
+    return {
+        "call_tool": "Analyses of records / Free Search",
+        "call_request": request,
+        "call_data": call,
+    } # type: ignore
 
 FREE_SEARCH_IN_ANALYSES_OF_RECORDS = (
     StateGraph(FreeSearchWizzardState)

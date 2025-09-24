@@ -1,7 +1,7 @@
-check:
-	echo "ruff checks"
+quick: 
 	uv run ruff check .
-	echo "mypy checks"
 	uv run mypy .
+
+check: quick
 	echo "pytest"
 	uv run pytest 

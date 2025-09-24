@@ -114,7 +114,7 @@ async def step_call_tool(state: SearchChurchRegisterState) -> SearchChurchRegist
     if municipality is None or parishes is None:
         return {"call_data": None} # type: ignore
     
-    call_data = genealogy_search_church_registers_prior_to_1796(
+    request = dict(
         municipality=cast(Municipality, municipality),
         parishes=cast(list[Parish], parishes),
         act_types=cast(list[ParishActType]|None, state.get("act_types")),
@@ -124,7 +124,12 @@ async def step_call_tool(state: SearchChurchRegisterState) -> SearchChurchRegist
         start_year=period.start_year,
         end_year=period.end_year,
     )
-    return {"call_data": call_data} # type: ignore
+    call_data = genealogy_search_church_registers_prior_to_1796(**request) # type: ignore
+    return {
+        "call_tool": "Genealogical sources / Church Registers",
+        "call_request": request,
+        "call_data": call_data,
+    } # type: ignore
 
 
 DocTypePath = Literal["act_type", "index", "act_type_and_index"]

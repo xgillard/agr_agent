@@ -150,7 +150,11 @@ async def step_call_tool(state: SearchPersonWizzardState) -> SearchPersonWizzard
         project=state.get("project"),
     )
     call = search_person_in_analyses_of_records(request)
-    return {"call_data": call} # type: ignore
+    return {
+        "call_tool": "Analyses of records / Search Person",
+        "call_request": request,
+        "call_data": call,
+    } # type: ignore
 
 SEARCH_PERSON_IN_ANALYSES_OF_RECORDS = (
     StateGraph(SearchPersonWizzardState)

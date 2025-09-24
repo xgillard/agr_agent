@@ -17,7 +17,7 @@ from langchain_text_splitters import MarkdownHeaderTextSplitter
 
 #__DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
 
-def agatha_knowledge(cache: str | Path = Path("./__knowledge")) -> Tool:
+def agatha_help(cache: str | Path = Path("./__knowledge")) -> Tool:
     """Return the knowledge source for the AGATHA website."""
     cache =  Path(cache)
     # create the embedding model to add and search to the vector db

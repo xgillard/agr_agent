@@ -13,13 +13,13 @@ class DataSource(StrEnum):
 
     Attributes:
         ANALYSES_OF_RECORDS (str): search in analyses of records
-        DIGITIZED_REGISTERS (str): search digitized registers (genealogic sources)
+        GENEALOGICAL_SOURCES (str): search digitized registers (genealogic sources)
         HELP_RESOURCES (str): manual and FAQ
     """
 
-    ANALYSES_OF_RECORDS = "analyses_of_records"
-    DIGITIZED_REGISTERS = "digitized_registers"
-    HELP_RESOURCES = "help_resources"
+    ANALYSES_OF_RECORDS = "Analyses of records"
+    DIGITIZED_REGISTERS = "Genealogical sources"
+    HELP_RESOURCES = "Help Resources"
 
     @classmethod
     def all_values(cls) -> list[str]:
@@ -55,8 +55,11 @@ class AgentState(MessagesState):
         scratch (str): the agent' scratchpad where all it knows its explicited.
 
         thought (str): the current thought (will be appended to scratchpad eventually)
-        call_data (str): response to the current objective.
-
+        
+        call_tool (str): the name of the tool to be called.
+        call_request (Any): the request sent to the tool.
+        call_data (Any): the outcome of a tool call
+        
         n (int): the number of erroneous tool calls.
     """
 
@@ -64,6 +67,9 @@ class AgentState(MessagesState):
     scratch: str
 
     thought: str
+
+    call_tool: str
+    call_request: Any
     call_data: Any
 
     n: int

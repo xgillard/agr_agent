@@ -113,7 +113,7 @@ async def step_call_tool(state: SearchCivilRegisterState) -> SearchCivilRegister
         return {"call_data": None} # type: ignore
 
     period = cast(YearPeriod, state.get("period", YearPeriod()))
-    call_data = genealogy_search_civil_state_registers(
+    request = dict(
         municipality=cast(Municipality, municipality),
         act_types=cast(list[CivilActType]|None, state.get("act_types")),
         other_types=cast(list[OtherCivilActType]|None, state.get("other_act_types")),
@@ -123,6 +123,13 @@ async def step_call_tool(state: SearchCivilRegisterState) -> SearchCivilRegister
         start_year=period.start_year,
         end_year=period.end_year,
     )
+    call_data = genealogy_search_civil_state_registers(**request) # type: ignore
+    return {
+        "call_tool": "Genealogical sources / Civil State Registers",
+        "call_request": request,
+        "call_data": call_data,
+    } # type: ignore
+
     return {"call_data": call_data} # type: ignore
 
 

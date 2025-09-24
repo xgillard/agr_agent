@@ -21,6 +21,9 @@ from pydantic_core import (
     to_json,
 )
 
+from ...tools.agatha_help import (
+    agatha_help,
+)
 from ..analyses_of_records.graph import (
     SEARCH_IN_ANALYSES_OF_RECORDS,
 )
@@ -47,6 +50,7 @@ from .schemas import (
     YesNo,
 )
 
+AGATHA_HELP = agatha_help()
 
 async def initialize_conversation(state: AgentState) -> AgentState:
     return { # type: ignore
@@ -61,7 +65,7 @@ _Decision = Literal["respond", "what_info"]
 class YesNoChoice(SingleChoice[YesNo]):
     pass
 async def cond_decide(state: AgentState) -> _Decision:
-    if state.get("n", 0) > 5: # circuit breaker
+    if state.get("n", 0) >= 5: # circuit breaker
         return "respond"
     
     scratch = state.get("scratch", "")
@@ -93,26 +97,42 @@ async def step_what_info(state: AgentState) -> AgentState:
     )
     return {"n": n+1, "thought": rsp} # type: ignore
 
-_Source = Literal["analyses_of_records", "digitized_registers", "help_resources"]
+_Source = Literal["Analyses of records", "Genealogical sources", "Help Resources"]
 class DSChoice(SingleChoice[DataSource]):
     pass
 async def cond_what_source(state: AgentState) -> _Source:
     thought = state.get("thought", "== I dont need anything ==")
+
+    if thought.startswith("I want to find the help section"):
+        return "Help Resources"
+    elif thought.startswith("I want to find the FAQ section"):
+        return "Help Resources"
+    elif thought.startswith("I want to find the details of "):
+        return "Analyses of records"
+    elif thought.startswith("I want to find a digitized scan of"):
+        return "Genealogical sources"
+    
     rsp = cast(DSChoice, await (
         LLM.with_structured_output(DSChoice)
             .ainvoke(state["messages"] + [ what_source.format(thought=thought) ])
     ))
     match rsp.choice:
         case DataSource.ANALYSES_OF_RECORDS: 
-            return "analyses_of_records"
+            return "Analyses of records"
         case DataSource.DIGITIZED_REGISTERS:
-            return "digitized_registers"
+            return "Genealogical sources"
         case DataSource.HELP_RESOURCES:
-            return "help_resources"
+            return "Help Resources"
 
 async def step_help(state: AgentState) -> AgentState:
-    # FIXME: TODO
-    return {"messages": AIMessage("The help section was unavailable")} # type: ignore
+    thought = state.get("thought", "__ i do not have any question __")
+    response = await AGATHA_HELP.ainvoke(input=thought)
+
+    return {
+        "call_tool": "Help Resources",
+        "call_request": thought,
+        "call_data": response,
+    } # type: ignore
 
 async def step_analyses_of_records(state: AgentState) -> AgentState:
     thought = state.get("thought", "")
@@ -126,7 +146,11 @@ async def step_analyses_of_records(state: AgentState) -> AgentState:
     < Goal >{thought}</ Goal >""")
 
     substate = await SEARCH_IN_ANALYSES_OF_RECORDS.ainvoke({"messages": state["messages"] + [prompt]}) # type: ignore
-    return {"call_data": substate.get("call_data", None)} # type: ignore
+    return {
+        "call_tool": substate.get("call_tool"),
+        "call_request": substate.get("call_request"),
+        "call_data": substate.get("call_data"),
+    } # type: ignore
 
 async def step_genealogy(state: AgentState) -> AgentState:
     thought = state.get("thought", "")
@@ -140,7 +164,11 @@ async def step_genealogy(state: AgentState) -> AgentState:
     < Goal >{thought}</ Goal >""")
 
     substate = await SEARCH_IN_GENEALOGIC_SOURCES.ainvoke({"messages": state["messages"] + [prompt]}) # type: ignore
-    return {"call_data": substate.get("call_data", None)} # type: ignore
+    return {
+        "call_tool": substate.get("call_tool"),
+        "call_request": substate.get("call_request"),
+        "call_data": substate.get("call_data"),
+    } # type: ignore
 
 async def step_observation(state: AgentState) -> AgentState:
     """Deliver the raw data as an AI message."""
@@ -148,7 +176,15 @@ async def step_observation(state: AgentState) -> AgentState:
     scratch = state.get("scratch", "")
     thought = state.get("thought", "I am done")
 
-    raw_data = to_json(
+    call_tool = state.get("call_tool", "__ no tool was used __")
+    call_request = to_json(
+        state.get("call_request", "__ no data found __"),
+        indent=4,
+        by_alias=False,
+        exclude_none=True,
+        bytes_mode="utf8"
+    ).decode("utf8")
+    call_data = to_json(
         state.get("call_data", "__ no data found __"),
         indent=4,
         by_alias=False,
@@ -162,12 +198,22 @@ async def step_observation(state: AgentState) -> AgentState:
             summarize.format(
                 scratch = scratch,
                 thought = thought,
-                raw_data = raw_data,
+                call_tool = call_tool,
+                call_request = call_request,
+                call_data = call_data,
             ) 
         ] )
     )
 
-    scratch = f"{scratch}\n{summary}"
+    scratch = f"""{scratch}
+
+Thought: {thought}
+Action: I have used {call_tool} as follows
+{call_request}
+Observation: {summary}
+    
+    """
+
     return { "scratch": scratch, "thought": None, "call_data": None } # type: ignore
 
 ASK_AGATHA = (
@@ -186,14 +232,14 @@ ASK_AGATHA = (
         .add_node("what_info", step_what_info)
         .add_conditional_edges("what_info", cond_what_source)
         # analyses
-        .add_node("analyses_of_records", step_analyses_of_records)
-        .add_edge("analyses_of_records", "observation")
+        .add_node("Analyses of records", step_analyses_of_records)
+        .add_edge("Analyses of records", "observation")
         # digitized
-        .add_node("digitized_registers", step_genealogy)
-        .add_edge("digitized_registers", "observation")
+        .add_node("Genealogical sources", step_genealogy)
+        .add_edge("Genealogical sources", "observation")
         # help
-        .add_node("help_resources", step_help)
-        .add_edge("help_resources", "observation")
+        .add_node("Help Resources", step_help)
+        .add_edge("Help Resources", "observation")
         #
         .compile()
 )
