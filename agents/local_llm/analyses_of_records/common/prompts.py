@@ -8,13 +8,15 @@ from ....tools.analyses_of_records import AnalysesActType, AnalysesProject
 
 location = HumanMessage("""
 < Instructions >
-Where did the act you are searching took place ? (Leave empty unless the information was explicitly given).
+Where did the act you are searching took place ? 
+Respond using the municipality name only.
+Leave empty unless the information was explicitly given.
 </ Instructions >
 """)
 
 period = HumanMessage("""
 < Instructions >
-When did the act happen ? (Leave empty unless the information was explicitly given).
+When did the act happen ? Leave empty unless the information was explicitly given.
 </ Instructions >
 """)
 

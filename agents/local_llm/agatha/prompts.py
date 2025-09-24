@@ -9,7 +9,6 @@ from langchain_core.prompts import (
 
 from .schemas import (
     DataSource,
-    YesNo,
 )
 
 persona = (
@@ -46,15 +45,16 @@ tool_descr = (
        the AGATHA platform. This is mostly useful to answer *HOW DO I ...* questions.
 """)
 
-system_prompt = SystemMessage(f"{persona}\n\n{tool_descr}")
+system_prompt = SystemMessage(persona)
 
-decide = HumanMessagePromptTemplate.from_template(f"""
+decide = HumanMessagePromptTemplate.from_template("""
+< Context >
 {{scratch}}
+</ Context >
 
-Do you need to consult the available resources in order to give the user a conclusive reply ? 
-
-Note: Concluding that there is no data after you verified in the archives is a conclusive answer.
-(Respond with either of: {YesNo.all_values()})
+< Instructions >
+Continue searching more information ?
+</ Instructions >
 """)
 
 what_information = HumanMessagePromptTemplate.from_template(
@@ -100,15 +100,17 @@ summarize = HumanMessagePromptTemplate.from_template("""
 < Context >
 Here is my reasoning so far:
 {scratch}
-
+</ Context >
+                                                     
+< LatestSearch >
 Thought: {thought}
 Action: I have searched in the available sources
 Observation: Here is the raw data from the original sources
 {raw_data}
-< Context >
+</ LatestSearch >
 
 < Instructions >
-Summarize the relevant information out loud so that I can memorize only those facts which are
+Summarize the relevant information from the latest search so that I can memorize only those facts which are
 relevant to satisfying the original user's request. Feel free to make any observation you deem
 useful about the data.
 </ Instructions >

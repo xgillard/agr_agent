@@ -64,12 +64,7 @@ async def cond_decide(state: AgentState) -> _Decision:
     if state.get("n", 0) > 5: # circuit breaker
         return "respond"
     
-    scratch = state.get("scratch")
-    if scratch is None:
-        scratch = ""
-    else: 
-        scratch = f"Considering the following reasoning:\n{scratch}\n\n"
-
+    scratch = state.get("scratch", "")
     enough = cast(YesNoChoice, await (
         LLM.with_structured_output(YesNoChoice)
             .ainvoke(state["messages"] + [ decide.format(scratch=scratch) ])
@@ -172,7 +167,8 @@ async def step_observation(state: AgentState) -> AgentState:
         ] )
     )
 
-    return { "scratch": summary, "thought": None, "call_data": None } # type: ignore
+    scratch = f"{scratch}\n{summary}"
+    return { "scratch": scratch, "thought": None, "call_data": None } # type: ignore
 
 ASK_AGATHA = (
     StateGraph(AgentState)
