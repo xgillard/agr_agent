@@ -91,7 +91,8 @@ what_information = HumanMessagePromptTemplate.from_template(
 </ Context >
 
 < Instructions >
-According to your plan, what is the next partial objective you should achieve ? (THOUGHT)
+According to your (possibly revised plan) to address the user's request. 
+What what action should you take now ?
 
 Your response must be formatted as a user story that provides all the necessary context.
 It should adhere to one of the following schemas:

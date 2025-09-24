@@ -7,7 +7,7 @@ only a large-ish model will do.
 from langchain.chat_models import init_chat_model
 
 LLM = init_chat_model(
-    model = "mistral-small-latest",
-    model_provider = "mistralai",
-    temperature = 0.0,
+    model = "gemma3:12b",
+    model_provider = "ollama",
+    temperature=0.0,
 )
