@@ -41,7 +41,6 @@ tool_descr = (
             - remarks (str): some remarks about this act
             - persons (list[AnalysesPerson]): people mentioned in the document.
 
-
    * Genealogical sources: this will let you find digitized scans of the original registers where 
        official acts have been consigned. This is often helpful in order to find the scan of a specific
        act. In order to use this tool, you need to know some details about the register (or act) you

@@ -31,10 +31,13 @@ following options:
 
 project_type = HumanMessage(f"""
 < Instructions >
-What project led to the analysis of the document you are searching for ? Leave this
-field empty unless this information was explicitly given to you. If you pick a value,
-it must be one of the following options:
+What project led to the analysis of the document you are searching for ? Select one or more
+options among: 
 
 {AnalysesProject.all_values()}
+
+**WARNING** 
+Leave this field empty unless you are absolutely certain about the id of the project that 
+led to the analysis of the document you search.
 </ Instructions >
 """)
