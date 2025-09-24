@@ -155,13 +155,20 @@ async def step_analyses_of_records(state: AgentState) -> AgentState:
     {context}
     </ Context>
     < Goal >{thought}</ Goal >""")
-
-    substate = await SEARCH_IN_ANALYSES_OF_RECORDS.ainvoke({"messages": state["messages"] + [prompt]}) # type: ignore
-    return {
-        "call_tool": substate.get("call_tool"),
-        "call_request": substate.get("call_request"),
-        "call_data": substate.get("call_data"),
-    } # type: ignore
+    
+    try:
+        substate = await SEARCH_IN_ANALYSES_OF_RECORDS.ainvoke({"messages": state["messages"] + [prompt]}) # type: ignore
+        return {
+            "call_tool": substate.get("call_tool"),
+            "call_request": substate.get("call_request"),
+            "call_data": substate.get("call_data"),
+        } # type: ignore
+    except Exception as e:
+        return {
+            "call_tool": "Analyses of records",
+            "call_request": f"This tool cannot be used right now because: {e.args}",
+            "call_data": f"This tool cannot be used right now because: {e.args}",
+        } # type: ignore
 
 async def step_genealogy(state: AgentState) -> AgentState:
     thought = state.get("thought", "")
@@ -174,12 +181,20 @@ async def step_genealogy(state: AgentState) -> AgentState:
     </ Context>
     < Goal >{thought}</ Goal >""")
 
-    substate = await SEARCH_IN_GENEALOGIC_SOURCES.ainvoke({"messages": state["messages"] + [prompt]}) # type: ignore
-    return {
-        "call_tool": substate.get("call_tool"),
-        "call_request": substate.get("call_request"),
-        "call_data": substate.get("call_data"),
-    } # type: ignore
+    try:
+        substate = await SEARCH_IN_GENEALOGIC_SOURCES.ainvoke({"messages": state["messages"] + [prompt]}) # type: ignore
+
+        return {
+            "call_tool": substate.get("call_tool"),
+            "call_request": substate.get("call_request"),
+            "call_data": substate.get("call_data"),
+        } # type: ignore
+    except Exception as e:
+        return {
+            "call_tool": "Genealogical Sources",
+            "call_request": f"This tool cannot be used right now because: {e.args}",
+            "call_data": f"This tool cannot be used right now because: {e.args}",
+        } # type: ignore
 
 async def step_observation(state: AgentState) -> AgentState:
     """Deliver the raw data as an AI message."""
@@ -223,6 +238,7 @@ Action: I have used {call_tool} as follows
 {call_request}
 Observation: {summary}
     
+======================================================================================
     """
 
     return { "scratch": scratch, "thought": None, "call_data": None } # type: ignore
