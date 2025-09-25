@@ -62,9 +62,9 @@ async def initialize_conversation(state: AgentState) -> AgentState:
         messages + [
             AIMessage(
             """
-            Considering the user request and the tools available to you, 
-            make a step-by-step plan of how you would address the problem
-            in order to deliver a high quality, conclusive answer.
+            Considering the tools available to you, make a step-by-step 
+            plan of how you would address the user's request in order to
+            deliver a high quality, conclusive answer.
             """
             )
         ]
@@ -74,27 +74,6 @@ async def initialize_conversation(state: AgentState) -> AgentState:
         "messages": messages,
         "scratch" : f"\n< Plan >\n{plan}\n</ Plan >\n",
     }
-
-
-_Decision = Literal["respond", "what_info"]
-class YesNoChoice(SingleChoice[YesNo]):
-    pass
-async def cond_decide(state: AgentState) -> _Decision:
-    if state.get("n", 0) >= 5: # circuit breaker
-        return "respond"
-    
-    scratch = state.get("scratch", "")
-    enough = cast(YesNoChoice, await (
-        LLM.with_structured_output(YesNoChoice)
-            .ainvoke(state["messages"] + [ decide.format(scratch=scratch) ])
-    ))
-
-    match enough.choice:
-        case YesNo.YES:
-            return "what_info"
-        case YesNo.NO:
-            return "respond"
-
 
 async def step_respond(state: AgentState) -> AgentState:
     scratch = state.get("scratch", "I just know the answer")
@@ -112,7 +91,7 @@ async def step_what_info(state: AgentState) -> AgentState:
     )
     return {"n": n+1, "thought": rsp} # type: ignore
 
-_Source = Literal["Analyses of records", "Genealogical sources", "Help Resources"]
+_Source = Literal["Analyses of records", "Genealogical sources", "Help Resources", "respond"]
 class DSChoice(SingleChoice[DataSource]):
     pass
 async def cond_what_source(state: AgentState) -> _Source:
@@ -126,6 +105,8 @@ async def cond_what_source(state: AgentState) -> _Source:
         return "Analyses of records"
     elif thought.startswith("I want to find a digitized scan of"):
         return "Genealogical sources"
+    elif thought.startswith("I want to stop and send my definitive response to the user"):
+        return "respond"
     
     rsp = cast(DSChoice, await (
         LLM.with_structured_output(DSChoice)
@@ -236,10 +217,10 @@ ASK_AGATHA = (
         .add_edge(START, "init")
         #
         .add_node("init", initialize_conversation)
-        .add_conditional_edges("init", cond_decide)
+        .add_edge("init", "what_info")
         # observation
         .add_node("observation", step_observation)
-        .add_conditional_edges("observation", cond_decide)
+        .add_edge("observation", "what_info")
         # no
         .add_node("respond", step_respond)
         .add_edge("respond", END)

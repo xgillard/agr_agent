@@ -5,6 +5,7 @@ from langchain_core.messages import (
 )
 from langchain_core.prompts import (
     AIMessagePromptTemplate,
+    HumanMessagePromptTemplate,
 )
 
 from .schemas import (
@@ -58,7 +59,8 @@ decide = AIMessagePromptTemplate.from_template("""
 </ Context >
 
 < Instructions >
-Continue searching more information ?
+You must act in accordance to the plan and execute one step at the time.
+Have you executed all steps in the plan ?
 </ Instructions >
 """)
 
@@ -68,7 +70,9 @@ what_information = AIMessagePromptTemplate.from_template(
 {scratch}
 </ Context >
 
-What what action should I take now ?
+< Instructions >
+Follow the possibly revised plan above.
+What is the next partial objective you should accomplish to complete the plan.
 
 Your response must be formatted as a user story that provides all the necessary context.
 It should adhere to one of the following schemas:
@@ -84,12 +88,14 @@ It should adhere to one of the following schemas:
     - I want to find a digitized scan of [WHAT] that happened in [LOCATION] between [YEAR] and [YEAR].
     - I want to find a digitized scan of [WHAT] that happened in [LOCATION] before [YEAR].
     - I want to find a digitized scan of [WHAT] that happened in [LOCATION] after [YEAR].
+    - I want to stop and send my definitive response to the user.
 
 Note: When specifying a date range in your user story, be as specific as possible (2-3 years).
     Any period that is longer than that will lead to incomplete results as the full list might be truncated.    
 
 You can only search for ONE piece of information at a time. So you can only express one single user 
 story in your response.
+</ Instructions >
 """)
 
 what_source = AIMessagePromptTemplate.from_template(
@@ -119,6 +125,7 @@ What tool will you use to find the information required to deal with the followi
 | I want to find a digitized scan of [WHAT] that happened in [LOCATION] between [YEAR] and [YEAR]. | Genealogical sources |
 | I want to find a digitized scan of [WHAT] that happened in [LOCATION] before [YEAR].             | Genealogical sources |
 | I want to find a digitized scan of [WHAT] that happened in [LOCATION] after [YEAR].              | Genealogical sources |
+| I want to stop and send my definitive response to the user.                                      | Stop to respond      |
 </ Examples >
 """)
 
@@ -150,7 +157,7 @@ as a placeholder for a date that is not known.
 </ Note >
 """)
 
-respond = AIMessagePromptTemplate.from_template("""
+respond = HumanMessagePromptTemplate.from_template("""
 < Context >
 {scratch}
 </ Context >

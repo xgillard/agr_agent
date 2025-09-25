@@ -20,6 +20,7 @@ class DataSource(StrEnum):
     ANALYSES_OF_RECORDS = "Analyses of records"
     DIGITIZED_REGISTERS = "Genealogical sources"
     HELP_RESOURCES = "Help Resources"
+    STOP_RESPOND = "Stop to respond"
 
     @classmethod
     def all_values(cls) -> list[str]:

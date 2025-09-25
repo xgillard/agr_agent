@@ -33,15 +33,15 @@ async def example_rubens()-> str:
     
     rsp = None
     async for msg in ASK_AGATHA.astream({"input": email}, stream_mode="updates"): # type: ignore
-        print("***" * 60)
         rsp = msg
-        if 'observation' in msg:
-            print(msg["observation"]["scratch"])
-        print("***" * 60)
+        #if 'observation' in msg:
+        print("**" * 60)
+        print(msg)
+        print("**" * 60)
 
-    print("$$$" * 60)
+    print("$$" * 60)
     print(rsp["respond"]["messages"].content) # type: ignore
-    print("$$$" * 60)
+    print("$$" * 60)
     return ""
 
 
