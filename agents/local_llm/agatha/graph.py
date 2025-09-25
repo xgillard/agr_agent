@@ -53,11 +53,26 @@ from .schemas import (
 AGATHA_HELP = agatha_help()
 
 async def initialize_conversation(state: AgentState) -> AgentState:
-    return { # type: ignore
-        "messages": [ 
-            system_prompt,
-            HumanMessage(state["input"])
+    messages = [ 
+        system_prompt,
+        HumanMessage(state["input"])
+    ]
+
+    plan = await (LLM | StrOutputParser()).ainvoke(
+        messages + [
+            AIMessage(
+            """
+            Considering the user request and the tools available to you, 
+            make a step-by-step plan of how you would address the problem
+            in order to deliver a high quality, conclusive answer.
+            """
+            )
         ]
+    )
+
+    return { # type: ignore
+        "messages": messages,
+        "scratch" : f"\n< Plan >\n{plan}\n</ Plan >\n",
     }
 
 

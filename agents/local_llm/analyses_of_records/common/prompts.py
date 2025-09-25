@@ -9,7 +9,7 @@ from ....tools.analyses_of_records import AnalysesActType, AnalysesProject
 location = HumanMessage("""
 < Instructions >
 Where did the act you are searching took place ? 
-Respond using the municipality name only.
+Respond using the municipality name only. Municipality name must use the French or Dutch spelling.
 Leave empty unless the information was explicitly given.
 </ Instructions >
 """)

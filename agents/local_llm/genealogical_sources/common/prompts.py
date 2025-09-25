@@ -7,7 +7,7 @@ from .schemas import TypeOfDocument
 municipality = HumanMessage("""
 < Instructions >
 Where did the act you are searching took place ? Respond using the municipality
-name only.
+name only. Municipality name must use the French or Dutch spelling.
 </ Instructions >
 """)
 

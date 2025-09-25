@@ -4,7 +4,7 @@ from langchain_core.messages import (
     SystemMessage,
 )
 from langchain_core.prompts import (
-    HumanMessagePromptTemplate,
+    AIMessagePromptTemplate,
 )
 
 from .schemas import (
@@ -27,7 +27,12 @@ tool_descr = (
    * Analyses of records: this will let you find the details of an official act based on the *content* 
        of that act. For instance, if you know the name of some people that were involved in that act 
        or if you know some specific keyword that might help retrieve the act you need. This tool is 
-       particularly useful when you need to answer the questions *WHO*, *WHERE*, *WHEN* or *WHAT*.
+       particularly useful when you need to answer the questions like: 
+
+           - Who was involved ?
+           - Where did it happen ? (find the location) 
+           - When dit it happen ? (date)
+           - What happened ?
 
    * Genealogical sources: this will let you find digitized scans of the original registers where 
        official acts have been consigned. This is often helpful in order to find the scan of a specific
@@ -47,7 +52,7 @@ You may also use the online Help Resources that will let you search in the user 
 
 system_prompt = SystemMessage(f'{persona}\n\n{tool_descr}')
 
-decide = HumanMessagePromptTemplate.from_template("""
+decide = AIMessagePromptTemplate.from_template("""
 < Context >
 {scratch}
 </ Context >
@@ -57,7 +62,7 @@ Continue searching more information ?
 </ Instructions >
 """)
 
-what_information = HumanMessagePromptTemplate.from_template(
+what_information = AIMessagePromptTemplate.from_template(
 """
 < Context >
 {scratch}
@@ -80,14 +85,14 @@ It should adhere to one of the following schemas:
     - I want to find a digitized scan of [WHAT] that happened in [LOCATION] before [YEAR].
     - I want to find a digitized scan of [WHAT] that happened in [LOCATION] after [YEAR].
 
-Note: Be as specific as possible when specifying a date range. A period that is too long 
-    will deliver less accurate and incomplete results as the full list might be truncated.    
+Note: When specifying a date range in your user story, be as specific as possible (2-3 years).
+    Any period that is longer than that will lead to incomplete results as the full list might be truncated.    
 
 You can only search for ONE piece of information at a time. So you can only express one single user 
 story in your response.
 """)
 
-what_source = HumanMessagePromptTemplate.from_template(
+what_source = AIMessagePromptTemplate.from_template(
 f""""
 < Context >
 {tool_descr}
@@ -117,7 +122,7 @@ What tool will you use to find the information required to deal with the followi
 </ Examples >
 """)
 
-summarize = HumanMessagePromptTemplate.from_template("""
+summarize = AIMessagePromptTemplate.from_template("""
 < Context >
 Here is my reasoning so far:
 {scratch}
@@ -136,7 +141,7 @@ Observation: Here is the raw data from the original sources
 < Instructions >
 Summarize the relevant information from the latest search so that I can memorize only those facts which are
 relevant to satisfying the original user's request. Feel free to make any observation you deem
-useful about the data.
+useful about the data. Feel free to revise your plan as needed according to the data you have.
 </ Instructions >
                                                      
 < Note >
@@ -145,7 +150,7 @@ as a placeholder for a date that is not known.
 </ Note >
 """)
 
-respond = HumanMessagePromptTemplate.from_template("""
+respond = AIMessagePromptTemplate.from_template("""
 < Context >
 {scratch}
 </ Context >
