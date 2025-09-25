@@ -59,20 +59,35 @@ async def initialize_conversation(state: AgentState) -> AgentState:
     ]
 
     plan = await (LLM | StrOutputParser()).ainvoke(
-        messages + [
-            AIMessage(
-            """
-            Considering the tools available to you, make a step-by-step 
-            plan of how you would address the user's request in order to
-            deliver a high quality, conclusive answer.
-            """
-            )
+        [ 
+            system_prompt, 
+            HumanMessage(
+               f"""
+# USER REQUEST
+{state["input"]}
+
+# INSTUCTIONS
+Considering the tools available to you, make a step-by-step 
+plan of how you would address the user's request in order to
+deliver a high quality, conclusive answer."""
+            ),
         ]
     )
 
     return { # type: ignore
         "messages": messages,
-        "scratch" : f"\n< Plan >\n{plan}\n</ Plan >\n",
+        "scratch" : f"""
+        < Plan >
+        {plan}
+        </ Plan >
+
+        Now that I have planned the action to take, I will execute the plan.
+        To that end, I will proceed as follow: before taking any action, I
+        will first think of the action that must be executed (THOUGHT). Then,
+        I will actually use to tool I need to execute that step (ACTION). And
+        finally, I will state my observations regarding the data I found (OBSERVATIONS).
+        
+        """,
     }
 
 async def step_respond(state: AgentState) -> AgentState:

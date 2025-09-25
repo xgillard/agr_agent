@@ -25,7 +25,10 @@ async def example_rubens()-> str:
         RCPT TO: contact@arch.be
         SUBJECT: Je ne m'en sors pas 
     
-        Pourriez vous me donner le lien vers un scan de l'acte de naissance de Chrispina Ameye svp.
+        Pourriez vous me donner le lien vers un scan de l'acte de mariage lors duquel
+        Pierre Paul Rubens était témoin. Le Pierre Paul Rubens que je cherche était 
+        aussi peintre, mais il ne s'agit pas du célèbre primitif flamand. Il s'agit
+        d'un homonyme ayant vécu à la fin du XIXs.
 
         Merci d'avance, 
         Malik

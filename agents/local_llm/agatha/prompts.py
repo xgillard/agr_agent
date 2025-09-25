@@ -4,7 +4,6 @@ from langchain_core.messages import (
     SystemMessage,
 )
 from langchain_core.prompts import (
-    AIMessagePromptTemplate,
     HumanMessagePromptTemplate,
 )
 
@@ -27,13 +26,21 @@ tool_descr = (
 
    * Analyses of records: this will let you find the details of an official act based on the *content* 
        of that act. For instance, if you know the name of some people that were involved in that act 
-       or if you know some specific keyword that might help retrieve the act you need. This tool is 
-       particularly useful when you need to answer the questions like: 
+       or if you know some specific keyword that might help retrieve the act you need. 
+       
+       Each entry in the analyses of records provides the following set of information: 
+            
+            - act_id (str): globally unique identifier of this administrative act
+            - act_number (Optional[str]): act number that was used by the archive producer
+            - project (AnalysesProject): the project that led to the analysis of this record
+            - actplace (Optional[str]): the place where this act officially happened
+            - parish (Optional[str]): the parish where this act officially happened (if relevant)
+            - editorial_form (str): the type of document
+            - description (str): a brief description of this document
+            - act_date (str): the date when this administrative act actually took place.
+            - remarks (str): some remarks about this act
+            - persons (list[AnalysesPerson]): people mentioned in the document.
 
-           - Who was involved ?
-           - Where did it happen ? (find the location) 
-           - When dit it happen ? (date)
-           - What happened ?
 
    * Genealogical sources: this will let you find digitized scans of the original registers where 
        official acts have been consigned. This is often helpful in order to find the scan of a specific
@@ -43,17 +50,31 @@ tool_descr = (
            - _WHAT KIND OF DOCUMENT_ you wish to retrieve
            - _WHERE_ the act happened
            - _WHEN_ it happened (at least have an idea of the date range) 
-                   
+       
+       Each entry in the genealogical sources provides the following set of information: 
+            
+            - description (str): Description of the document.
+            - start_date (str): Day of the first act recorded in this document
+            - end_date (str): Day of the last act recorded in 
+            - last_update (str): Date when this archive was last modified
+            - notes (str): Remarks and notes about this document
+            - available (bool): Is this document available for online consultation
+            - url (Optional[str]): URL where this document can be consulted (if available)
+
        Please note that using the identifier of an act is of absolutely *NO USE* when searching for
        a scan. The afore mentioned details must be repeated for that purpose. 
 
 You may also use the online Help Resources that will let you search in the user manuals and FAQ sections of
        the AGATHA platform. This is mostly useful to answer *HOW DO I ...* questions.
+
+**IMPORTANT**
+You are not allowed to ask any extra information to the user. You must use the tools at your disposal
+to figure it out.
 """)
 
 system_prompt = SystemMessage(f'{persona}\n\n{tool_descr}')
 
-decide = AIMessagePromptTemplate.from_template("""
+decide = HumanMessagePromptTemplate.from_template("""
 < Context >
 {scratch}
 </ Context >
@@ -64,15 +85,14 @@ Have you executed all steps in the plan ?
 </ Instructions >
 """)
 
-what_information = AIMessagePromptTemplate.from_template(
+what_information = HumanMessagePromptTemplate.from_template(
 """
 < Context >
 {scratch}
 </ Context >
 
 < Instructions >
-Follow the possibly revised plan above.
-What is the next partial objective you should accomplish to complete the plan.
+According to your plan, what is the next partial objective you should achieve ? (THOUGHT)
 
 Your response must be formatted as a user story that provides all the necessary context.
 It should adhere to one of the following schemas:
@@ -84,21 +104,24 @@ It should adhere to one of the following schemas:
     - I want to find the details of [WHAT] where [RELEVANT FACTS] between [YEAR] and [YEAR].
     - I want to find the details of [WHAT] where [RELEVANT FACTS] before [YEAR].
     - I want to find the details of [WHAT] where [RELEVANT FACTS] after [YEAR].
-    - I want to find a digitized scan of [WHAT] that happened in [LOCATION] in [YEAR].
-    - I want to find a digitized scan of [WHAT] that happened in [LOCATION] between [YEAR] and [YEAR].
-    - I want to find a digitized scan of [WHAT] that happened in [LOCATION] before [YEAR].
-    - I want to find a digitized scan of [WHAT] that happened in [LOCATION] after [YEAR].
+    - I want to find a digitized scan of [WHAT] that happened in [MUNICIPALITY] in [YEAR].
+    - I want to find a digitized scan of [WHAT] that happened in [MUNICIPALITY] between [YEAR] and [YEAR].
+    - I want to find a digitized scan of [WHAT] that happened in [MUNICIPALITY] before [YEAR].
+    - I want to find a digitized scan of [WHAT] that happened in [MUNICIPALITY] after [YEAR].
     - I want to stop and send my definitive response to the user.
 
-Note: When specifying a date range in your user story, be as specific as possible (2-3 years).
-    Any period that is longer than that will lead to incomplete results as the full list might be truncated.    
+**Notes**
+    * All placeholders from the templates must be instantiated with known facts. Hence, if a template you want 
+        to uses requires data which you have not explicitly seen before, it means that you CANNOT USE THAT TEMPLATE. 
+    * When specifying a date range in your user story, be as specific as possible (2-3 years).
+        Any period that is longer than that will lead to incomplete results as the full list might be truncated.    
 
 You can only search for ONE piece of information at a time. So you can only express one single user 
 story in your response.
 </ Instructions >
 """)
 
-what_source = AIMessagePromptTemplate.from_template(
+what_source = HumanMessagePromptTemplate.from_template(
 f""""
 < Context >
 {tool_descr}
@@ -112,24 +135,24 @@ What tool will you use to find the information required to deal with the followi
 </ Instructions >
 
 < Examples >
-| User Story                                                                                       | Tool                 |
-|--------------------------------------------------------------------------------------------------|----------------------|
-| I want to find the help section about [WHAT] in the user manual.                                 | Help Resources       |
-| I want to find the FAQ section related to [TOPIC].                                               | Help Resources       |
-| I want to find the details of [WHAT] where [RELEVANT FACTS].                                     | Analyses of records  |
-| I want to find the details of [WHAT] where [RELEVANT FACTS] in [YEAR].                           | Analyses of records  |
-| I want to find the details of [WHAT] where [RELEVANT FACTS] between [YEAR] and [YEAR]            | Analyses of records  |
-| I want to find the details of [WHAT] where [RELEVANT FACTS] before [YEAR].                       | Analyses of records  |
-| I want to find the details of [WHAT] where [RELEVANT FACTS] after [YEAR].                        | Analyses of records  |
-| I want to find a digitized scan of [WHAT] that happened in [LOCATION] in [YEAR].                 | Genealogical sources |
-| I want to find a digitized scan of [WHAT] that happened in [LOCATION] between [YEAR] and [YEAR]. | Genealogical sources |
-| I want to find a digitized scan of [WHAT] that happened in [LOCATION] before [YEAR].             | Genealogical sources |
-| I want to find a digitized scan of [WHAT] that happened in [LOCATION] after [YEAR].              | Genealogical sources |
-| I want to stop and send my definitive response to the user.                                      | Stop to respond      |
+| User Story                                                                                           | Tool                 |
+|------------------------------------------------------------------------------------------------------|----------------------|
+| I want to find the help section about [WHAT] in the user manual.                                     | Help Resources       |
+| I want to find the FAQ section related to [TOPIC].                                                   | Help Resources       |
+| I want to find the details of [WHAT] where [RELEVANT FACTS].                                         | Analyses of records  |
+| I want to find the details of [WHAT] where [RELEVANT FACTS] in [YEAR].                               | Analyses of records  |
+| I want to find the details of [WHAT] where [RELEVANT FACTS] between [YEAR] and [YEAR]                | Analyses of records  |
+| I want to find the details of [WHAT] where [RELEVANT FACTS] before [YEAR].                           | Analyses of records  |
+| I want to find the details of [WHAT] where [RELEVANT FACTS] after [YEAR].                            | Analyses of records  |
+| I want to find a digitized scan of [WHAT] that happened in [MUNICIPALITY] in [YEAR].                 | Genealogical sources |
+| I want to find a digitized scan of [WHAT] that happened in [MUNICIPALITY] between [YEAR] and [YEAR]. | Genealogical sources |
+| I want to find a digitized scan of [WHAT] that happened in [MUNICIPALITY] before [YEAR].             | Genealogical sources |
+| I want to find a digitized scan of [WHAT] that happened in [MUNICIPALITY] after [YEAR].              | Genealogical sources |
+| I want to stop and send my definitive response to the user.                                          | Stop to respond      |
 </ Examples >
 """)
 
-summarize = AIMessagePromptTemplate.from_template("""
+summarize = HumanMessagePromptTemplate.from_template("""
 < Context >
 Here is my reasoning so far:
 {scratch}
