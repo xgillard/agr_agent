@@ -7,6 +7,10 @@ from typing import (
 
 from langgraph.graph import MessagesState
 
+from ..simplified.schemas import (
+    AvailableData,
+)
+
 
 class DataSource(StrEnum):
     """Data source that can be consulted to find more information.
@@ -65,6 +69,7 @@ class AgentState(MessagesState):
     """
 
     input: str
+    available_data: AvailableData
     scratch: str
 
     thought: str

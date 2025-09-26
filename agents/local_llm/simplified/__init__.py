@@ -1,0 +1,1 @@
+"""simplified agatha workflow."""

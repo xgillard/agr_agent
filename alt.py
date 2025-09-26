@@ -6,7 +6,7 @@ load_dotenv()
 
 import asyncio  # noqa: E402
 
-from agents.local_llm.agatha.graph import ASK_AGATHA  # noqa: E402
+from agents.local_llm.simplified.graph import ASK_AGATHA  # noqa: E402
 
 
 async def example_rubens()-> str:
@@ -37,13 +37,13 @@ async def example_rubens()-> str:
     rsp = None
     async for msg in ASK_AGATHA.astream({"input": email}, stream_mode="updates"): # type: ignore
         rsp = msg
-        if 'observation' in msg:
+        if 'Observation' in msg:
             print("**" * 60)
-            print(msg["observation"]["scratch"])
+            print(msg["Observation"]["scratch"])
             print("**" * 60)
 
     print("$$" * 60)
-    print(rsp["respond"]["messages"].content) # type: ignore
+    print(rsp["Respond"]["messages"].content) # type: ignore
     print("$$" * 60)
     return ""
 

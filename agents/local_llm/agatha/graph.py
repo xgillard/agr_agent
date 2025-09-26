@@ -50,6 +50,10 @@ from .schemas import (
     YesNo,
 )
 
+from ..simplified.schemas import (
+    AvailableData
+)
+
 AGATHA_HELP = agatha_help()
 
 async def initialize_conversation(state: AgentState) -> AgentState:
@@ -58,36 +62,60 @@ async def initialize_conversation(state: AgentState) -> AgentState:
         HumanMessage(state["input"])
     ]
 
-    plan = await (LLM | StrOutputParser()).ainvoke(
-        [ 
-            system_prompt, 
-            HumanMessage(
-               f"""
-# USER REQUEST
-{state["input"]}
+    available_data = await (
+        LLM.with_structured_output(AvailableData)
+        .ainvoke(
+            [ 
+                system_prompt, 
+                HumanMessage(
+                f"""
+                # USER REQUEST
+                {state["input"]}
 
-# INSTUCTIONS
-Considering the tools available to you, make a step-by-step 
-plan of how you would address the user's request in order to
-deliver a high quality, conclusive answer."""
-            ),
-        ]
+                # INSTUCTIONS
+                Formalize the data that has been given to you. 
+                
+                Whenever you mention a municipality name, it MUST USE either 
+                the French or the Dutch spelling of that name.
+
+                When a data is unknown, just leave it out. The goal is to formalize only what you know.
+
+                
+                ## Examples
+
+                >>> I would like to find the birth certificate of Wim Van Piperzeel
+                >>> who was born in Sterrebeek in the early 1800.
+                ```
+                {{
+                    "municipality_name": "Sterrebeek",
+                    "type_of_record": "Birth certificates",
+                    "people": [
+                        {{ "first_name": "Wim", "family_name": "Van Piperzeel", "role": "Child"}}
+                    ],
+                    "from_year": 1800,
+                    "until_year": 1810,
+                }}
+                ```
+
+                >>> I would like to find the marriage notice of my great grand father Olivier Outsiplout.
+                ```
+                {{
+                    "type_of_record": "Notices of marriage",
+                    "people": [
+                        {{ "first_name": "Olivier", "family_name": "Olivier Outsiplout", "role": "Groom"}}
+                    ],
+                }}
+                ```
+                """
+                ),
+            ]
+        )
     )
 
     return { # type: ignore
         "messages": messages,
-        "scratch" : f"""
-        < Plan >
-        {plan}
-        </ Plan >
-
-        Now that I have planned the action to take, I will execute the plan.
-        To that end, I will proceed as follow: before taking any action, I
-        will first think of the action that must be executed (THOUGHT). Then,
-        I will actually use to tool I need to execute that step (ACTION). And
-        finally, I will state my observations regarding the data I found (OBSERVATIONS).
-        
-        """,
+        "scratch" : "",
+        "available_data": available_data,
     }
 
 async def step_respond(state: AgentState) -> AgentState:
@@ -101,46 +129,50 @@ async def step_respond(state: AgentState) -> AgentState:
 async def step_what_info(state: AgentState) -> AgentState:
     n = state.get("n", 0) 
     scratch = state.get("scratch", "")
+    available_data = state.get("available_data", AvailableData())
+    tool_descr, tool_names = available_data.available_tools()
     rsp = await (LLM | StrOutputParser()).ainvoke(
-        state["messages"] + [ what_information.format(scratch=scratch) ]
+        state["messages"] + [ what_information.format(
+            scratch=scratch,
+            tools_descr=tool_descr,
+            tool_names=tool_names,
+        ) ]
     )
     return {"n": n+1, "thought": rsp} # type: ignore
 
-_Source = Literal["Analyses of records", "Genealogical sources", "Help Resources", "respond"]
-class DSChoice(SingleChoice[DataSource]):
-    pass
+_Source = Literal[
+    "Analyses of Records / Free Search", 
+    "Analyses of Records / Search Person", 
+    "Genealogical sources / Church Registers",
+    "Genealogical sources / Civil State Registers",
+    "Online Help Resources", 
+    "Respond",
+]
+
 async def cond_what_source(state: AgentState) -> _Source:
     thought = state.get("thought", "== I dont need anything ==")
-
-    if thought.startswith("I want to find the help section"):
-        return "Help Resources"
-    elif thought.startswith("I want to find the FAQ section"):
-        return "Help Resources"
-    elif thought.startswith("I want to find the details of "):
-        return "Analyses of records"
-    elif thought.startswith("I want to find a digitized scan of"):
-        return "Genealogical sources"
-    elif thought.startswith("I want to stop and send my definitive response to the user"):
-        return "respond"
-    
-    rsp = cast(DSChoice, await (
-        LLM.with_structured_output(DSChoice)
-            .ainvoke(state["messages"] + [ what_source.format(thought=thought) ])
-    ))
-    match rsp.choice:
-        case DataSource.ANALYSES_OF_RECORDS: 
-            return "Analyses of records"
-        case DataSource.DIGITIZED_REGISTERS:
-            return "Genealogical sources"
-        case DataSource.HELP_RESOURCES:
-            return "Help Resources"
+    scratch = state.get("scratch", "")
+    available_data = state.get("available_data", AvailableData())
+    tool_descr, tool_names = available_data.available_tools()
+    tool_descr += "* 'Respond' if you think you are ready to respond to the user"
+    tool_names.append("Respond")
+    rsp = await (
+        (LLM | StrOutputParser())
+            .ainvoke(state["messages"] + [ what_source.format(
+                scratch=scratch,
+                tool_descr=tool_descr,
+                tool_names=tool_names,
+                thought=thought
+            ) ])
+    )
+    return cast(_Source, rsp.strip())
 
 async def step_help(state: AgentState) -> AgentState:
     thought = state.get("thought", "__ i do not have any question __")
     response = await AGATHA_HELP.ainvoke(input=thought)
 
     return {
-        "call_tool": "Help Resources",
+        "call_tool": "Online Help Resources",
         "call_request": thought,
         "call_data": response,
     } # type: ignore
@@ -253,20 +285,26 @@ ASK_AGATHA = (
         .add_node("observation", step_observation)
         .add_edge("observation", "what_info")
         # no
-        .add_node("respond", step_respond)
-        .add_edge("respond", END)
+        .add_node("Respond", step_respond)
+        .add_edge("Respond", END)
         # yes
         .add_node("what_info", step_what_info)
         .add_conditional_edges("what_info", cond_what_source)
         # analyses
-        .add_node("Analyses of records", step_analyses_of_records)
-        .add_edge("Analyses of records", "observation")
-        # digitized
-        .add_node("Genealogical sources", step_genealogy)
-        .add_edge("Genealogical sources", "observation")
+        .add_node("Analyses of Records / Free Search", step_analyses_of_records)
+        .add_edge("Analyses of Records / Free Search", "observation")
+        # search person
+        .add_node("Analyses of Records / Search Person", step_analyses_of_records)
+        .add_edge("Analyses of Records / Search Person", "observation")
+        # church
+        .add_node("Genealogical sources / Church Registers", step_genealogy)
+        .add_edge("Genealogical sources / Church Registers", "observation")
+        # civil
+        .add_node("Genealogical sources / Civil State Registers", step_genealogy)
+        .add_edge("Genealogical sources / Civil State Registers", "observation")
         # help
-        .add_node("Help Resources", step_help)
-        .add_edge("Help Resources", "observation")
+        .add_node("Online Help Resources", step_help)
+        .add_edge("Online Help Resources", "observation")
         #
         .compile()
 )

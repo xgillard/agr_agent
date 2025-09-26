@@ -76,7 +76,7 @@ class ParishActType(StrEnum):
         OTHER (str): other kind of documents
     """
     
-    BAPTISM = "birth-or-baptism-certificate"
+    BAPTISM = "baptism-certificate"
     WEDDING = "wedding-certificate"
     DEATH   = "death-certificate"
     OTHER   = "other"

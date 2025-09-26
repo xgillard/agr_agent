@@ -71,7 +71,7 @@ You are not allowed to ask any extra information to the user. You must use the t
 to figure it out.
 """)
 
-system_prompt = SystemMessage(f'{persona}\n\n{tool_descr}')
+system_prompt = SystemMessage(persona)
 
 decide = HumanMessagePromptTemplate.from_template("""
 < Context >
@@ -90,8 +90,11 @@ what_information = HumanMessagePromptTemplate.from_template(
 {scratch}
 </ Context >
 
+< Tools >
+{tools_descr}
+</ Tools >
+
 < Instructions >
-According to your (possibly revised plan) to address the user's request. 
 What what action should you take now ?
 
 Your response must be formatted as a user story that provides all the necessary context.
@@ -122,34 +125,21 @@ story in your response.
 """)
 
 what_source = HumanMessagePromptTemplate.from_template(
-f""""
+""""
 < Context >
-{tool_descr}
+{scratch}
 </ Context >
+
+< Tools >
+{tool_descr}
+</ Tools >
 
 < Instructions >
 What tool will you use to find the information required to deal with the following user story ?
-{{thought}}
+{thought}
 
-(Select one option among: {DataSource.all_values()})
+(Select one option among: {tool_names})
 </ Instructions >
-
-< Examples >
-| User Story                                                                                           | Tool                 |
-|------------------------------------------------------------------------------------------------------|----------------------|
-| I want to find the help section about [WHAT] in the user manual.                                     | Help Resources       |
-| I want to find the FAQ section related to [TOPIC].                                                   | Help Resources       |
-| I want to find the details of [WHAT] where [RELEVANT FACTS].                                         | Analyses of records  |
-| I want to find the details of [WHAT] where [RELEVANT FACTS] in [YEAR].                               | Analyses of records  |
-| I want to find the details of [WHAT] where [RELEVANT FACTS] between [YEAR] and [YEAR]                | Analyses of records  |
-| I want to find the details of [WHAT] where [RELEVANT FACTS] before [YEAR].                           | Analyses of records  |
-| I want to find the details of [WHAT] where [RELEVANT FACTS] after [YEAR].                            | Analyses of records  |
-| I want to find a digitized scan of [WHAT] that happened in [MUNICIPALITY] in [YEAR].                 | Genealogical sources |
-| I want to find a digitized scan of [WHAT] that happened in [MUNICIPALITY] between [YEAR] and [YEAR]. | Genealogical sources |
-| I want to find a digitized scan of [WHAT] that happened in [MUNICIPALITY] before [YEAR].             | Genealogical sources |
-| I want to find a digitized scan of [WHAT] that happened in [MUNICIPALITY] after [YEAR].              | Genealogical sources |
-| I want to stop and send my definitive response to the user.                                          | Stop to respond      |
-</ Examples >
 """)
 
 summarize = HumanMessagePromptTemplate.from_template("""
