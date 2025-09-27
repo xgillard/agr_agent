@@ -15,10 +15,11 @@ from langchain_core.output_parsers import (
 from pydantic_core import (
     to_json,
 )
-
+from pydantic import (
+    BaseModel,
+)
 from ...tools.agatha_common import (
     Municipality,
-    Parish,
 )
 from ...tools.agatha_help import (
     agatha_help,
@@ -116,6 +117,9 @@ _Tool = Literal[
     "Respond",
 ]
 
+class ToolChoice(BaseModel):
+    tool_name: _Tool
+
 async def cond_what_tool(state: AgentState) -> _Tool:
     # circuit breaker
     n = state.get("n", 0) 
@@ -131,20 +135,16 @@ async def cond_what_tool(state: AgentState) -> _Tool:
     tool_descr += "* 'Respond' if you think you are ready to respond to the user"
     tool_names.append("Respond")
 
-    rsp = await (
-        (LLM | StrOutputParser())
+    rsp = cast(ToolChoice, await (
+        LLM .with_structured_output(ToolChoice)
             .ainvoke(state["messages"] + [ what_tool.format(
                 scratch=scratch,
                 tool_descr=tool_descr,
                 tool_names=tool_names,
                 thought=thought
             ) ])
-    )
-    rsp = rsp.replace("\"", "")
-    rsp = rsp.replace("'", "")
-    rsp = rsp.replace("‘", "")
-    rsp = rsp.replace("’", "")
-    return cast(_Tool, rsp.replace("\"", "").strip())
+    ))
+    return cast(_Tool, rsp.tool_name)
 
 async def tool_genea_church(state: AgentState) -> AgentState:
     data = cast(AvailableData, state.get("available_data"))
