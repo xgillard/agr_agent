@@ -1,7 +1,6 @@
 """prompts to implements the simplified agatha workflow."""
 
 from langchain_core.messages import (
-    HumanMessage,
     SystemMessage,
 )
 from langchain_core.prompts import (
@@ -111,7 +110,7 @@ What tool should you use now ?
 </ Instructions >
 """)
 
-search_terms = HumanMessage("""
+search_terms = HumanMessagePromptTemplate.from_template("""
 {context}
 
 < Instructions >

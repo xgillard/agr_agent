@@ -180,8 +180,9 @@ async def tool_genea_church(state: AgentState) -> AgentState:
             | AnalysesActType.MORTUARY_INVENTORY):
             act_types = [ParishActType.DEATH]
 
-    municipality = Municipality.by_name(data.municipality_name, AJAX_URL, return_single_best_match=True)
-    parishes = municipality.parishes(AJAX_URL)
+    assert(data.municipality_name is not None)
+    municipality = Municipality.by_name(name=data.municipality_name, ajax=AJAX_URL, return_single_best_match=True)
+    parishes = municipality.parishes(AJAX_URL) if municipality is not None else []
 
     if data.parish_name is not None:
         parishes = [ p for p in parishes if data.parish_name in p.place_name.lower() ]
@@ -197,14 +198,19 @@ async def tool_genea_church(state: AgentState) -> AgentState:
         #period_selector=
     )
 
-    unk_mun = "Unknown municipality. Did you use french or dutch spelling ?"
-    call_data = genealogy_search_church_registers_prior_to_1796(**call_request) if municipality is not None else unk_mun
-
-    return {
-        "call_tool": "Genealogical sources / Church Registers",
-        "call_request": call_request,
-        "call_data": call_data,
-    }
+    if municipality is None:
+        return { # type: ignore
+            "call_tool": "Genealogical sources / Church Registers",
+            "call_request": call_request,
+            "call_data": "Unknown municipality. Did you use french or dutch spelling ?",
+        }
+    else:
+        call_data = genealogy_search_church_registers_prior_to_1796(**call_request) # type: ignore
+        return { # type: ignore
+            "call_tool": "Genealogical sources / Church Registers",
+            "call_request": call_request,
+            "call_data": call_data,
+        }
 
 async def tool_genea_civil(state: AgentState) -> AgentState:
     data = cast(AvailableData, state.get("available_data"))
@@ -214,7 +220,7 @@ async def tool_genea_civil(state: AgentState) -> AgentState:
     match data.type_of_record:
         case (AnalysesActType.BIRTH_CERTIFICATES 
             | AnalysesActType.BIRTH_ANNOUNCEMENT):
-            act_types = [CivilActType.BAPTISM]
+            act_types = [CivilActType.BIRTH]
 
         case (AnalysesActType.NOTICES_OF_MARRIAGE
             | AnalysesActType.MARRIAGE_ANNOUNCEMENTS
@@ -230,7 +236,8 @@ async def tool_genea_civil(state: AgentState) -> AgentState:
             | AnalysesActType.JUDICIAL_DEATH_DECLARATION):
             act_types = [CivilActType.DEATH]
 
-    municipality = Municipality.by_name(data.municipality_name, AJAX_URL, return_single_best_match=True)
+    assert(data.municipality_name is not None)
+    municipality = Municipality.by_name(name=data.municipality_name, ajax=AJAX_URL, return_single_best_match=True)
     call_request = dict(
         municipality=municipality,
         act_types=act_types,
@@ -241,14 +248,19 @@ async def tool_genea_civil(state: AgentState) -> AgentState:
         #period_selector=
     )
 
-    unk_mun = "Unknown municipality. Did you use french or dutch spelling ?"
-    call_data = genealogy_search_civil_state_registers(**call_request) if municipality is not None else unk_mun
-    
-    return {
-        "call_tool": "Genealogical sources / Civil State Registers",
-        "call_request": call_request,
-        "call_data": call_data,
-    }
+    if municipality is None:
+        return { # type: ignore
+            "call_tool": "Genealogical sources / Civil State Registers",
+            "call_request": call_request,
+            "call_data": "Unknown municipality. Did you use french or dutch spelling ?",
+        }
+    else:
+        call_data = genealogy_search_civil_state_registers(**call_request) # type: ignore
+        return { # type: ignore
+            "call_tool": "Genealogical sources / Civil State Registers",
+            "call_request": call_request,
+            "call_data": call_data,
+        }
 
 async def tool_analyses_free_search(state: AgentState) -> AgentState:
     data = cast(AvailableData, state.get("available_data"))
@@ -270,7 +282,7 @@ async def tool_analyses_free_search(state: AgentState) -> AgentState:
 
     call_data = free_search_in_analyses_of_records(call_request)
     
-    return {
+    return { # type: ignore
         "call_tool": "Analyses of Records / Free Search",
         "call_request": call_request,
         "call_data": call_data,
@@ -287,8 +299,7 @@ def __as_criterion(p: PersonData) -> PersonCriterion:
 async def tool_analyses_search_person(state: AgentState) -> AgentState:
     data = cast(AvailableData, state.get("available_data"))
 
-
-    persons = [ __as_criterion(p) for p in data.people if p]
+    persons = [ __as_criterion(p) for p in data.people if p] if data.people else []
     call_request = AnalysesSearchPersonRequest(
         persons=persons,
         location=data.municipality_name,
@@ -300,7 +311,7 @@ async def tool_analyses_search_person(state: AgentState) -> AgentState:
 
     call_data = search_person_in_analyses_of_records(call_request)
     
-    return {
+    return { # type: ignore
         "call_tool": "Analyses of Records / Search Person",
         "call_request": call_request,
         "call_data": call_data,
