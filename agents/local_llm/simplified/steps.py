@@ -47,6 +47,7 @@ from ..common.llm import (
 )
 from .prompts import (
     formalize,
+    reasoning_step,
     respond,
     search_terms,
     summarize,
@@ -251,10 +252,11 @@ async def tool_genea_civil(state: AgentState) -> AgentState:
 
 async def tool_analyses_free_search(state: AgentState) -> AgentState:
     data = cast(AvailableData, state.get("available_data"))
+    context = _build_context(state)
 
     terms = await (
         (LLM | StrOutputParser())
-            .ainvoke(state["messages"] + [search_terms])
+            .ainvoke([search_terms.format(context=context)])
     )
 
     call_request = AnalysesFreeSearchRequest(
@@ -315,17 +317,18 @@ async def tool_online_help(state: AgentState) -> AgentState:
     } # type: ignore
 
 async def step_respond(state: AgentState) -> AgentState:
-    scratch = state.get("scratch", "I just know the answer")
+    context = _build_context(state)
     rsp = await (LLM | StrOutputParser()).ainvoke(
-        state["messages"] + [ respond.format(scratch=scratch) ]
+        [ respond.format(context=context) ]
     )
     return {"messages": AIMessage(rsp), "output": rsp} # type: ignore
 
 async def step_observation(state: AgentState) -> AgentState:
     """Deliver the raw data as an AI message."""
 
-    scratch = state.get("scratch", "")
-    thought = state.get("thought", "I am done")
+    context   = _build_context(state)
+    scratch   = state.get("scratch", "")
+    objective = state.get("thought", "")
 
     call_tool = state.get("call_tool", "__ no tool was used __")
     call_request = to_json(
@@ -345,10 +348,9 @@ async def step_observation(state: AgentState) -> AgentState:
 
     summary  = await (
         (LLM | StrOutputParser())
-        .ainvoke( state["messages"] + [ 
+        .ainvoke( [ 
             summarize.format(
-                scratch = scratch,
-                thought = thought,
+                context = context,
                 call_tool = call_tool,
                 call_request = call_request,
                 call_data = call_data,
@@ -356,14 +358,13 @@ async def step_observation(state: AgentState) -> AgentState:
         ] )
     )
 
-    scratch = f"""{scratch}
-
-Objective: {thought}
-Action: I have used {call_tool} as follows
-{call_request}
-Result: {summary}
-
-    """
+    scratch = reasoning_step.format(
+        scratch=scratch,
+        thought=objective,
+        call_tool=call_tool,
+        call_request=call_request,
+        summary=summary,
+    )
 
     return { "scratch": scratch, "thought": None, "call_data": None } # type: ignore
 

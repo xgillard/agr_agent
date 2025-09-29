@@ -112,6 +112,8 @@ What tool should you use now ?
 """)
 
 search_terms = HumanMessage("""
+{context}
+
 < Instructions >
 What search terms to you wish to use ?
 These should be thought of as a means to perform a fulltext search. Wildcards ? and * 
@@ -123,27 +125,21 @@ Respond with your search terms only.
 
 
 respond = HumanMessagePromptTemplate.from_template("""
-< Context >
-{scratch}
-</ Context >
+{context}
+
 < Instructions >
-Respond to the user's original request.
+Respond to the user's original request. Respond in the user's language.
 </ Instructions>
 """)
 
 summarize = HumanMessagePromptTemplate.from_template("""
-< Context >
-Here is my reasoning so far:
-{scratch}
-</ Context >
+{context}
                                                      
 < LatestSearch >
-Thought: {thought}
-                                                     
 Action: I have used {call_tool} with the following parameters:
 {call_request}
                                                      
-Observation: Here is the raw data from the original sources
+Result: Here is the raw data from the original sources
 {call_data}
 </ LatestSearch >
 
@@ -158,3 +154,12 @@ Whenever a date mentioned in the results is in a far away future (e.g. 2999-12-3
 as a placeholder for a date that is not known.
 </ Note >
 """)
+
+reasoning_step = """
+{scratch}
+
+Objective: {thought}
+Action: I have used {call_tool} as follows
+{call_request}
+Result: {summary}
+"""
