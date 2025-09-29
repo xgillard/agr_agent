@@ -51,6 +51,87 @@ ACT_TYPE_OPENS_GENEA_CIVIL = [
     AnalysesActType.JUDICIAL_DEATH_DECLARATION,
 ]
 
+ONLINE_HELP_ID    = "Online Help Resources"
+ONLINE_HELP_DESCR = """
+    * 'Online Help Resources' that will let you search in 
+        the user manuals and FAQ sections of the AGATHA platform. 
+        This is mostly useful to answer *HOW DO I ...* questions.
+"""
+
+ANALYSES_FREE_SEARCH_ID = "Analyses of Records / Free Search"
+ANALYSES_FREE_SEARCH_DESCR = """
+    * 'Analyses of Records / Free Search': this will let you 
+        perform a fulltext search to retrieve documents based
+        on their content.
+        
+        Each result entry provides the following information: 
+
+            - act_id (str): globally unique identifier of this administrative act
+            - act_number (Optional[str]): act number that was used by the archive producer
+            - project (AnalysesProject): the project that led to the analysis of this record
+            - actplace (Optional[str]): the place where this act officially happened
+            - parish (Optional[str]): the parish where this act officially happened (if relevant)
+            - editorial_form (str): the type of document
+            - description (str): a brief description of this document
+            - act_date (str): the date when this administrative act actually took place.
+            - remarks (str): some remarks about this act
+            - persons (list[AnalysesPerson]): people mentioned in the document.
+"""
+
+ANALYSES_SEARCH_PERSON_ID = "Analyses of Records / Search Person"
+ANALYSES_SEARCH_PERSON_DESCR = """
+    * 'Analyses of Records / Search Person': this will let you retrieve documents by placing
+        criterion on the people who were mentioned in the documents, their names, profession,
+        and roles.
+        
+        Each result entry provides the following information: 
+
+            - act_id (str): globally unique identifier of this administrative act
+            - act_number (Optional[str]): act number that was used by the archive producer
+            - project (AnalysesProject): the project that led to the analysis of this record
+            - actplace (Optional[str]): the place where this act officially happened
+            - parish (Optional[str]): the parish where this act officially happened (if relevant)
+            - editorial_form (str): the type of document
+            - description (str): a brief description of this document
+            - act_date (str): the date when this administrative act actually took place.
+            - remarks (str): some remarks about this act
+            - persons (list[AnalysesPerson]): people mentioned in the document.
+"""
+
+GENEA_CHURCH_ID = "Genealogical sources / Church Registers"
+GENEA_CHURCH_DESCR = """
+    * 'Genealogical sources / Church Registers': this will let you find digitized scans of 
+        the original church registers where official acts have been consigned prior to 1796. 
+        This is often helpful in order to find the scan of a specific act. 
+    
+        Each result entry provides the following information: 
+
+            - description (str): Description of the document.
+            - start_date (str): Day of the first act recorded in this document
+            - end_date (str): Day of the last act recorded in 
+            - last_update (str): Date when this archive was last modified
+            - notes (str): Remarks and notes about this document
+            - available (bool): Is this document available for online consultation
+            - url (Optional[str]): URL where this document can be consulted (if available)
+"""
+
+GENEA_CIVIL_ID = "Genealogical sources / Civil State Registers"
+GENEA_CIVIL_DESCR = """
+    * 'Genealogical sources / Civil State Registers': this will let you find digitized scans of 
+        the original civil state registers where official acts have been consigned since 1796. 
+        This is often helpful in order to find the scan of a specific act. 
+    
+        Each result entry provides the following information: 
+
+            - description (str): Description of the document.
+            - start_date (str): Day of the first act recorded in this document
+            - end_date (str): Day of the last act recorded in 
+            - last_update (str): Date when this archive was last modified
+            - notes (str): Remarks and notes about this document
+            - available (bool): Is this document available for online consultation
+            - url (Optional[str]): URL where this document can be consulted (if available)
+"""
+
 class PersonData(BaseModel):
     """Data about a person.
     
@@ -133,98 +214,43 @@ class AvailableData(BaseModel):
                 the 2nd item in the tuple is the list of tool names.
         """
         tools = []
-        descr = """
-        You have acces to the following resources:
-        """
+        descr = "\nYou have acces to the following resources:\n"
         if self._can_use_help_resources():
-            descr += """
-            * 'Online Help Resources' that will let you search in 
-                the user manuals and FAQ sections of the AGATHA platform. 
-                This is mostly useful to answer *HOW DO I ...* questions.
-            """
-            tools.append("Online Help Resources")
+            descr += ONLINE_HELP_DESCR
+            tools.append(ONLINE_HELP_ID)
         
         if self._can_use_analyses_free_search():
-            descr += """
-               * 'Analyses of Records / Free Search': this will let you 
-                    perform a fulltext search to retrieve documents based
-                    on their content.
-                    
-                    Each result entry provides the following information: 
-            
-                        - act_id (str): globally unique identifier of this administrative act
-                        - act_number (Optional[str]): act number that was used by the archive producer
-                        - project (AnalysesProject): the project that led to the analysis of this record
-                        - actplace (Optional[str]): the place where this act officially happened
-                        - parish (Optional[str]): the parish where this act officially happened (if relevant)
-                        - editorial_form (str): the type of document
-                        - description (str): a brief description of this document
-                        - act_date (str): the date when this administrative act actually took place.
-                        - remarks (str): some remarks about this act
-                        - persons (list[AnalysesPerson]): people mentioned in the document.
-            """
-            tools.append("Analyses of Records / Free Search")
+            descr += ANALYSES_FREE_SEARCH_DESCR
+            tools.append(ANALYSES_FREE_SEARCH_ID)
         
         if self._can_use_analyses_search_person():
-            descr += """
-               * 'Analyses of Records / Search Person': this will let you retrieve documents by placing
-                    criterion on the people who were mentioned in the documents, their names, profession,
-                    and roles.
-                    
-                    Each result entry provides the following information: 
-            
-                        - act_id (str): globally unique identifier of this administrative act
-                        - act_number (Optional[str]): act number that was used by the archive producer
-                        - project (AnalysesProject): the project that led to the analysis of this record
-                        - actplace (Optional[str]): the place where this act officially happened
-                        - parish (Optional[str]): the parish where this act officially happened (if relevant)
-                        - editorial_form (str): the type of document
-                        - description (str): a brief description of this document
-                        - act_date (str): the date when this administrative act actually took place.
-                        - remarks (str): some remarks about this act
-                        - persons (list[AnalysesPerson]): people mentioned in the document.
-            """
-            tools.append("Analyses of Records / Search Person")
+            descr += ANALYSES_SEARCH_PERSON_DESCR
+            tools.append(ANALYSES_SEARCH_PERSON_ID)
 
         if self._can_use_genea_church():
-            descr += """
-               * 'Genealogical sources / Church Registers': this will let you find digitized scans of 
-                    the original church registers where official acts have been consigned prior to 1796. 
-                    This is often helpful in order to find the scan of a specific act. 
-                
-                Each result entry provides the following information: 
-            
-                    - description (str): Description of the document.
-                    - start_date (str): Day of the first act recorded in this document
-                    - end_date (str): Day of the last act recorded in 
-                    - last_update (str): Date when this archive was last modified
-                    - notes (str): Remarks and notes about this document
-                    - available (bool): Is this document available for online consultation
-                    - url (Optional[str]): URL where this document can be consulted (if available)
-            """
-            tools.append("Genealogical sources / Church Registers")
+            descr += GENEA_CHURCH_DESCR
+            tools.append(GENEA_CHURCH_ID)
         
         if self._can_use_genea_civil():
-            descr += """
-               * 'Genealogical sources / Civil State Registers': this will let you find digitized scans of 
-                    the original civil state registers where official acts have been consigned since 1796. 
-                    This is often helpful in order to find the scan of a specific act. 
-                
-                Each result entry provides the following information: 
-            
-                    - description (str): Description of the document.
-                    - start_date (str): Day of the first act recorded in this document
-                    - end_date (str): Day of the last act recorded in 
-                    - last_update (str): Date when this archive was last modified
-                    - notes (str): Remarks and notes about this document
-                    - available (bool): Is this document available for online consultation
-                    - url (Optional[str]): URL where this document can be consulted (if available)
-            """
-            tools.append("Genealogical sources / Civil State Registers")
+            descr += GENEA_CIVIL_DESCR
+            tools.append(GENEA_CIVIL_ID)
 
         return (descr, tools)
+    
+    @staticmethod
+    def all_tools() -> str:
+        """Return the description and use of all the available tools."""
 
+        descr = "\nYou are allowed to use the following tools:\n"
 
+        descr += ONLINE_HELP_DESCR
+        descr += ANALYSES_FREE_SEARCH_DESCR
+        descr += ANALYSES_SEARCH_PERSON_DESCR
+        descr += GENEA_CHURCH_DESCR
+        descr += GENEA_CIVIL_DESCR
+        #descr += "\n\nNote: Some tools might be unavailable depending on your search criteria.\n"
+        
+        return descr
 
 class AgentState(MessagesState):
     """State of the agent.

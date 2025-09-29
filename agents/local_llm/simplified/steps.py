@@ -12,12 +12,13 @@ from langchain_core.messages import (
 from langchain_core.output_parsers import (
     StrOutputParser,
 )
-from pydantic_core import (
-    to_json,
-)
 from pydantic import (
     BaseModel,
 )
+from pydantic_core import (
+    to_json,
+)
+
 from ...tools.agatha_common import (
     Municipality,
 )
@@ -71,20 +72,33 @@ async def step_initialize(state: AgentState) -> AgentState:
         "messages": messages,
     }
 
-async def step_formalize(state: AgentState) -> AgentState:
-    scratch   = state.get("scratch")
-    available = state.get("available_data")
 
-    context   = ""
-    if scratch is not None:
-        context += f"\n< Context >\n{scratch}\n</ Context >\n"
+def _build_context(state: AgentState) -> str:
+    """Build a self-contained context for use in prompts."""
+
+    user_rq   = state.get("input")
+    scratch   = state.get("scratch")
+    objective = state.get("thought")
     
-    if available is not None:
-        context += f"\n< Previously >\n{available.model_dump_json(exclude_none=True, indent=4)}\n</ Previously >\n"
+    context = f"# User Request\n{user_rq}\n"
     
+    if scratch:
+        context += f"\n# Research\n{scratch}\n"
+    
+    if objective:
+        context += f"\n# Current Objective\n{objective}\n"
+
+    if context:
+        context = f"\n< Context >\n{context}\n</ Context >\n"
+    
+    return context
+
+async def step_formalize(state: AgentState) -> AgentState:
+    context = _build_context(state)
+
     available = cast(AvailableData, await (
         LLM.with_structured_output(AvailableData)
-        .ainvoke(state["messages"] + [formalize.format(input=context)])
+        .ainvoke([formalize.format(input=context)])
     ))
 
     return { # type: ignore
@@ -94,15 +108,11 @@ async def step_formalize(state: AgentState) -> AgentState:
 
 async def step_set_objective(state: AgentState) -> AgentState:
     n = state.get("n", 0) 
-    scratch = state.get("scratch", "")
-    available_data = state.get("available_data", AvailableData())
-    tool_descr, tool_names = available_data.available_tools()
+
     rsp = await (LLM | StrOutputParser()).ainvoke(
-        state["messages"] + [ what_objective.format(
-            scratch=scratch,
-            available_data=available_data.model_dump_json(exclude_none=True, indent=4),
-            tools_descr=tool_descr,
-            tool_names=tool_names,
+        [ what_objective.format(
+            context     = _build_context(state),
+            tools_descr = AvailableData.all_tools(),
         ) ]
     )
     return {"n": n+1, "thought": rsp} # type: ignore
@@ -126,8 +136,7 @@ async def cond_what_tool(state: AgentState) -> _Tool:
     if n >= 5:
         return "Respond"
     
-    scratch = state.get("scratch", "")
-    thought = state.get("thought", "I am done.")
+    context = _build_context(state)
     #
     available_data = state.get("available_data", AvailableData())
     tool_descr, tool_names = available_data.available_tools()
@@ -137,11 +146,11 @@ async def cond_what_tool(state: AgentState) -> _Tool:
 
     rsp = cast(ToolChoice, await (
         LLM .with_structured_output(ToolChoice)
-            .ainvoke(state["messages"] + [ what_tool.format(
-                scratch=scratch,
+            .ainvoke(
+            [ what_tool.format(
+                context=context,
                 tool_descr=tool_descr,
                 tool_names=tool_names,
-                thought=thought
             ) ])
     ))
     return cast(_Tool, rsp.tool_name)

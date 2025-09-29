@@ -1,14 +1,11 @@
 """prompts to implements the simplified agatha workflow."""
 
 from langchain_core.messages import (
-    SystemMessage,
     HumanMessage,
-    AIMessage,
+    SystemMessage,
 )
 from langchain_core.prompts import (
-    StringPromptTemplate,
     HumanMessagePromptTemplate,
-    AIMessagePromptTemplate,
 )
 
 system_prompt = SystemMessage(
@@ -24,12 +21,13 @@ formalize = HumanMessagePromptTemplate.from_template("""
 {input}
 
 < Instructions >
-Formalize the data that has been given to you. 
+Formalize your search criteria.
 
 Whenever you mention a municipality name, it MUST USE either 
 the French or the Dutch spelling of that name.
 
-When a data is unknown, just leave it out. The goal is to formalize only what you know.
+When a data is unknown, just leave it out. The goal is to formalize only what you know
+or wish to use as criterion during your search.
 </ Instructions >
 
 < Examples >
@@ -62,13 +60,7 @@ When a data is unknown, just leave it out. The goal is to formalize only what yo
 
 what_objective = HumanMessagePromptTemplate.from_template(
 """
-< Context >
-{scratch}
-</ Context >
-
-< AvailableData >
-{available_data}
-</ AvailableData >
+{context}
 
 < Tools >
 {tools_descr}
@@ -106,17 +98,14 @@ story in your response.
 
 what_tool = HumanMessagePromptTemplate.from_template(
 """"
-< Context >
-{scratch}
-</ Context >
+{context}
 
 < Tools >
 {tool_descr}
 </ Tools >
 
 < Instructions >
-What tool will you use to find the information required to deal with the following user story ?
-{thought}
+What tool should you use now ?
 
 (Select one option among: {tool_names})
 </ Instructions >
@@ -161,7 +150,7 @@ Observation: Here is the raw data from the original sources
 < Instructions >
 Summarize the relevant information from the latest search so that I can memorize only those facts which are
 relevant to satisfying the original user's request. Feel free to make any observation you deem
-useful about the data. Feel free to revise your plan as needed according to the data you have.
+useful about the data. Do not respond to the user's request just yet. Focus on organizing your thought process.
 </ Instructions >
                                                      
 < Note >
