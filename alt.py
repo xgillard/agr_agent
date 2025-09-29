@@ -1,12 +1,8 @@
 """An example to validate the behavior of the agent."""
 
-from dotenv import load_dotenv
+import asyncio
 
-load_dotenv()
-
-import asyncio  # noqa: E402
-
-from agents.local_llm.agatha.graph import ASK_AGATHA  # noqa: E402
+from agents.local_llm.agatha.graph import ASK_AGATHA
 
 
 async def example_rubens()-> str:
