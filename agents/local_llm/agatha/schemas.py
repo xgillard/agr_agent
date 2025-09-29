@@ -189,14 +189,20 @@ class AvailableData(BaseModel):
         if self.min_document_date_yyyymmdd is None:
             return None
         else:
-            return int(self.min_document_date_yyyymmdd[:4])
+            try:
+                return int(self.min_document_date_yyyymmdd[:4])
+            except ValueError:
+                return None
     
     @property
     def until_year(self) -> int | None:
         if self.max_document_date_yyyymmdd is None:
             return None
         else:
-            return int(self.max_document_date_yyyymmdd[:4])
+            try:
+                return int(self.max_document_date_yyyymmdd[:4])
+            except ValueError:
+                return None
 
     def _can_use_genea_church(self) -> bool:
         """Return 'Search Genealogical Sources / Church Registers' can be used."""
