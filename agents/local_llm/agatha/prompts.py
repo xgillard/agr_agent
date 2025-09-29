@@ -1,17 +1,14 @@
-"""Prompts for the react-style agent that interacts with agatha."""
+"""prompts to implements the simplified agatha workflow."""
 
 from langchain_core.messages import (
+    HumanMessage,
     SystemMessage,
 )
 from langchain_core.prompts import (
     HumanMessagePromptTemplate,
 )
 
-from .schemas import (
-    DataSource,
-)
-
-persona = (
+system_prompt = SystemMessage(
 """Your name is Arkey. You are an expert AI customer support at the 
 belgian state archive. You are known for being factual, and always
 providing reliable information. Whenever you doubt, about a statement
@@ -20,82 +17,57 @@ data yourself), you prefer to be transparent about it rather than
 risking to give erroneous information.
 """)
 
-
-tool_descr = (
-"""In order to help the users, you have acces to the following search engines:
-
-   * Analyses of records: this will let you find the details of an official act based on the *content* 
-       of that act. For instance, if you know the name of some people that were involved in that act 
-       or if you know some specific keyword that might help retrieve the act you need. 
-       
-       Each entry in the analyses of records provides the following set of information: 
-            
-            - act_id (str): globally unique identifier of this administrative act
-            - act_number (Optional[str]): act number that was used by the archive producer
-            - project (AnalysesProject): the project that led to the analysis of this record
-            - actplace (Optional[str]): the place where this act officially happened
-            - parish (Optional[str]): the parish where this act officially happened (if relevant)
-            - editorial_form (str): the type of document
-            - description (str): a brief description of this document
-            - act_date (str): the date when this administrative act actually took place.
-            - remarks (str): some remarks about this act
-            - persons (list[AnalysesPerson]): people mentioned in the document.
-
-   * Genealogical sources: this will let you find digitized scans of the original registers where 
-       official acts have been consigned. This is often helpful in order to find the scan of a specific
-       act. In order to use this tool, you need to know some details about the register (or act) you
-       wish to find. Namely, you need to know:
-
-           - _WHAT KIND OF DOCUMENT_ you wish to retrieve
-           - _WHERE_ the act happened
-           - _WHEN_ it happened (at least have an idea of the date range) 
-       
-       Each entry in the genealogical sources provides the following set of information: 
-            
-            - description (str): Description of the document.
-            - start_date (str): Day of the first act recorded in this document
-            - end_date (str): Day of the last act recorded in 
-            - last_update (str): Date when this archive was last modified
-            - notes (str): Remarks and notes about this document
-            - available (bool): Is this document available for online consultation
-            - url (Optional[str]): URL where this document can be consulted (if available)
-
-       Please note that using the identifier of an act is of absolutely *NO USE* when searching for
-       a scan. The afore mentioned details must be repeated for that purpose. 
-
-You may also use the online Help Resources that will let you search in the user manuals and FAQ sections of
-       the AGATHA platform. This is mostly useful to answer *HOW DO I ...* questions.
-
-**IMPORTANT**
-You are not allowed to ask any extra information to the user. You must use the tools at your disposal
-to figure it out.
-""")
-
-system_prompt = SystemMessage(persona)
-
-decide = HumanMessagePromptTemplate.from_template("""
-< Context >
-{scratch}
-</ Context >
+formalize = HumanMessagePromptTemplate.from_template("""
+{input}
 
 < Instructions >
-You must act in accordance to the plan and execute one step at the time.
-Have you executed all steps in the plan ?
+Formalize your search criteria.
+
+Whenever you mention a municipality name, it MUST USE either 
+the French or the Dutch spelling of that name.
+
+When a data is unknown, just leave it out. The goal is to formalize only what you know
+or wish to use as criterion during your search.
 </ Instructions >
+
+< Examples >
+>>> I would like to find the birth certificate of Wim Van Piperzeel
+>>> who was born in Sterrebeek in the early 1800.
+```
+{{
+    "municipality_name": "Sterrebeek",
+    "type_of_record": "Birth certificates",
+    "people": [
+        {{ "first_name": "Wim", "family_name": "Van Piperzeel", "role": "Child"}}
+    ],
+    "min_document_date_yyyymmdd": 18000101,
+    "max_document_date_yyyymmdd": 18101231
+}}
+```
+
+>>> I would like to find the marriage notice of my great grand father Olivier Outsiplout.
+```
+{{
+    "type_of_record": "Notices of marriage",
+    "people": [
+        {{ "first_name": "Olivier", "family_name": "Olivier Outsiplout", "role": "Groom"}}
+    ],
+}}
+```
+</ Examples >
 """)
 
-what_information = HumanMessagePromptTemplate.from_template(
+
+what_objective = HumanMessagePromptTemplate.from_template(
 """
-< Context >
-{scratch}
-</ Context >
+{context}
 
 < Tools >
 {tools_descr}
 </ Tools >
 
 < Instructions >
-What what action should you take now ?
+What is your current partial objective ?
 
 Your response must be formatted as a user story that provides all the necessary context.
 It should adhere to one of the following schemas:
@@ -124,44 +96,57 @@ story in your response.
 </ Instructions >
 """)
 
-what_source = HumanMessagePromptTemplate.from_template(
+what_tool = HumanMessagePromptTemplate.from_template(
 """"
-< Context >
-{scratch}
-</ Context >
+{context}
 
 < Tools >
 {tool_descr}
 </ Tools >
 
 < Instructions >
-What tool will you use to find the information required to deal with the following user story ?
-{thought}
+What tool should you use now ?
 
 (Select one option among: {tool_names})
 </ Instructions >
 """)
 
+search_terms = HumanMessage("""
+{context}
+
+< Instructions >
+What search terms to you wish to use ?
+These should be thought of as a means to perform a fulltext search. Wildcards ? and * 
+are authorized. Grouping is done by squaring an expression with double quotes ".
+Keywords must be separated by spaces only. 
+Respond with your search terms only. 
+</ Instructions >
+""")
+
+
+respond = HumanMessagePromptTemplate.from_template("""
+{context}
+
+< Instructions >
+Respond to the user's original request. Respond in the user's language.
+</ Instructions>
+""")
+
 summarize = HumanMessagePromptTemplate.from_template("""
-< Context >
-Here is my reasoning so far:
-{scratch}
-</ Context >
+{context}
                                                      
 < LatestSearch >
-Thought: {thought}
-                                                     
 Action: I have used {call_tool} with the following parameters:
 {call_request}
                                                      
-Observation: Here is the raw data from the original sources
+Result: Here is the raw data from the original sources
 {call_data}
 </ LatestSearch >
 
 < Instructions >
 Summarize the relevant information from the latest search so that I can memorize only those facts which are
 relevant to satisfying the original user's request. Feel free to make any observation you deem
-useful about the data. Feel free to revise your plan as needed according to the data you have.
+useful about the data. Do not respond to the user's request just yet. Focus on organizing your thought process.
 </ Instructions >
                                                      
 < Note >
@@ -170,11 +155,11 @@ as a placeholder for a date that is not known.
 </ Note >
 """)
 
-respond = HumanMessagePromptTemplate.from_template("""
-< Context >
+reasoning_step = """
 {scratch}
-</ Context >
-< Instructions >
-Respond to the user's original request.
-</ Instructions>
-""")
+
+Objective: {thought}
+Action: I have used {call_tool} as follows
+{call_request}
+Result: {summary}
+"""

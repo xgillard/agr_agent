@@ -1,2 +1,1 @@
-"""Code of the base ReAct behavior."""
-
+"""simplified agatha workflow."""

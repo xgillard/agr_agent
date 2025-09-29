@@ -6,7 +6,7 @@ load_dotenv()
 
 import asyncio  # noqa: E402
 
-from agents.local_llm.simplified.graph import ASK_AGATHA  # noqa: E402
+from agents.local_llm.agatha.graph import ASK_AGATHA  # noqa: E402
 
 
 async def example_rubens()-> str:
