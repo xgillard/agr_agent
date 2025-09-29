@@ -153,6 +153,17 @@ class PersonData(BaseModel):
         return bool(self.family_name) or bool(self.first_name)
 
 
+class DateRange(BaseModel):
+    """The range of date when an event might have occured.
+    
+    Attributes:
+        from_year (int | None): start of the date range we want to consider when searching our doc
+        until_year (int | None): end of the date range we want to consider when searching our doc
+    """
+    
+    from_year: int | None = None
+    until_year: int | None = None
+
 class AvailableData(BaseModel):
     """This class is meant to formalize the useful available information about a user's request.
     
@@ -160,17 +171,32 @@ class AvailableData(BaseModel):
         municipality_name (str | None): the name of the municipality where events have happened
         parish_name (str | None): name of the parish where the events happened
         type_of_record (AnalysesActType | None): the type of document we wish to retrieve
-        from_year (int | None): start of the date range we want to consider when searching our doc
-        until_year (int | None): end of the date range we want to consider when searching our doc
+        search_period (DateRange | None): the range of date when the document might have been created
         people (list[PersonData] | None): a list of persons who are involved in the act
+        min_document_date_yyyymmdd (str | None): start date of the range we want to consider when searching our doc
+        max_document_date_yyyymmdd (str | None): end date of range we want to consider when searching our doc
     """
     
     municipality_name: str | None = None
     parish_name: str | None = None
     type_of_record: AnalysesActType | None = None
-    from_year: int | None = None
-    until_year: int | None = None
     people: list[PersonData] | None = None
+    min_document_date_yyyymmdd: str | None = None
+    max_document_date_yyyymmdd: str | None = None
+
+    @property
+    def from_year(self) -> int | None:
+        if self.min_document_date_yyyymmdd is None:
+            return None
+        else:
+            return int(self.min_document_date_yyyymmdd[:4])
+    
+    @property
+    def until_year(self) -> int | None:
+        if self.max_document_date_yyyymmdd is None:
+            return None
+        else:
+            return int(self.max_document_date_yyyymmdd[:4])
 
     def _can_use_genea_church(self) -> bool:
         """Return 'Search Genealogical Sources / Church Registers' can be used."""

@@ -40,8 +40,8 @@ or wish to use as criterion during your search.
     "people": [
         {{ "first_name": "Wim", "family_name": "Van Piperzeel", "role": "Child"}}
     ],
-    "from_year": 1800,
-    "until_year": 1810,
+    "min_document_date_yyyymmdd": 18000101,
+    "max_document_date_yyyymmdd": 18101231
 }}
 ```
 
