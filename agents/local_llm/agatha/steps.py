@@ -64,11 +64,11 @@ from .schemas import (
 AGATHA_HELP = agatha_help()
 
 async def step_initialize(state: AgentState) -> AgentState:
-    messages = [ 
+    messages  = state.get("messages", [])
+    messages += [ 
         system_prompt,
         HumanMessage(state["input"])
     ]
-
     return { # type: ignore
         "messages": messages,
     }

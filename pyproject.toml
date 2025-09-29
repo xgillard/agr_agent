@@ -22,6 +22,7 @@ dependencies    = [
     "textdistance>=4.6.3",
     "langchain-mistralai>=0.2.12",
     "langchain-google-genai>=2.1.12",
+    "streamlit>=1.50.0",
 ]
 
 [dependency-groups]
