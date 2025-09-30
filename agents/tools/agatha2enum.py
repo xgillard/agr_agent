@@ -78,6 +78,17 @@ class {enum_name}(StrEnum):
       \"\"\"
       return [ v.code for v in cls.__members__.values() ]
 
+    @classmethod
+    def code_descriptions(cls) -> str:
+      \"\"\"Return a description of all enum values with their code.
+
+      Returns:
+        str: a description of the meaning of all values with their code.
+      \"\"\"
+
+      descr = \"\"\"{all_descr}\"\"\"
+      return dedent(descr)
+
 """
 
 CASE_FORMAT = """case {name}.{k}: 
@@ -169,13 +180,20 @@ def html_to_enum(target: Target, html: str) -> str:
         ),
         "            "
     )
+    all_descr = "\n        ".join(
+        [ "" ] + 
+        [
+            f"* '{v[1]}' ({v[0]})" for k,v in data.items()
+        ]
+    )
     return FORMAT.format(
         enum_name=target.name, 
         descr=indent(target.descr, "    ").strip(),
         attrs_doc=attrs_doc,
         members=members,
         code_cases=code_cases,
-        from_cases=from_cases
+        from_cases=from_cases,
+        all_descr=all_descr,
         )
 
 
@@ -206,6 +224,7 @@ if __name__ == "__main__":
         print("\"\"\"", file=f)
         print(file=f)
         print("from enum import StrEnum", file=f)
+        print("from textwrap import dedent", file=f)
         print(file=f)
 
         analyses = enumerations_from_agatha(

@@ -2,6 +2,7 @@
 
 from typing import (
     Any,
+    Literal,
 )
 
 from langgraph.graph import (
@@ -9,6 +10,7 @@ from langgraph.graph import (
 )
 from pydantic import (
     BaseModel,
+    Field,
 )
 
 from ...tools.generated import (
@@ -16,39 +18,42 @@ from ...tools.generated import (
     AnalysesActType,
 )
 
+ActRoleCode = Literal[*AnalysesActRole.all_codes()]
+ActTypeCode = Literal[*AnalysesActType.all_codes()]
+
 ACT_TYPE_OPENS_GENEA_CHURCH = [
     # map to baptism
-    AnalysesActType.BIRTH_CERTIFICATES,
-    AnalysesActType.BAPTISM_CERTIFICATES,
-    AnalysesActType.BIRTH_ANNOUNCEMENT,
+    AnalysesActType.BIRTH_CERTIFICATES.code,
+    AnalysesActType.BAPTISM_CERTIFICATES.code,
+    AnalysesActType.BIRTH_ANNOUNCEMENT.code,
     # map to marriage
-    AnalysesActType.NOTICES_OF_MARRIAGE,
-    AnalysesActType.MARRIAGE_ANNOUNCEMENTS,
-    AnalysesActType.MARRIAGE_CERTIFICATES,
-    AnalysesActType.MARRIAGE_SETTLEMENT,
+    AnalysesActType.NOTICES_OF_MARRIAGE.code,
+    AnalysesActType.MARRIAGE_ANNOUNCEMENTS.code,
+    AnalysesActType.MARRIAGE_CERTIFICATES.code,
+    AnalysesActType.MARRIAGE_SETTLEMENT.code,
     # map to death
-    AnalysesActType.FUNERAL_CERTIFICATES,
-    AnalysesActType.DEATH_CERTIFICATES,
-    AnalysesActType.DEATH_NOTICE,
-    AnalysesActType.MORTUARY_AND_MOURNING_CARD,
-    AnalysesActType.MORTUARY_INVENTORY,
+    AnalysesActType.FUNERAL_CERTIFICATES.code,
+    AnalysesActType.DEATH_CERTIFICATES.code,
+    AnalysesActType.DEATH_NOTICE.code,
+    AnalysesActType.MORTUARY_AND_MOURNING_CARD.code,
+    AnalysesActType.MORTUARY_INVENTORY.code,
 ]
 ACT_TYPE_OPENS_GENEA_CIVIL = [
     # map to baptism
-    AnalysesActType.BIRTH_CERTIFICATES,
-    AnalysesActType.BIRTH_ANNOUNCEMENT,
+    AnalysesActType.BIRTH_CERTIFICATES.code,
+    AnalysesActType.BIRTH_ANNOUNCEMENT.code,
     # map to marriage
-    AnalysesActType.NOTICES_OF_MARRIAGE,
-    AnalysesActType.MARRIAGE_ANNOUNCEMENTS,
-    AnalysesActType.MARRIAGE_CERTIFICATES,
-    AnalysesActType.MARRIAGE_SETTLEMENT,
+    AnalysesActType.NOTICES_OF_MARRIAGE.code,
+    AnalysesActType.MARRIAGE_ANNOUNCEMENTS.code,
+    AnalysesActType.MARRIAGE_CERTIFICATES.code,
+    AnalysesActType.MARRIAGE_SETTLEMENT.code,
     # map to death
-    AnalysesActType.FUNERAL_CERTIFICATES,
-    AnalysesActType.DEATH_CERTIFICATES,
-    AnalysesActType.DEATH_NOTICE,
-    AnalysesActType.MORTUARY_AND_MOURNING_CARD,
-    AnalysesActType.MORTUARY_INVENTORY,
-    AnalysesActType.JUDICIAL_DEATH_DECLARATION,
+    AnalysesActType.FUNERAL_CERTIFICATES.code,
+    AnalysesActType.DEATH_CERTIFICATES.code,
+    AnalysesActType.DEATH_NOTICE.code,
+    AnalysesActType.MORTUARY_AND_MOURNING_CARD.code,
+    AnalysesActType.MORTUARY_INVENTORY.code,
+    AnalysesActType.JUDICIAL_DEATH_DECLARATION.code,
 ]
 
 ONLINE_HELP_ID    = "Online Help Resources"
@@ -145,24 +150,13 @@ class PersonData(BaseModel):
     first_name: str | None = None
     family_name: str | None = None
     profession: str | None = None
-    role: AnalysesActRole | None = None
+    role_code: ActRoleCode | None = None # pyright: ignore[reportInvalidTypeForm]
 
     def __bool__(self) -> bool:
         """Computes a truth value for people"""
 
         return bool(self.family_name) or bool(self.first_name)
 
-
-class DateRange(BaseModel):
-    """The range of date when an event might have occured.
-    
-    Attributes:
-        from_year (int | None): start of the date range we want to consider when searching our doc
-        until_year (int | None): end of the date range we want to consider when searching our doc
-    """
-    
-    from_year: int | None = None
-    until_year: int | None = None
 
 class AvailableData(BaseModel):
     """This class is meant to formalize the useful available information about a user's request.
@@ -179,28 +173,28 @@ class AvailableData(BaseModel):
     
     municipality_name: str | None = None
     parish_name: str | None = None
-    type_of_record: AnalysesActType | None = None
+    type_of_record_code: ActTypeCode | None = None # type: ignore
     people: list[PersonData] | None = None
-    min_document_date_yyyymmdd: str | None = None
-    max_document_date_yyyymmdd: str | None = None
+    min_document_date_formatted_as_yyyy_mm_dd: str | None = None
+    max_document_date_formatted_as_yyyy_mm_dd: str | None = None
 
     @property
     def from_year(self) -> int | None:
-        if self.min_document_date_yyyymmdd is None:
+        if self.min_document_date_formatted_as_yyyy_mm_dd is None:
             return None
         else:
             try:
-                return int(self.min_document_date_yyyymmdd[:4])
+                return int(self.min_document_date_formatted_as_yyyy_mm_dd[:4])
             except ValueError:
                 return None
     
     @property
     def until_year(self) -> int | None:
-        if self.max_document_date_yyyymmdd is None:
+        if self.max_document_date_formatted_as_yyyy_mm_dd is None:
             return None
         else:
             try:
-                return int(self.max_document_date_yyyymmdd[:4])
+                return int(self.max_document_date_formatted_as_yyyy_mm_dd[:4])
             except ValueError:
                 return None
 
@@ -209,7 +203,7 @@ class AvailableData(BaseModel):
 
         return (
             bool(self.municipality_name) 
-            and (self.type_of_record in ACT_TYPE_OPENS_GENEA_CHURCH)
+            and (self.type_of_record_code in ACT_TYPE_OPENS_GENEA_CHURCH)
         )
     
     def _can_use_genea_civil(self) -> bool: 
@@ -217,7 +211,7 @@ class AvailableData(BaseModel):
 
         return (
             bool(self.municipality_name) 
-            and (self.type_of_record in ACT_TYPE_OPENS_GENEA_CIVIL)
+            and (self.type_of_record_code in ACT_TYPE_OPENS_GENEA_CIVIL)
         )
     
     def _can_use_analyses_free_search(self) -> bool:

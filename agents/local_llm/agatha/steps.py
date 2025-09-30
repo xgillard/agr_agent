@@ -1,5 +1,8 @@
 """steps that implements the simplified agatha workflow."""
 
+from textwrap import (
+    indent,
+)
 from typing import (
     Literal,
     cast,
@@ -40,6 +43,7 @@ from ...tools.genealogy import (
     genealogy_search_civil_state_registers,
 )
 from ...tools.generated import (
+    AnalysesActRole,
     AnalysesActType,
 )
 from ..common.llm import (
@@ -97,9 +101,18 @@ def _build_context(state: AgentState) -> str:
 async def step_formalize(state: AgentState) -> AgentState:
     context = _build_context(state)
 
+    role_code_desc = indent(AnalysesActRole.code_descriptions(), "  ")
+    type_of_record_code_desc = indent(AnalysesActType.code_descriptions(), "  ")
+
     available = cast(AvailableData, await (
         LLM.with_structured_output(AvailableData)
-        .ainvoke([formalize.format(input=context)])
+        .ainvoke([
+            formalize.format(
+                input=context,
+                role_code_desc=role_code_desc,
+                type_of_record_code_desc=type_of_record_code_desc,
+            )
+        ])
     ))
 
     return { # type: ignore
@@ -161,23 +174,23 @@ async def tool_genea_church(state: AgentState) -> AgentState:
 
     act_types = None
 
-    match data.type_of_record:
-        case (AnalysesActType.BIRTH_CERTIFICATES 
-            | AnalysesActType.BAPTISM_CERTIFICATES 
-            | AnalysesActType.BIRTH_ANNOUNCEMENT):
+    match data.type_of_record_code:
+        case (AnalysesActType.BIRTH_CERTIFICATES.code 
+            | AnalysesActType.BAPTISM_CERTIFICATES.code 
+            | AnalysesActType.BIRTH_ANNOUNCEMENT.code):
             act_types = [ParishActType.BAPTISM]
 
-        case (AnalysesActType.NOTICES_OF_MARRIAGE
-            | AnalysesActType.MARRIAGE_ANNOUNCEMENTS
-            | AnalysesActType.MARRIAGE_CERTIFICATES
-            | AnalysesActType.MARRIAGE_SETTLEMENT):
+        case (AnalysesActType.NOTICES_OF_MARRIAGE.code
+            | AnalysesActType.MARRIAGE_ANNOUNCEMENTS.code
+            | AnalysesActType.MARRIAGE_CERTIFICATES.code
+            | AnalysesActType.MARRIAGE_SETTLEMENT.code):
             act_types = [ParishActType.WEDDING]
 
-        case (AnalysesActType.FUNERAL_CERTIFICATES
-            | AnalysesActType.DEATH_CERTIFICATES
-            | AnalysesActType.DEATH_NOTICE
-            | AnalysesActType.MORTUARY_AND_MOURNING_CARD
-            | AnalysesActType.MORTUARY_INVENTORY):
+        case (AnalysesActType.FUNERAL_CERTIFICATES.code
+            | AnalysesActType.DEATH_CERTIFICATES.code
+            | AnalysesActType.DEATH_NOTICE.code
+            | AnalysesActType.MORTUARY_AND_MOURNING_CARD.code
+            | AnalysesActType.MORTUARY_INVENTORY.code):
             act_types = [ParishActType.DEATH]
 
     assert(data.municipality_name is not None)
@@ -217,23 +230,23 @@ async def tool_genea_civil(state: AgentState) -> AgentState:
 
     act_types = None
 
-    match data.type_of_record:
-        case (AnalysesActType.BIRTH_CERTIFICATES 
-            | AnalysesActType.BIRTH_ANNOUNCEMENT):
+    match data.type_of_record_code:
+        case (AnalysesActType.BIRTH_CERTIFICATES.code 
+            | AnalysesActType.BIRTH_ANNOUNCEMENT.code):
             act_types = [CivilActType.BIRTH]
 
-        case (AnalysesActType.NOTICES_OF_MARRIAGE
-            | AnalysesActType.MARRIAGE_ANNOUNCEMENTS
-            | AnalysesActType.MARRIAGE_CERTIFICATES
-            | AnalysesActType.MARRIAGE_SETTLEMENT):
+        case (AnalysesActType.NOTICES_OF_MARRIAGE.code
+            | AnalysesActType.MARRIAGE_ANNOUNCEMENTS.code
+            | AnalysesActType.MARRIAGE_CERTIFICATES.code
+            | AnalysesActType.MARRIAGE_SETTLEMENT.code):
             act_types = [CivilActType.WEDDING]
 
-        case (AnalysesActType.FUNERAL_CERTIFICATES
-            | AnalysesActType.DEATH_CERTIFICATES
-            | AnalysesActType.DEATH_NOTICE
-            | AnalysesActType.MORTUARY_AND_MOURNING_CARD
-            | AnalysesActType.MORTUARY_INVENTORY
-            | AnalysesActType.JUDICIAL_DEATH_DECLARATION):
+        case (AnalysesActType.FUNERAL_CERTIFICATES.code
+            | AnalysesActType.DEATH_CERTIFICATES.code
+            | AnalysesActType.DEATH_NOTICE.code
+            | AnalysesActType.MORTUARY_AND_MOURNING_CARD.code
+            | AnalysesActType.MORTUARY_INVENTORY.code
+            | AnalysesActType.JUDICIAL_DEATH_DECLARATION.code):
             act_types = [CivilActType.DEATH]
 
     assert(data.municipality_name is not None)
@@ -276,7 +289,7 @@ async def tool_analyses_free_search(state: AgentState) -> AgentState:
         location=data.municipality_name,
         start_year=data.from_year,
         end_year=data.until_year,
-        act_type=data.type_of_record,
+        act_type=AnalysesActType.from_code(data.type_of_record_code) if data.type_of_record_code is not None else None,
         # project
     )
 
@@ -293,7 +306,7 @@ def __as_criterion(p: PersonData) -> PersonCriterion:
         family_name=p.family_name,
         first_name=p.first_name,
         profession=p.profession,
-        role=p.role,
+        role=AnalysesActRole.from_code(p.role_code) if p.role_code is not None else None,
     )
 
 async def tool_analyses_search_person(state: AgentState) -> AgentState:
@@ -305,7 +318,7 @@ async def tool_analyses_search_person(state: AgentState) -> AgentState:
         location=data.municipality_name,
         start_year=data.from_year,
         end_year=data.until_year,
-        act_type=data.type_of_record,
+        act_type=AnalysesActType.from_code(data.type_of_record_code) if data.type_of_record_code is not None else None,
         #project=,
     )
 

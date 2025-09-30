@@ -29,27 +29,37 @@ When a data is unknown, just leave it out. The goal is to formalize only what yo
 or wish to use as criterion during your search.
 </ Instructions >
 
+< Note >
+Here is the list of codes you can use in the field "role_code" with their meaning:
+{role_code_desc}
+                                                     
+Here is the list of codes you can use in the field "type_of_record_code" with their meaning:
+{type_of_record_code_desc}
+                                                     
+Please be extra-careful to use the appropriate code as they are case sensitive.
+</ Note >
+
 < Examples >
 >>> I would like to find the birth certificate of Wim Van Piperzeel
 >>> who was born in Sterrebeek in the early 1800.
 ```
 {{
     "municipality_name": "Sterrebeek",
-    "type_of_record": "Birth certificates",
+    "type_of_record_code": "BS_G",
     "people": [
-        {{ "first_name": "Wim", "family_name": "Van Piperzeel", "role": "Child"}}
+        {{ "first_name": "Wim", "family_name": "Van Piperzeel", "role_code": "20"}}
     ],
-    "min_document_date_yyyymmdd": 18000101,
-    "max_document_date_yyyymmdd": 18101231
+    "min_document_date_formatted_as_yyyy_mm_dd": "1800-01-01",
+    "max_document_date_formatted_as_yyyy_mm_dd": "1810-12-31"
 }}
 ```
 
 >>> I would like to find the marriage notice of my great grand father Olivier Outsiplout.
 ```
 {{
-    "type_of_record": "Notices of marriage",
+    "type_of_record_code": "BS_Hp",
     "people": [
-        {{ "first_name": "Olivier", "family_name": "Olivier Outsiplout", "role": "Groom"}}
+        {{ "first_name": "Olivier", "family_name": "Olivier Outsiplout", "role_code": "2"}}
     ],
 }}
 ```

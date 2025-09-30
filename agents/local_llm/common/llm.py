@@ -14,5 +14,5 @@ LLM = init_chat_model(
     model          = os.environ["LLM_NAME"],
     model_provider = os.environ["LLM_PROVIDER"],
     temperature    = float(os.environ["LLM_TEMPERATURE"]),
-    reasoning      = os.environ["LLM_REASONING"] in ["true", "True", "1"]
+    reasoning      = os.environ.get("LLM_REASONING") in ["true", "True", "1"]
 )
