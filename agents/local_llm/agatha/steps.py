@@ -69,10 +69,10 @@ AGATHA_HELP = agatha_help()
 
 def step_initialize(state: AgentState) -> AgentState:
     messages  = state.get("messages", [])
-    messages += [ 
-        system_prompt,
-        HumanMessage(state["input"])
-    ]
+    if not messages:
+        messages = [system_prompt]
+    
+    messages += [ HumanMessage(state["input"]) ]
     return { # type: ignore
         "messages": messages,
     }

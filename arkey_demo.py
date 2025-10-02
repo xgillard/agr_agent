@@ -13,21 +13,32 @@ def main():
     st.header("Ask Agatha", divider="green")
 
     messages = st.container()
+    convers  = st.session_state.get("messages", [])
     if prompt := st.chat_input("Le bon roi dagobert avait-il sa culotte à l'envers ?"):
+        for msg in convers:
+            if msg.role != "system":
+                messages.chat_message(msg.role).write(msg.content)
+        
         messages.chat_message("human").write(prompt)
 
         with messages.status("Working on your case") as status:
             try:
                 state = None
-                for update in ASK_AGATHA.stream({"input": prompt}, stream_mode="values"):
+                for update in ASK_AGATHA.stream({"input": prompt, "messages": convers}, stream_mode="values"):
                     if objective := update.get("thought"):
                         status.update(label=objective)
-                    
+                    if context := update.get("scratch"):
+                        st.write(context)
                     state = update
                 status.update(state="complete")
-                messages.chat_message("assistant", avatar=avatar).write(state["messages"][-1].content)
-            except Exception:
-                status.update(state="error")
+                # 
+                convers = state["messages"]
+                st.session_state["messages"] = convers
+                messages.chat_message("assistant", avatar=avatar).write(convers[-1].content)
+            except Exception as e:
+                status.update(state="error", label="Oops... something went wrong")
+                st.write(f":red[{repr(e)}]")
+
 
 if __name__ == "__main__":
     main()
