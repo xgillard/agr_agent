@@ -1597,7 +1597,7 @@ class AnalysesProject(StrEnum):
         * 'WKKORT' (WKKORT - Orphan register - Kortrijk)
         * 'WVLERF' (WVLERF - Inheritance deeds - Province of West Flanders)
         * 'WZWVL' (WZWVL - Orphan register - Province of West Flanders)
-        * 'ZEELUI' (ZEELUI - Matriculation register of seamen on Belgian merchant ships - World)"""
+        * 'ZEELUI' (ZEELUI - Matriculation register of seamen on Belgian merchant ships - World)"""  # noqa: E501
       return dedent(descr)
 
 

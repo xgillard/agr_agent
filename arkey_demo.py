@@ -16,8 +16,10 @@ def main():
     convers  = st.session_state.get("messages", [])
     if prompt := st.chat_input("Le bon roi dagobert avait-il sa culotte à l'envers ?"):
         for msg in convers:
-            if msg.role != "system":
-                messages.chat_message(msg.role).write(msg.content)
+            if msg.type != "system":
+                messages.chat_message(msg.type).write(msg.content)
+            if msg.type in ["assistant", "ai"]:
+                messages.chat_message(msg.type, avatar=avatar).write(msg.content)
         
         messages.chat_message("human").write(prompt)
 
@@ -28,7 +30,8 @@ def main():
                     if objective := update.get("thought"):
                         status.update(label=objective)
                     if context := update.get("scratch"):
-                        st.write(context)
+                        with st.empty():
+                            st.write(context)
                     state = update
                 status.update(state="complete")
                 # 

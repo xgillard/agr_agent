@@ -10,7 +10,6 @@ from langgraph.graph import (
 )
 from pydantic import (
     BaseModel,
-    Field,
 )
 
 from ...tools.generated import (
@@ -18,8 +17,8 @@ from ...tools.generated import (
     AnalysesActType,
 )
 
-ActRoleCode = Literal[*AnalysesActRole.all_codes()]
-ActTypeCode = Literal[*AnalysesActType.all_codes()]
+ActRoleCode = Literal[*AnalysesActRole.all_codes()] # type: ignore
+ActTypeCode = Literal[*AnalysesActType.all_codes()] # type: ignore
 
 ACT_TYPE_OPENS_GENEA_CHURCH = [
     # map to baptism
@@ -150,7 +149,7 @@ class PersonData(BaseModel):
     first_name: str | None = None
     family_name: str | None = None
     profession: str | None = None
-    role_code: ActRoleCode | None = None # pyright: ignore[reportInvalidTypeForm]
+    role_code: ActRoleCode | None = None # type: ignore
 
     def __bool__(self) -> bool:
         """Computes a truth value for people"""
