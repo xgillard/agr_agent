@@ -1,3 +1,6 @@
+run:
+	uv run streamlit run arkey_demo.py
+
 quick: 
 	uv run ruff check .
 	uv run mypy .
