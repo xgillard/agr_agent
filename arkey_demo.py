@@ -15,13 +15,13 @@ def main():
     
     st.image(avatar, width=100)
     st.title("Ask Agatha")
-    st.write(":green[--]")
+    st.divider()
     
     messages = st.container()
     convers  = st.session_state.get("messages", [])
+    scratch  = st.session_state.get("scratch", "")
     if prompt := st.chat_input("Le bon roi dagobert avait-il sa culotte à l'envers ?"):
         for msg in convers:
-            print(msg.type)
             if msg.type == "system":
                 continue
             elif msg.type in ["assistant", "ai"]:
@@ -34,7 +34,7 @@ def main():
         with messages.status("Working on your case") as status:
             try:
                 state = None
-                for update in ASK_AGATHA.stream({"input": prompt, "messages": convers}, stream_mode="values"):
+                for update in ASK_AGATHA.stream({"input": prompt, "messages": convers, "scratch": scratch}, stream_mode="values"):
                     if objective := update.get("thought"):
                         status.update(label=objective)
                     if context := update.get("scratch"):
@@ -45,6 +45,7 @@ def main():
                 # 
                 convers = state["messages"]
                 st.session_state["messages"] = convers
+                st.session_state["scratch"] = state["scratch"]
                 messages.chat_message("assistant", avatar=avatar).write(convers[-1].content)
             except Exception as e:
                 status.update(state="error", label="Oops... something went wrong")

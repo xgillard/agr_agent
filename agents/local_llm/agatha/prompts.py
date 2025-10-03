@@ -1,10 +1,28 @@
 """prompts to implements the simplified agatha workflow."""
 
+from textwrap import (
+    dedent,
+)
+
 from langchain_core.messages import (
     SystemMessage,
 )
 from langchain_core.prompts import (
     HumanMessagePromptTemplate,
+)
+
+follow_up = HumanMessagePromptTemplate.from_template(
+    dedent(
+        """
+        Considering the above conversation, and considering that the user
+        asked: 
+        
+        '{input}'
+
+        as a follow-up question, reformulate the follow-up question as a
+        fully self-contained, contextualized request from the user.
+        """
+    )
 )
 
 system_prompt = SystemMessage(

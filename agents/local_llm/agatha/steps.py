@@ -50,6 +50,7 @@ from ..common.llm import (
     LLM,
 )
 from .prompts import (
+    follow_up,
     formalize,
     reasoning_step,
     respond,
@@ -71,9 +72,19 @@ def step_initialize(state: AgentState) -> AgentState:
     messages  = state.get("messages", [])
     if not messages:
         messages = [system_prompt]
+    else:
+        state["input"] = (
+            (LLM | StrOutputParser())
+                .invoke(
+                    messages + [ 
+                        follow_up.format(input=state["input"])
+                    ]
+                )
+        )
     
     messages += [ HumanMessage(state["input"]) ]
     return { # type: ignore
+        "input": state["input"],
         "messages": messages,
     }
 
