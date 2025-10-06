@@ -8,49 +8,74 @@ from agents.local_llm.agatha.graph import ASK_AGATHA
 
 avatar = "./avatar.png"
 
-
-def main():
-    #### THIS IS WHERE UI starts
-    st.set_page_config(page_title="Ask Agatha", page_icon=avatar)
+@st.fragment
+def render_page_header():
+    """Render the page header with title and all generic info."""
     
+    st.set_page_config(page_title="Ask Agatha", page_icon=avatar)
     st.image(avatar, width=100)
     st.title("Ask Agatha")
     st.divider()
+
+@st.fragment
+def render_conversation(parent):
+    """Render the user's conversation with AI bot."""
+
+    convers = st.session_state.get("messages", [])
+    for msg in convers:
+        if msg.type == "system":
+            continue
+        elif msg.type in ["assistant", "ai"]:
+            parent.chat_message("assistant", avatar=avatar).write(msg.content)
+        else:
+            parent.chat_message(msg.type).write(msg.content)
+
+def render_status(parent, stream) -> str:
+    """Render the 'thinking' status bar.
+    
+    Args:
+        stream: streaming iterator for the events occuring during the thinking process.
+    """
+
+    with parent.status("Working on your case") as status:
+        try:
+            state = None
+            for update in stream:
+                if objective := update.get("thought"):
+                    status.update(label=objective)
+                if context := update.get("scratch"):
+                    with st.empty():
+                        st.write(context)
+                state = update
+            status.update(state="complete")
+            # 
+            st.session_state["messages"] = state["messages"]
+            st.session_state["scratch"] = state["scratch"]
+            return state["messages"][-1].content
+        except Exception as e:
+            status.update(state="error", label="Oops... something went wrong")
+            st.write(f":red[{repr(e)}]")
+            return "Oops... an error has happened. Sorry"
+
+def main():
+    #### THIS IS WHERE UI starts
+    render_page_header()
     
     messages = st.container()
-    convers  = st.session_state.get("messages", [])
-    scratch  = st.session_state.get("scratch", "")
+    render_conversation(messages)
+    
     if prompt := st.chat_input("Le bon roi dagobert avait-il sa culotte à l'envers ?"):
-        for msg in convers:
-            if msg.type == "system":
-                continue
-            elif msg.type in ["assistant", "ai"]:
-                messages.chat_message("assistant", avatar=avatar).write(msg.content)
-            else:
-                messages.chat_message(msg.type).write(msg.content)
+        request = ASK_AGATHA.stream({
+                "input": prompt, 
+                "messages": st.session_state.get("messages", []), 
+                "scratch": st.session_state.get("scratch", "")
+            },
+            stream_mode="values"
+        )
         
-        messages.chat_message("human").write(prompt)
-
-        with messages.status("Working on your case") as status:
-            try:
-                state = None
-                for update in ASK_AGATHA.stream({"input": prompt, "messages": convers, "scratch": scratch}, stream_mode="values"):
-                    if objective := update.get("thought"):
-                        status.update(label=objective)
-                    if context := update.get("scratch"):
-                        with st.empty():
-                            st.write(context)
-                    state = update
-                status.update(state="complete")
-                # 
-                convers = state["messages"]
-                st.session_state["messages"] = convers
-                st.session_state["scratch"] = state["scratch"]
-                messages.chat_message("assistant", avatar=avatar).write(convers[-1].content)
-            except Exception as e:
-                status.update(state="error", label="Oops... something went wrong")
-                st.write(f":red[{repr(e)}]")
-
+        messages.chat_message("user").write(prompt)   
+        response = render_status(messages, request)
+        messages.chat_message("assistant", avatar=avatar).write(response)
 
 if __name__ == "__main__":
     main()

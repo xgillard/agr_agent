@@ -11,6 +11,18 @@ from langchain_core.prompts import (
     HumanMessagePromptTemplate,
 )
 
+system_prompt = SystemMessage(
+    dedent(
+        """Your name is Arkey. You are an expert AI customer support at the 
+        belgian state archive. You are known for being factual, and always
+        providing reliable information. Whenever you doubt, about a statement
+        you wish to make (e.g. if you haven't had the opportunity to verify the
+        data yourself), you prefer to be transparent about it rather than
+        risking to give erroneous information.
+        """
+    )
+)
+
 follow_up = HumanMessagePromptTemplate.from_template(
     dedent(
         """
@@ -20,69 +32,70 @@ follow_up = HumanMessagePromptTemplate.from_template(
         '{input}'
 
         as a follow-up question, reformulate the follow-up question as a
-        fully self-contained, contextualized request from the user.
+        fully self-contained, contextualized request from the user. Formulate
+        the request as if it were expressed by the user him/herself (which 
+        includes using the user's language).
         """
     )
 )
 
-system_prompt = SystemMessage(
-"""Your name is Arkey. You are an expert AI customer support at the 
-belgian state archive. You are known for being factual, and always
-providing reliable information. Whenever you doubt, about a statement
-you wish to make (e.g. if you haven't had the opportunity to verify the
-data yourself), you prefer to be transparent about it rather than
-risking to give erroneous information.
-""")
+formalize = HumanMessagePromptTemplate.from_template(
+    dedent(
+        """
+        {input}
 
-formalize = HumanMessagePromptTemplate.from_template("""
-{input}
+        < Instructions >
+        Formalize your search criteria.
 
-< Instructions >
-Formalize your search criteria.
+        Whenever you mention a municipality name, it MUST USE either 
+        the French or the Dutch spelling of that name.
 
-Whenever you mention a municipality name, it MUST USE either 
-the French or the Dutch spelling of that name.
+        When a data is unknown, just leave it out. The goal is to formalize only what you know
+        or wish to use as criterion during your search.
+        </ Instructions >
 
-When a data is unknown, just leave it out. The goal is to formalize only what you know
-or wish to use as criterion during your search.
-</ Instructions >
+        < Note >
+        Here is the list of codes you can use in the field "role_code" with their meaning:
+        {role_code_desc}
+                                                            
+        Here is the list of codes you can use in the field "type_of_record_code" with their meaning:
+        {type_of_record_code_desc}
+                                                            
+        Please be extra-careful to use the appropriate code as they are case sensitive. 
+        
+        **IMPORTANT** 
+        Baptism-related documents types and baptism-related roles CANNOT BE USED find records posterior to anno 1796.
+        Searching a Baptism certificate, or searching a Baptised-Child in 1797 or after is GUARANTEED TO FAIL.
+        </ Note >
 
-< Note >
-Here is the list of codes you can use in the field "role_code" with their meaning:
-{role_code_desc}
-                                                     
-Here is the list of codes you can use in the field "type_of_record_code" with their meaning:
-{type_of_record_code_desc}
-                                                     
-Please be extra-careful to use the appropriate code as they are case sensitive.
-</ Note >
+        < Examples >
+        >>> I would like to find the birth certificate of Wim Van Piperzeel
+        >>> who was born in Sterrebeek in the early 1800.
+        ```
+        {{
+            "municipality_name": "Sterrebeek",
+            "type_of_record_code": "BS_G",
+            "people": [
+                {{ "first_name": "Wim", "family_name": "Van Piperzeel", "role_code": "20"}}
+            ],
+            "min_document_date_formatted_as_yyyy_mm_dd": "1800-01-01",
+            "max_document_date_formatted_as_yyyy_mm_dd": "1810-12-31"
+        }}
+        ```
 
-< Examples >
->>> I would like to find the birth certificate of Wim Van Piperzeel
->>> who was born in Sterrebeek in the early 1800.
-```
-{{
-    "municipality_name": "Sterrebeek",
-    "type_of_record_code": "BS_G",
-    "people": [
-        {{ "first_name": "Wim", "family_name": "Van Piperzeel", "role_code": "20"}}
-    ],
-    "min_document_date_formatted_as_yyyy_mm_dd": "1800-01-01",
-    "max_document_date_formatted_as_yyyy_mm_dd": "1810-12-31"
-}}
-```
-
->>> I would like to find the marriage notice of my great grand father Olivier Outsiplout.
-```
-{{
-    "type_of_record_code": "BS_Hp",
-    "people": [
-        {{ "first_name": "Olivier", "family_name": "Olivier Outsiplout", "role_code": "2"}}
-    ],
-}}
-```
-</ Examples >
-""")
+        >>> I would like to find the marriage notice of my great grand father Olivier Outsiplout.
+        ```
+        {{
+            "type_of_record_code": "BS_Hp",
+            "people": [
+                {{ "first_name": "Olivier", "family_name": "Olivier Outsiplout", "role_code": "2"}}
+            ],
+        }}
+        ```
+        </ Examples >
+        """
+    )
+)
 
 
 what_objective = HumanMessagePromptTemplate.from_template(
@@ -185,8 +198,12 @@ as a placeholder for a date that is not known.
 reasoning_step = """
 {scratch}
 
-Objective: {thought}
+**Objective: {thought}**
+
 Action: I have used {call_tool} as follows
+
 {call_request}
+
 Result: {summary}
+
 """
