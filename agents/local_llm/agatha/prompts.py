@@ -25,8 +25,7 @@ system_prompt = SystemMessage(
 
 enough_information = SystemMessagePromptTemplate.from_template(
     dedent(
-        """
-        {context}
+        """{context}
 
         < Instructions >
         Do you need to gather more data in order to give a grounded response to 
@@ -37,47 +36,48 @@ enough_information = SystemMessagePromptTemplate.from_template(
 )
 
 what_objective = SystemMessagePromptTemplate.from_template(
-"""
-{context}
+    dedent(
+        """{context}
 
-< Tools >
-{tools_descr}
-</ Tools >
+        < Tools >
+        {tools_descr}
+        </ Tools >
 
-< Instructions >
-What is your current partial objective ?
+        < Instructions >
+        What is your current partial objective ?
 
-Your response must be formatted as a user story that provides all the necessary context.
-It should adhere to one of the following schemas:
+        Your response must be formatted as a user story that provides all the necessary context.
+        It should adhere to one of the following schemas:
 
-    - I want to find the help section about [WHAT] in the user manual.
-    - I want to find the FAQ section related to [TOPIC].
-    - I want to find the details of [WHAT] where [RELEVANT FACTS].
-    - I want to find the details of [WHAT] where [RELEVANT FACTS] in [YEAR].
-    - I want to find the details of [WHAT] where [RELEVANT FACTS] between [YEAR] and [YEAR].
-    - I want to find the details of [WHAT] where [RELEVANT FACTS] before [YEAR].
-    - I want to find the details of [WHAT] where [RELEVANT FACTS] after [YEAR].
-    - I want to find a digitized scan of [WHAT] that happened in [MUNICIPALITY] in [YEAR].
-    - I want to find a digitized scan of [WHAT] that happened in [MUNICIPALITY] between [YEAR] and [YEAR].
-    - I want to find a digitized scan of [WHAT] that happened in [MUNICIPALITY] before [YEAR].
-    - I want to find a digitized scan of [WHAT] that happened in [MUNICIPALITY] after [YEAR].
-    - I want to stop and send my definitive response to the user.
+            - I want to find the help section about [WHAT] in the user manual.
+            - I want to find the FAQ section related to [TOPIC].
+            - I want to find the details of [WHAT] where [RELEVANT FACTS].
+            - I want to find the details of [WHAT] where [RELEVANT FACTS] in [YEAR].
+            - I want to find the details of [WHAT] where [RELEVANT FACTS] between [YEAR] and [YEAR].
+            - I want to find the details of [WHAT] where [RELEVANT FACTS] before [YEAR].
+            - I want to find the details of [WHAT] where [RELEVANT FACTS] after [YEAR].
+            - I want to find a digitized scan of [WHAT] that happened in [MUNICIPALITY] in [YEAR].
+            - I want to find a digitized scan of [WHAT] that happened in [MUNICIPALITY] between [YEAR] and [YEAR].
+            - I want to find a digitized scan of [WHAT] that happened in [MUNICIPALITY] before [YEAR].
+            - I want to find a digitized scan of [WHAT] that happened in [MUNICIPALITY] after [YEAR].
 
-**Notes**
-    * All placeholders from the templates must be instantiated with known facts. Hence, if a template you want 
-        to uses requires data which you have not explicitly seen before, it means that you CANNOT USE THAT TEMPLATE. 
-    * When specifying a date range in your user story, be as specific as possible (2-3 years).
-        Any period that is longer than that will lead to incomplete results as the full list might be truncated.    
+        **Notes**
+            * All placeholders from the templates must be instantiated with known facts. Hence, if a template you want 
+                to uses requires data which you have not explicitly seen before, it means that you CANNOT USE THAT TEMPLATE.
+            * When specifying a date range in your user story, be as specific as possible (2-3 years).
+                Any period that is longer than that will lead to incomplete results as the full list might be truncated.
 
-You can only search for ONE piece of information at a time. So you can only express one single user 
-story in your response.
-</ Instructions >
-""")
+        You can only search for ONE piece of information at a time. So you can only express one single user 
+        story in your response. As soon as you have gathered sufficient data, your objective should be to respond to 
+        the user's request.
+        </ Instructions >
+        """  # noqa: E501
+    )
+)
 
 analyze_tool = SystemMessagePromptTemplate.from_template(
     dedent(
-        """
-        {context}
+        """{context}
         
         < Tools >
         {tool_descr}
@@ -93,8 +93,7 @@ analyze_tool = SystemMessagePromptTemplate.from_template(
 
 select_tool = SystemMessagePromptTemplate.from_template(
     dedent(
-        """
-        {context}
+        """{context}
         
         < Tools >
         {tool_descr}
@@ -114,8 +113,7 @@ select_tool = SystemMessagePromptTemplate.from_template(
 
 search_terms = SystemMessagePromptTemplate.from_template(
     dedent(
-        """
-        {context}
+        """{context}
 
         < Instructions >
         What search terms to you wish to use ?
@@ -134,8 +132,7 @@ search_terms = SystemMessagePromptTemplate.from_template(
 
 
 respond = SystemMessagePromptTemplate.from_template(
-    dedent("""
-           {context}
+    dedent("""{context}
 
            < Instructions >
            Respond to the user's original request. Respond in the user's language.
@@ -148,38 +145,42 @@ respond = SystemMessagePromptTemplate.from_template(
     )
 )
 
-summarize = SystemMessagePromptTemplate.from_template("""
-{context}
+summarize = SystemMessagePromptTemplate.from_template(
+    dedent(
+        """{context}
                                                      
-< LatestSearch >
-Action: I have used {call_tool} with the following parameters:
-{call_request}
-                                                     
-Result: Here is the raw data from the original sources
-{call_data}
-</ LatestSearch >
+        < LatestSearch >
+        Action: I have used {call_tool} with the following parameters:
+        {call_request}
+                                                            
+        Result: Here is the raw data from the original sources
+        {call_data}
+        </ LatestSearch >
 
-< Instructions >
-Summarize the relevant information from the latest search so that I can memorize only those facts which are
-relevant to satisfying the original user's request. Feel free to make any observation you deem
-useful about the data. Do not respond to the user's request just yet. Focus on organizing your thought process.
-</ Instructions >
-                                                     
-< Note >
-Whenever a date mentioned in the results is in a far away future (e.g. 2999-12-31), it has to be interpreted
-as a placeholder for a date that is not known.
-</ Note >
-""")
+        < Instructions >
+        Summarize the relevant information from the latest search so that I can memorize only those facts which are
+        relevant to satisfying the original user's request. Feel free to make any observation you deem
+        useful about the data. Do not respond to the user's request just yet. Focus on organizing your thought process.
+        </ Instructions >
+                                                            
+        < Note >
+        Whenever a date mentioned in the results is in a far away future (e.g. 2999-12-31), it has to be interpreted
+        as a placeholder for a date that is not known.
+        </ Note >
+        """
+    )
+)
 
-reasoning_step = """
-{scratch}
+reasoning_step = dedent(
+    """{scratch}
 
-**Objective: {thought}**
+    **Objective: {thought}**
 
-Action: I have used {call_tool} as follows
+    Action: I have used {call_tool} as follows
 
-{call_request}
+    {call_request}
 
-Result: {summary}
+    Result: {summary}
 
-"""
+    """
+)

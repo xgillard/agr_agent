@@ -38,24 +38,24 @@ def render_status(parent, stream) -> str:
     """
 
     with parent.status("Working on your case") as status:
-        try:
-            state = None
-            for update in stream:
-                if objective := update.get("thought"):
-                    status.update(label=objective)
-                if context := update.get("scratch"):
-                    with st.empty():
+        with st.empty():
+            try:
+                state = None
+                for update in stream:
+                    if objective := update.get("thought"):
+                        status.update(label=objective)
+                    if context := update.get("scratch"):
                         st.write(context)
-                state = update
-            status.update(state="complete")
-            # 
-            st.session_state["messages"] = state["messages"]
-            st.session_state["scratch"] = state["scratch"]
-            return state["messages"][-1].content
-        except Exception as e:
-            status.update(state="error", label="Oops... something went wrong")
-            st.write(f":red[{repr(e)}]")
-            return "Oops... an error has happened. Sorry"
+                    state = update
+                status.update(state="complete")
+                # 
+                st.session_state["messages"] = state["messages"]
+                st.session_state["scratch"] = state["scratch"]
+                return state["messages"][-1].content
+            except Exception as e:
+                status.update(state="error", label="Oops... something went wrong")
+                st.write(f":red[{repr(e)}]")
+                return "Oops... an error has happened. Sorry"
 
 def main():
     #### THIS IS WHERE UI starts

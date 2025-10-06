@@ -67,6 +67,7 @@ AGATHA_HELP = agatha_help()
 
 def step_initialize(state: AgentState) -> AgentState:
     messages  = state.get("messages", [])
+    
     if not messages:
         messages = [system_prompt]
 
@@ -103,12 +104,11 @@ def _build_context(state: AgentState) -> str:
     context   = ""
     scratch   = state.get("scratch")
     objective = state.get("thought")
-
     if scratch:
-        context += f"\n# Research\n{scratch}\n"
+        context += f"\n# Previous Research\n{scratch}\n"
     
     if objective:
-        context += f"\n# Current Objective\n{objective}\n"
+        context += f"\n\n# Current Partial Objective\n{objective}\n"
 
     if context:
         context = f"\n< Context >\n{context}\n</ Context >\n"
