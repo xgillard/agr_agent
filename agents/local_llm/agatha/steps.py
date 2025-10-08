@@ -1,8 +1,5 @@
 """steps that implements the simplified agatha workflow."""
 
-from textwrap import (
-    indent,
-)
 from typing import (
     Literal,
     cast,
@@ -103,12 +100,10 @@ def cond_enough_info(state: AgentState) -> Literal["Respond", "Set Objective"]:
 def _build_context(state: AgentState) -> str:
     """Build a self-contained context for use in prompts."""
 
-    user_rq   = state.get("input")
+    context   = ""
     scratch   = state.get("scratch")
     objective = state.get("thought")
-    
-    context = f"# User Request\n{user_rq}\n"
-    
+
     if scratch:
         context += f"\n# Research\n{scratch}\n"
     
@@ -124,7 +119,7 @@ def step_set_objective(state: AgentState) -> AgentState:
     n = state.get("n", 0) 
 
     rsp =  (LLM | StrOutputParser()).invoke(
-        [ what_objective.format(
+        state["messages"] + [ what_objective.format(
             context     = _build_context(state),
             tools_descr = AvailableData.all_tools(),
         ) ]
@@ -160,7 +155,7 @@ def cond_what_tool(state: AgentState) -> _Tool:
     rsp = cast(ToolChoice,  (
         LLM .with_structured_output(ToolChoice)
             .invoke(
-            [ select_tool.format(
+            state["messages"] + [ select_tool.format(
                 context=context,
                 tool_descr=tool_descr,
                 evaluation=evaluation,
@@ -281,7 +276,7 @@ def tool_analyses_free_search(state: AgentState) -> AgentState:
 
     terms =  (
         (LLM | StrOutputParser())
-            .invoke([search_terms.format(context=context)])
+            .invoke(state["messages"] + [search_terms.format(context=context)])
     )
 
     call_request = AnalysesFreeSearchRequest(
@@ -343,7 +338,7 @@ def tool_online_help(state: AgentState) -> AgentState:
 def step_respond(state: AgentState) -> AgentState:
     context = _build_context(state)
     rsp =  (LLM | StrOutputParser()).invoke(
-        [ respond.format(context=context) ]
+        state["messages"] + [ respond.format(context=context) ]
     )
     return {"messages": AIMessage(rsp), "output": rsp} # type: ignore
 
@@ -372,7 +367,7 @@ def step_observation(state: AgentState) -> AgentState:
 
     summary  =  (
         (LLM | StrOutputParser())
-        .invoke( [ 
+        .invoke( state["messages"] + [ 
             summarize.format(
                 context = context,
                 call_tool = call_tool,
@@ -390,5 +385,5 @@ def step_observation(state: AgentState) -> AgentState:
         summary=summary,
     )
 
-    return { "scratch": scratch, "thought": None, "call_data": None } # type: ignore
+    return { "scratch": scratch.strip(), "thought": None, "call_data": None } # type: ignore
 

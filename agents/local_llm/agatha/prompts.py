@@ -19,13 +19,6 @@ system_prompt = SystemMessage(
         you wish to make (e.g. if you haven't had the opportunity to verify the
         data yourself), you prefer to be transparent about it rather than
         risking to give erroneous information.
-
-        **IMPORTANT**
-        Whenever you make a statement, or when you give an url back to the user, 
-        you must have seen the information in an official source. These information
-        will be made available to you through the **Context** where you jot down
-        your ideas and previous investigations. FAILING TO COMPLY WITH THIS REQUIREMENT
-        WILL GET YOU FIRED.
         """
     )
 )
@@ -119,26 +112,41 @@ select_tool = SystemMessagePromptTemplate.from_template(
     )
 )
 
-search_terms = SystemMessagePromptTemplate.from_template("""
-{context}
+search_terms = SystemMessagePromptTemplate.from_template(
+    dedent(
+        """
+        {context}
 
-< Instructions >
-What search terms to you wish to use ?
-These should be thought of as a means to perform a fulltext search. Wildcards ? and * 
-are authorized. Grouping is done by squaring an expression with double quotes ".
-Keywords must be separated by spaces only. 
-Respond with your search terms only. 
-</ Instructions >
-""")
+        < Instructions >
+        What search terms to you wish to use ?
+        These should be thought of as a means to perform a fulltext search. Wildcards ? and * 
+        are authorized. Grouping is done by squaring an expression with double quotes ".
+        Keywords must be separated by spaces only. 
+        Respond with your search terms only. 
+
+        **Important** 
+        The time period and municipality MAY NOT BE INCLUDED in the search tearm. Failing to
+        comply with this rule is GUARANTEED TO YIELD NO RESULT.
+        </ Instructions >
+        """
+    )
+)
 
 
-respond = SystemMessagePromptTemplate.from_template("""
-{context}
+respond = SystemMessagePromptTemplate.from_template(
+    dedent("""
+           {context}
 
-< Instructions >
-Respond to the user's original request. Respond in the user's language.
-</ Instructions>
-""")
+           < Instructions >
+           Respond to the user's original request. Respond in the user's language.
+                                                                
+           **IMPORTANT**
+           Any link you cite or provide to the user **MUST COME FROM THE CONTEXT**. 
+           YOU MAY NOT ASSUME THAT AN URL CAN BE BUILT BASED ON AN IDENTIFIER.
+           </ Instructions>
+           """
+    )
+)
 
 summarize = SystemMessagePromptTemplate.from_template("""
 {context}
