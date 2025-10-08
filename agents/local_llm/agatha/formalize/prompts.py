@@ -58,7 +58,7 @@ period_of_interest = SystemMessagePromptTemplate.from_template(
         < Instructions >
         What period you you wish to use in your search criteria.
 
-        When a data is unknown, just leave it out.
+        If you are not sure of which min/max date to use, leave the field blank. 
         </ Instructions >
 
         < Examples >
@@ -72,11 +72,11 @@ period_of_interest = SystemMessagePromptTemplate.from_template(
         ```
 
         >>> I would like to find the marriage notice of my great grand father Olivier Outsiplout
-        >>> and his wife Maria Hermans.
+        >>> and his wife Maria Hermans (and I don't know when it was).
         ```
         {{
-            "min_date_formatted_as_yyyy_mm_dd": none,
-            "max_date_formatted_as_yyyy_mm_dd": none
+            "min_date_formatted_as_yyyy_mm_dd": "",
+            "max_date_formatted_as_yyyy_mm_dd": ""
         }}
         ```
         </ Examples >

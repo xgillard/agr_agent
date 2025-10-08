@@ -66,7 +66,10 @@ ANALYSES_FREE_SEARCH_ID = "Analyses of Records / Free Search"
 ANALYSES_FREE_SEARCH_DESCR = """
     * 'Analyses of Records / Free Search': this will let you 
         perform a fulltext search to retrieve documents based
-        on their content.
+        on their content. It lets you specify criteria on:
+            - search terms
+            - municipality name
+            - time period
         
         Each result entry provides the following information: 
 
@@ -80,13 +83,17 @@ ANALYSES_FREE_SEARCH_DESCR = """
             - act_date (str): the date when this administrative act actually took place.
             - remarks (str): some remarks about this act
             - persons (list[AnalysesPerson]): people mentioned in the document.
+        
+        This tool does not however give you an access to scan of the documents but it can
+        be useful to find the information required to narrow the search with other tools.
 """
 
 ANALYSES_SEARCH_PERSON_ID = "Analyses of Records / Search Person"
 ANALYSES_SEARCH_PERSON_DESCR = """
     * 'Analyses of Records / Search Person': this will let you retrieve documents by placing
-        criterion on the people who were mentioned in the documents, their names, profession,
-        and roles.
+        criterion on the people who were mentioned in the documents, their names, first names,
+        profession, and roles. In addition to criteria on the people, this tool lets you specify
+        criteria bearing on the municipality name and the time period.
         
         Each result entry provides the following information: 
 
@@ -100,6 +107,9 @@ ANALYSES_SEARCH_PERSON_DESCR = """
             - act_date (str): the date when this administrative act actually took place.
             - remarks (str): some remarks about this act
             - persons (list[AnalysesPerson]): people mentioned in the document.
+        
+        This tool does not however give you an access to scan of the documents but it can
+        be useful to find the information required to narrow the search with other tools.
 """
 
 GENEA_CHURCH_ID = "Genealogical sources / Church Registers"

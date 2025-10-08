@@ -19,22 +19,26 @@ system_prompt = SystemMessage(
         you wish to make (e.g. if you haven't had the opportunity to verify the
         data yourself), you prefer to be transparent about it rather than
         risking to give erroneous information.
+
+        **IMPORTANT**
+        Whenever you make a statement, or when you give an url back to the user, 
+        you must have seen the information in an official source. These information
+        will be made available to you through the **Context** where you jot down
+        your ideas and previous investigations. FAILING TO COMPLY WITH THIS REQUIREMENT
+        WILL GET YOU FIRED.
         """
     )
 )
 
-follow_up = SystemMessagePromptTemplate.from_template(
+enough_information = SystemMessagePromptTemplate.from_template(
     dedent(
         """
-        Considering the above conversation, and considering that the user
-        asked: 
-        
-        '{input}'
+        {context}
 
-        as a follow-up question, reformulate the follow-up question as a
-        fully self-contained, contextualized request from the user. Formulate
-        the request as if it were expressed by the user him/herself (which 
-        includes using the user's language).
+        < Instructions >
+        Do you need to gather more data in order to give a grounded response to 
+        the user's latest request ? (yes, no)
+        </ Instructions >
         """
     )
 )
@@ -108,7 +112,8 @@ select_tool = SystemMessagePromptTemplate.from_template(
         </ YourEvaluation >
 
         < Instructions >
-        Based on your evaluation, state which resource is the single best choice.
+        Based on your evaluation, state which resource is the single best choice. 
+        (Select one option among: {tool_names})
         </ Instructions >
         """
     )

@@ -13,6 +13,7 @@ from .schemas import (
     AgentState,
 )
 from .steps import (
+    cond_enough_info,
     cond_what_tool,
     step_initialize,
     step_observation,
@@ -40,7 +41,7 @@ ASK_AGATHA = (
         .add_node("Respond", step_respond)
         .add_node("Observation", step_observation)
         #
-        .add_edge("Initialize", "Set Objective")
+        .add_conditional_edges("Initialize", cond_enough_info)
         .add_edge("Set Objective", "Formalize")
         .add_conditional_edges("Formalize", cond_what_tool)
         .add_edge("Analyses of Records / Free Search", "Observation")
@@ -48,7 +49,7 @@ ASK_AGATHA = (
         .add_edge("Genealogical sources / Church Registers", "Observation")
         .add_edge("Genealogical sources / Civil State Registers", "Observation")
         .add_edge("Online Help Resources", "Observation")
-        .add_edge("Observation", "Set Objective")
+        .add_conditional_edges("Observation", cond_enough_info)
         .add_edge("Respond", END)
         .compile()
 )

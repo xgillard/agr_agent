@@ -51,7 +51,7 @@ from ..common.llm import (
 )
 from .prompts import (
     analyze_tool,
-    follow_up,
+    enough_information,
     reasoning_step,
     respond,
     search_terms,
@@ -72,21 +72,32 @@ def step_initialize(state: AgentState) -> AgentState:
     messages  = state.get("messages", [])
     if not messages:
         messages = [system_prompt]
-    else:
-        state["input"] = (
-            (LLM | StrOutputParser())
-                .invoke(
-                    messages + [ 
-                        follow_up.format(input=state["input"])
-                    ]
-                )
-        )
-    
+
     messages += [ HumanMessage(state["input"]) ]
     return { # type: ignore
         "input": state["input"],
         "messages": messages,
     }
+
+
+def cond_enough_info(state: AgentState) -> Literal["Respond", "Set Objective"]:
+    # circuit breaker
+    n = state.get("n", 0) 
+    if n >= 5:
+        return "Respond"
+    
+    context = _build_context(state)
+    response= (
+        LLM.with_structured_output(
+            {"properties": {"choice": {"enum": ["yes", "no"]}}}
+        )
+        .invoke(state["messages"] + [
+            enough_information.format(
+                context=context
+            )
+        ])
+    )
+    return "Respond" if response.get("choice", "no").lower() == "no" else "Set Objective"
 
 
 def _build_context(state: AgentState) -> str:
@@ -126,26 +137,17 @@ _Tool = Literal[
     "Analyses of Records / Search Person", 
     "Genealogical sources / Church Registers",
     "Genealogical sources / Civil State Registers",
-    "Online Help Resources", 
-    "Respond",
+    "Online Help Resources",
 ]
 
 class ToolChoice(BaseModel):
     tool_name: _Tool
 
 def cond_what_tool(state: AgentState) -> _Tool:
-    # circuit breaker
-    n = state.get("n", 0) 
-    if n >= 5:
-        return "Respond"
-    
     context = _build_context(state)
     #
     available_data = state.get("available_data", AvailableData())
     tool_descr, tool_names = available_data.available_tools()
-    #
-    tool_descr += "* 'Respond' if you think you are ready to respond to the user"
-    tool_names.append("Respond")
 
     evaluation = (LLM | StrOutputParser()).invoke(
         state["messages"] + [
@@ -162,6 +164,7 @@ def cond_what_tool(state: AgentState) -> _Tool:
                 context=context,
                 tool_descr=tool_descr,
                 evaluation=evaluation,
+                tool_names=tool_names,
             ) ])
     ))
     return cast(_Tool, rsp.tool_name)
