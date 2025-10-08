@@ -1,13 +1,19 @@
 """graph that implements the simplified agatha workflow."""
 
-from langgraph.graph import END, START, StateGraph
+from langgraph.graph import (
+    END,
+    START,
+    StateGraph,
+)
 
+from .formalize.graph import (
+    FORMALIZE,
+)
 from .schemas import (
     AgentState,
 )
 from .steps import (
     cond_what_tool,
-    step_formalize,
     step_initialize,
     step_observation,
     step_respond,
@@ -25,7 +31,7 @@ ASK_AGATHA = (
         #
         .add_node("Initialize", step_initialize)
         .add_node("Set Objective", step_set_objective)
-        .add_node("Formalize",  step_formalize)
+        .add_node("Formalize",  FORMALIZE)
         .add_node("Analyses of Records / Free Search", tool_analyses_free_search)
         .add_node("Analyses of Records / Search Person", tool_analyses_search_person)
         .add_node("Genealogical sources / Church Registers", tool_genea_church)

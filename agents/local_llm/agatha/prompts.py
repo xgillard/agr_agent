@@ -8,7 +8,7 @@ from langchain_core.messages import (
     SystemMessage,
 )
 from langchain_core.prompts import (
-    HumanMessagePromptTemplate,
+    SystemMessagePromptTemplate,
 )
 
 system_prompt = SystemMessage(
@@ -23,7 +23,7 @@ system_prompt = SystemMessage(
     )
 )
 
-follow_up = HumanMessagePromptTemplate.from_template(
+follow_up = SystemMessagePromptTemplate.from_template(
     dedent(
         """
         Considering the above conversation, and considering that the user
@@ -39,66 +39,7 @@ follow_up = HumanMessagePromptTemplate.from_template(
     )
 )
 
-formalize = HumanMessagePromptTemplate.from_template(
-    dedent(
-        """
-        {input}
-
-        < Instructions >
-        Formalize your search criteria.
-
-        Whenever you mention a municipality name, it MUST USE either 
-        the French or the Dutch spelling of that name.
-
-        When a data is unknown, just leave it out. The goal is to formalize only what you know
-        or wish to use as criterion during your search.
-        </ Instructions >
-
-        < Note >
-        Here is the list of codes you can use in the field "role_code" with their meaning:
-        {role_code_desc}
-                                                            
-        Here is the list of codes you can use in the field "type_of_record_code" with their meaning:
-        {type_of_record_code_desc}
-                                                            
-        Please be extra-careful to use the appropriate code as they are case sensitive. 
-        
-        **IMPORTANT** 
-        Baptism-related documents types and baptism-related roles CANNOT BE USED find records posterior to anno 1796.
-        Searching a Baptism certificate, or searching a Baptised-Child in 1797 or after is GUARANTEED TO FAIL.
-        </ Note >
-
-        < Examples >
-        >>> I would like to find the birth certificate of Wim Van Piperzeel
-        >>> who was born in Sterrebeek in the early 1800.
-        ```
-        {{
-            "municipality_name": "Sterrebeek",
-            "type_of_record_code": "BS_G",
-            "people": [
-                {{ "first_name": "Wim", "family_name": "Van Piperzeel", "role_code": "20"}}
-            ],
-            "min_document_date_formatted_as_yyyy_mm_dd": "1800-01-01",
-            "max_document_date_formatted_as_yyyy_mm_dd": "1810-12-31"
-        }}
-        ```
-
-        >>> I would like to find the marriage notice of my great grand father Olivier Outsiplout.
-        ```
-        {{
-            "type_of_record_code": "BS_Hp",
-            "people": [
-                {{ "first_name": "Olivier", "family_name": "Olivier Outsiplout", "role_code": "2"}}
-            ],
-        }}
-        ```
-        </ Examples >
-        """
-    )
-)
-
-
-what_objective = HumanMessagePromptTemplate.from_template(
+what_objective = SystemMessagePromptTemplate.from_template(
 """
 {context}
 
@@ -136,22 +77,44 @@ story in your response.
 </ Instructions >
 """)
 
-what_tool = HumanMessagePromptTemplate.from_template(
-""""
-{context}
+analyze_tool = SystemMessagePromptTemplate.from_template(
+    dedent(
+        """
+        {context}
+        
+        < Tools >
+        {tool_descr}
+        </ Tools >
 
-< Tools >
-{tool_descr}
-</ Tools >
+        < Instructions >
+        Go through the list of available resources. For each one, determine if it's a good fit to achieve the 
+        **Current Partial Objective** using the given **Context** information. Explain your reasoning in one sentence.
+        </ Instructions >
+        """
+    )
+)
 
-< Instructions >
-What tool should you use now ?
+select_tool = SystemMessagePromptTemplate.from_template(
+    dedent(
+        """
+        {context}
+        
+        < Tools >
+        {tool_descr}
+        </ Tools >
+        
+        < YourEvaluation >
+        {evaluation}
+        </ YourEvaluation >
 
-(Select one option among: {tool_names})
-</ Instructions >
-""")
+        < Instructions >
+        Based on your evaluation, state which resource is the single best choice.
+        </ Instructions >
+        """
+    )
+)
 
-search_terms = HumanMessagePromptTemplate.from_template("""
+search_terms = SystemMessagePromptTemplate.from_template("""
 {context}
 
 < Instructions >
@@ -164,7 +127,7 @@ Respond with your search terms only.
 """)
 
 
-respond = HumanMessagePromptTemplate.from_template("""
+respond = SystemMessagePromptTemplate.from_template("""
 {context}
 
 < Instructions >
@@ -172,7 +135,7 @@ Respond to the user's original request. Respond in the user's language.
 </ Instructions>
 """)
 
-summarize = HumanMessagePromptTemplate.from_template("""
+summarize = SystemMessagePromptTemplate.from_template("""
 {context}
                                                      
 < LatestSearch >

@@ -50,15 +50,15 @@ from ..common.llm import (
     LLM,
 )
 from .prompts import (
+    analyze_tool,
     follow_up,
-    formalize,
     reasoning_step,
     respond,
     search_terms,
+    select_tool,
     summarize,
     system_prompt,
     what_objective,
-    what_tool,
 )
 from .schemas import (
     AgentState,
@@ -109,28 +109,6 @@ def _build_context(state: AgentState) -> str:
     
     return context
 
-def step_formalize(state: AgentState) -> AgentState:
-    context = _build_context(state)
-
-    role_code_desc = indent(AnalysesActRole.code_descriptions(), "  ")
-    type_of_record_code_desc = indent(AnalysesActType.code_descriptions(), "  ")
-
-    available = cast(AvailableData, (
-        LLM.with_structured_output(AvailableData)
-        .invoke([
-            formalize.format(
-                input=context,
-                role_code_desc=role_code_desc,
-                type_of_record_code_desc=type_of_record_code_desc,
-            )
-        ])
-    ))
-
-    return { # type: ignore
-        "available_data": available, 
-    }
-
-
 def step_set_objective(state: AgentState) -> AgentState:
     n = state.get("n", 0) 
 
@@ -169,13 +147,21 @@ def cond_what_tool(state: AgentState) -> _Tool:
     tool_descr += "* 'Respond' if you think you are ready to respond to the user"
     tool_names.append("Respond")
 
+    evaluation = (LLM | StrOutputParser()).invoke(
+        state["messages"] + [
+            analyze_tool.format(
+                context=context,
+                tool_descr=tool_descr,
+            )
+        ]
+    )
     rsp = cast(ToolChoice,  (
         LLM .with_structured_output(ToolChoice)
             .invoke(
-            [ what_tool.format(
+            [ select_tool.format(
                 context=context,
                 tool_descr=tool_descr,
-                tool_names=tool_names,
+                evaluation=evaluation,
             ) ])
     ))
     return cast(_Tool, rsp.tool_name)
