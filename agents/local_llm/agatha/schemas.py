@@ -70,21 +70,8 @@ ANALYSES_FREE_SEARCH_DESCR = """
             - search terms
             - municipality name
             - time period
-        
-        Each result entry provides the following information: 
 
-            - act_id (str): globally unique identifier of this administrative act
-            - act_number (Optional[str]): act number that was used by the archive producer
-            - project (AnalysesProject): the project that led to the analysis of this record
-            - actplace (Optional[str]): the place where this act officially happened
-            - parish (Optional[str]): the parish where this act officially happened (if relevant)
-            - editorial_form (str): the type of document
-            - description (str): a brief description of this document
-            - act_date (str): the date when this administrative act actually took place.
-            - remarks (str): some remarks about this act
-            - persons (list[AnalysesPerson]): people mentioned in the document.
-        
-        This tool does not however give you an access to scan of the documents but it can
+        This tool does not give you an access to scan of the documents but it can
         be useful to find the information required to narrow the search with other tools.
 """
 
@@ -95,20 +82,7 @@ ANALYSES_SEARCH_PERSON_DESCR = """
         profession, and roles. In addition to criteria on the people, this tool lets you specify
         criteria bearing on the municipality name and the time period.
         
-        Each result entry provides the following information: 
-
-            - act_id (str): globally unique identifier of this administrative act
-            - act_number (Optional[str]): act number that was used by the archive producer
-            - project (AnalysesProject): the project that led to the analysis of this record
-            - actplace (Optional[str]): the place where this act officially happened
-            - parish (Optional[str]): the parish where this act officially happened (if relevant)
-            - editorial_form (str): the type of document
-            - description (str): a brief description of this document
-            - act_date (str): the date when this administrative act actually took place.
-            - remarks (str): some remarks about this act
-            - persons (list[AnalysesPerson]): people mentioned in the document.
-        
-        This tool does not however give you an access to scan of the documents but it can
+        This tool does not give you an access to scan of the documents but it can
         be useful to find the information required to narrow the search with other tools.
 """
 
@@ -117,16 +91,10 @@ GENEA_CHURCH_DESCR = """
     * 'Genealogical sources / Church Registers': this will let you find digitized scans of 
         the original church registers where official acts have been consigned prior to 1796. 
         This is often helpful in order to find the scan of a specific act. 
-    
-        Each result entry provides the following information: 
 
-            - description (str): Description of the document.
-            - start_date (str): Day of the first act recorded in this document
-            - end_date (str): Day of the last act recorded in 
-            - last_update (str): Date when this archive was last modified
-            - notes (str): Remarks and notes about this document
-            - available (bool): Is this document available for online consultation
-            - url (Optional[str]): URL where this document can be consulted (if available)
+        This tool cannot give you a direct access to scan of an individual document, but
+        it does give you an access to the scan of complete registers and indexes. Browsing 
+        these is how users can access scans of the specific acts they wish to find.
 """
 
 GENEA_CIVIL_ID = "Genealogical sources / Civil State Registers"
@@ -134,16 +102,10 @@ GENEA_CIVIL_DESCR = """
     * 'Genealogical sources / Civil State Registers': this will let you find digitized scans of 
         the original civil state registers where official acts have been consigned since 1796. 
         This is often helpful in order to find the scan of a specific act. 
-    
-        Each result entry provides the following information: 
-
-            - description (str): Description of the document.
-            - start_date (str): Day of the first act recorded in this document
-            - end_date (str): Day of the last act recorded in 
-            - last_update (str): Date when this archive was last modified
-            - notes (str): Remarks and notes about this document
-            - available (bool): Is this document available for online consultation
-            - url (Optional[str]): URL where this document can be consulted (if available)
+        
+        This tool cannot give you a direct access to scan of an individual document, but
+        it does give you an access to the scan of complete registers and indexes. Browsing 
+        these is how users can access scans of the specific acts they wish to find.
 """
 
 class PersonData(BaseModel):
@@ -314,3 +276,6 @@ class AgentState(MessagesState):
     call_data: Any
 
     n: int
+
+class YesNoChoice(BaseModel):
+    choice: Literal["yes", "no"]

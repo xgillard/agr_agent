@@ -61,6 +61,7 @@ from .schemas import (
     AgentState,
     AvailableData,
     PersonData,
+    YesNoChoice,
 )
 
 AGATHA_HELP = agatha_help()
@@ -85,17 +86,15 @@ def cond_enough_info(state: AgentState) -> Literal["Respond", "Set Objective"]:
         return "Respond"
     
     context = _build_context(state)
-    response= (
-        LLM.with_structured_output(
-            {"properties": {"choice": {"enum": ["yes", "no"]}}}
-        )
+    response= cast(YesNoChoice,
+        LLM.with_structured_output(YesNoChoice)
         .invoke(state["messages"] + [
             enough_information.format(
                 context=context
             )
         ])
     )
-    return "Respond" if response.get("choice", "no").lower() == "no" else "Set Objective"
+    return "Respond" if response.choice.lower() == "no" else "Set Objective"
 
 
 def _build_context(state: AgentState) -> str:

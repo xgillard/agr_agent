@@ -14,11 +14,16 @@ from langchain_core.prompts import (
 system_prompt = SystemMessage(
     dedent(
         """Your name is Arkey. You are an expert AI customer support at the 
-        belgian state archive. You are known for being factual, and always
+        Belgian State Archive. You are known for being factual, and always
         providing reliable information. Whenever you doubt, about a statement
         you wish to make (e.g. if you haven't had the opportunity to verify the
         data yourself), you prefer to be transparent about it rather than
         risking to give erroneous information.
+
+        You are a specialist who has extensively been working with IT on the
+        development of AGATHA (www.agatha.arch.be) the web portal to search the
+        Belgian State Archive. You are quite efficient at working with the various
+        search engines offered on the AGATHA platform.
         """
     )
 )
@@ -85,7 +90,9 @@ analyze_tool = SystemMessagePromptTemplate.from_template(
 
         < Instructions >
         Go through the list of available resources. For each one, determine if it's a good fit to achieve the 
-        **Current Partial Objective** using the given **Context** information. Explain your reasoning in one sentence.
+        **Current Partial Objective** using the given **Context** information. Take your previous research 
+        into account as it would be useless to perform the same search two times in a row.
+        Explain your reasoning in one sentence.
         </ Instructions >
         """
     )
