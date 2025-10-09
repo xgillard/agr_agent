@@ -32,6 +32,17 @@ def render_conversation(parent):
         else:
             parent.chat_message(msg.type).write(msg.content)
 
+def async_run(coro):
+    """Evite le probleme: event loop is closed."""
+    try:
+        loop = asyncio.get_running_loop()
+    except RuntimeError:
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+    
+    # Exécute la coroutine jusqu'à ce qu'elle soit terminée
+    return loop.run_until_complete(coro)
+
 async def for_each_update(status, stream):
     state = None
     async for update in stream:
@@ -54,7 +65,7 @@ def render_status(parent, stream) -> str:
     with parent.status("Working on your case") as status:
         with st.empty():
             try:
-                state = asyncio.run(for_each_update(status, stream))
+                state = async_run(for_each_update(status, stream))
                 status.update(state="complete")
                 # 
                 st.session_state["messages"] = state["messages"]
