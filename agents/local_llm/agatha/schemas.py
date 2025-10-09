@@ -90,10 +90,9 @@ GENEA_CHURCH_ID = "Genealogical sources / Church Registers"
 GENEA_CHURCH_DESCR = """
     * 'Genealogical sources / Church Registers': this will let you find digitized scans of 
         the original church registers where official acts have been consigned prior to 1796. 
-        This is often helpful in order to find the scan of a specific act. 
 
-        This tool cannot give you a direct access to scan of an individual document, but
-        it does give you an access to the scan of complete registers and indexes. Browsing 
+        This tool cannot be used to find the details about an individual act. However,
+        this tool gives you an access to the scan of complete registers and indexes. Browsing 
         these is how users can access scans of the specific acts they wish to find.
 """
 
@@ -103,8 +102,8 @@ GENEA_CIVIL_DESCR = """
         the original civil state registers where official acts have been consigned since 1796. 
         This is often helpful in order to find the scan of a specific act. 
         
-        This tool cannot give you a direct access to scan of an individual document, but
-        it does give you an access to the scan of complete registers and indexes. Browsing 
+        This tool cannot be used to find the details about an individual act. However,
+        this tool gives you an access to the scan of complete registers and indexes. Browsing 
         these is how users can access scans of the specific acts they wish to find.
 """
 
@@ -238,7 +237,7 @@ class AvailableData(BaseModel):
     def all_tools() -> str:
         """Return the description and use of all the available tools."""
 
-        descr = "\nYou are allowed to use the following tools:\n"
+        descr = ""
 
         descr += ONLINE_HELP_DESCR
         descr += ANALYSES_FREE_SEARCH_DESCR

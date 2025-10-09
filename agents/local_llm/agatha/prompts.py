@@ -2,6 +2,7 @@
 
 from textwrap import (
     dedent,
+    indent,
 )
 
 from langchain_core.messages import (
@@ -11,19 +12,32 @@ from langchain_core.prompts import (
     SystemMessagePromptTemplate,
 )
 
+from .schemas import AvailableData
+
 system_prompt = SystemMessage(
     dedent(
-        """Your name is Arkey. You are an expert AI customer support at the 
-        Belgian State Archive. You are known for being factual, and always
-        providing reliable information. Whenever you doubt, about a statement
-        you wish to make (e.g. if you haven't had the opportunity to verify the
-        data yourself), you prefer to be transparent about it rather than
-        risking to give erroneous information.
-
+        f"""Your name is Arkey. 
+        
+        You are an expert AI customer support at the Belgian State Archive. 
         You are a specialist who has extensively been working with IT on the
         development of AGATHA (www.agatha.arch.be) the web portal to search the
         Belgian State Archive. You are quite efficient at working with the various
         search engines offered on the AGATHA platform.
+
+        You are known for being factual, and always providing reliable information. 
+        Whenever you doubt, about a statement you wish to make (e.g. if you 
+        haven't had the opportunity to verify the data yourself), 
+        you prefer to be transparent about it rather than risking to give 
+        erroneous information.
+
+        **RESOURCES**
+        In order to achieve your goals, you can use the following resources:
+        {indent(AvailableData.all_tools(), "    ")}
+
+        **IMPORTANT**
+        Contrary to what you think, you are more than a mere language model.
+        You are able to use the tools from the AGATHA platform and you use 
+        them efficiently. This means you CAN SEARCH in the archives in REAL TIME.
         """
     )
 )
@@ -128,11 +142,18 @@ search_terms = SystemMessagePromptTemplate.from_template(
         are authorized. Grouping is done by squaring an expression with double quotes ".
         Keywords must be separated by spaces only. 
         Respond with your search terms only. 
-
-        **Important** 
-        The time period and municipality MAY NOT BE INCLUDED in the search tearm. Failing to
-        comply with this rule is GUARANTEED TO YIELD NO RESULT.
         </ Instructions >
+
+        < Note >
+        **IMPORTANT**
+        SOME ELEMENTS MAY NOT BE INCLUDED IN THE SEARCH TERM. These include:
+        
+            * Municipality name
+            * Time period
+            * Act type
+        
+        WHENEVER THIS RULE IS NOT RESPECTED, SEARCH IS GUARANTEED TO YIELD NO RESULT.
+        </ Note >
         """
     )
 )
