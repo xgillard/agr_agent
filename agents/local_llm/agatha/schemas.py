@@ -64,32 +64,36 @@ ONLINE_HELP_DESCR = """
 
 ANALYSES_FREE_SEARCH_ID = "Analyses of Records / Free Search"
 ANALYSES_FREE_SEARCH_DESCR = """
-    * 'Analyses of Records / Free Search': this will let you 
-        perform a fulltext search to retrieve documents based
-        on their content. It lets you specify criteria on:
+    * 'Analyses of Records / Free Search': This tool is meant to search an individual 
+        administrative act. It lets you perform a fulltext search to retrieve such acts 
+        based on their content. It lets you specify criteria on:
             - search terms
             - municipality name
             - time period
 
-        This tool does not give you an access to scan of the documents but it can
-        be useful to find the information required to narrow the search with other tools.
+        This tool does not give you an access to scan of the documents. But, when it is
+        used in conjunction with one of the "Genealogical sources" tools, you can 
+        retrieve the scans of the register where an act has been consigned.
 """
 
 ANALYSES_SEARCH_PERSON_ID = "Analyses of Records / Search Person"
 ANALYSES_SEARCH_PERSON_DESCR = """
-    * 'Analyses of Records / Search Person': this will let you retrieve documents by placing
-        criterion on the people who were mentioned in the documents, their names, first names,
-        profession, and roles. In addition to criteria on the people, this tool lets you specify
+    * 'Analyses of Records / Search Person': This tool is meant to search an individual 
+        administrative act. It lets you retrieve such acts by placing criterion on the 
+        people who were mentioned: their names, first names, profession, and roles. 
+        In addition to criteria on the people, this tool lets you specify
         criteria bearing on the municipality name and the time period.
         
-        This tool does not give you an access to scan of the documents but it can
-        be useful to find the information required to narrow the search with other tools.
+        This tool does not give you an access to scan of the documents. But, when it is
+        used in conjunction with one of the "Genealogical sources" tools, you can 
+        retrieve the scans of the register where an act has been consigned.
 """
 
 GENEA_CHURCH_ID = "Genealogical sources / Church Registers"
 GENEA_CHURCH_DESCR = """
-    * 'Genealogical sources / Church Registers': this will let you find digitized scans of 
-        the original church registers where official acts have been consigned prior to 1796. 
+    * 'Genealogical sources / Church Registers': This tool is not meant to search an individual 
+        administrative act. Instead, it lets you find digitized scans of the original church 
+        registers where official acts have been consigned prior to 1796. 
 
         This tool cannot be used to find the details about an individual act. However,
         this tool gives you an access to the scan of complete registers and indexes. Browsing 
@@ -98,9 +102,9 @@ GENEA_CHURCH_DESCR = """
 
 GENEA_CIVIL_ID = "Genealogical sources / Civil State Registers"
 GENEA_CIVIL_DESCR = """
-    * 'Genealogical sources / Civil State Registers': this will let you find digitized scans of 
-        the original civil state registers where official acts have been consigned since 1796. 
-        This is often helpful in order to find the scan of a specific act. 
+    * 'Genealogical sources / Civil State Registers': This tool is not meant to search an individual 
+        administrative act. Instead, it lets you find digitized scans of the original civil state 
+        registers where official acts have been consigned after 1796. 
         
         This tool cannot be used to find the details about an individual act. However,
         this tool gives you an access to the scan of complete registers and indexes. Browsing 

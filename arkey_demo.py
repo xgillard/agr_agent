@@ -1,5 +1,7 @@
 """An Arkey demo done with streamlit."""
 
+import asyncio
+
 import streamlit as st
 
 from agents.local_llm.agatha.graph import ASK_AGATHA
@@ -30,6 +32,18 @@ def render_conversation(parent):
         else:
             parent.chat_message(msg.type).write(msg.content)
 
+async def for_each_update(status, stream):
+    state = None
+    async for update in stream:
+        if objective := update.get("thought"):
+            status.update(label=objective)
+        else:
+            status.update(label="Thinking")
+        if context := update.get("scratch"):
+            st.write(context)
+        state = update
+    return state
+
 def render_status(parent, stream) -> str:
     """Render the 'thinking' status bar.
     
@@ -40,13 +54,7 @@ def render_status(parent, stream) -> str:
     with parent.status("Working on your case") as status:
         with st.empty():
             try:
-                state = None
-                for update in stream:
-                    if objective := update.get("thought"):
-                        status.update(label=objective)
-                    if context := update.get("scratch"):
-                        st.write(context)
-                    state = update
+                state = asyncio.run(for_each_update(status, stream))
                 status.update(state="complete")
                 # 
                 st.session_state["messages"] = state["messages"]
@@ -65,7 +73,7 @@ def main():
     render_conversation(messages)
     
     if prompt := st.chat_input("Le bon roi dagobert avait-il sa culotte à l'envers ?"):
-        request = ASK_AGATHA.stream({
+        request = ASK_AGATHA.astream({
                 "input": prompt, 
                 "messages": st.session_state.get("messages", []), 
                 "scratch": st.session_state.get("scratch", "")

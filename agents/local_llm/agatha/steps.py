@@ -66,7 +66,7 @@ from .schemas import (
 
 AGATHA_HELP = agatha_help()
 
-def step_initialize(state: AgentState) -> AgentState:
+async def step_initialize(state: AgentState) -> AgentState:
     messages  = state.get("messages", [])
     
     if not messages:
@@ -79,7 +79,7 @@ def step_initialize(state: AgentState) -> AgentState:
     }
 
 
-def cond_enough_info(state: AgentState) -> Literal["Respond", "Set Objective"]:
+async def cond_enough_info(state: AgentState) -> Literal["Respond", "Set Objective"]:
     # circuit breaker
     n = state.get("n", 0) 
     if n >= 5:
@@ -87,8 +87,8 @@ def cond_enough_info(state: AgentState) -> Literal["Respond", "Set Objective"]:
     
     context = _build_context(state)
     response= cast(YesNoChoice,
-        LLM.with_structured_output(YesNoChoice)
-        .invoke(state["messages"] + [
+        await LLM.with_structured_output(YesNoChoice)
+        .ainvoke(state["messages"] + [
             enough_information.format(
                 context=context
             )
@@ -114,10 +114,10 @@ def _build_context(state: AgentState) -> str:
     
     return context
 
-def step_set_objective(state: AgentState) -> AgentState:
+async def step_set_objective(state: AgentState) -> AgentState:
     n = state.get("n", 0) 
 
-    rsp =  (LLM | StrOutputParser()).invoke(
+    rsp =  await (LLM | StrOutputParser()).ainvoke(
         state["messages"] + [ what_objective.format(
             context     = _build_context(state),
             tools_descr = AvailableData.all_tools(),
@@ -137,13 +137,13 @@ _Tool = Literal[
 class ToolChoice(BaseModel):
     tool_name: _Tool
 
-def cond_what_tool(state: AgentState) -> _Tool:
+async def cond_what_tool(state: AgentState) -> _Tool:
     context = _build_context(state)
     #
     available_data = state.get("available_data", AvailableData())
     tool_descr, tool_names = available_data.available_tools()
 
-    evaluation = (LLM | StrOutputParser()).invoke(
+    evaluation = await (LLM | StrOutputParser()).ainvoke(
         state["messages"] + [
             analyze_tool.format(
                 context=context,
@@ -151,9 +151,9 @@ def cond_what_tool(state: AgentState) -> _Tool:
             )
         ]
     )
-    rsp = cast(ToolChoice,  (
+    rsp = cast(ToolChoice,  await (
         LLM .with_structured_output(ToolChoice)
-            .invoke(
+            .ainvoke(
             state["messages"] + [ select_tool.format(
                 context=context,
                 tool_descr=tool_descr,
@@ -163,7 +163,7 @@ def cond_what_tool(state: AgentState) -> _Tool:
     ))
     return cast(_Tool, rsp.tool_name)
 
-def tool_genea_church(state: AgentState) -> AgentState:
+async def tool_genea_church(state: AgentState) -> AgentState:
     data = cast(AvailableData, state.get("available_data"))
 
     act_types = None
@@ -219,7 +219,7 @@ def tool_genea_church(state: AgentState) -> AgentState:
             "call_data": call_data,
         }
 
-def tool_genea_civil(state: AgentState) -> AgentState:
+async def tool_genea_civil(state: AgentState) -> AgentState:
     data = cast(AvailableData, state.get("available_data"))
 
     act_types = None
@@ -269,13 +269,13 @@ def tool_genea_civil(state: AgentState) -> AgentState:
             "call_data": call_data,
         }
 
-def tool_analyses_free_search(state: AgentState) -> AgentState:
+async def tool_analyses_free_search(state: AgentState) -> AgentState:
     data = cast(AvailableData, state.get("available_data"))
     context = _build_context(state)
 
-    terms =  (
+    terms =  await (
         (LLM | StrOutputParser())
-            .invoke(state["messages"] + [search_terms.format(context=context)])
+            .ainvoke(state["messages"] + [search_terms.format(context=context)])
     )
 
     call_request = AnalysesFreeSearchRequest(
@@ -303,7 +303,7 @@ def __as_criterion(p: PersonData) -> PersonCriterion:
         role=AnalysesActRole.from_code(p.role_code) if p.role_code is not None else None,
     )
 
-def tool_analyses_search_person(state: AgentState) -> AgentState:
+async def tool_analyses_search_person(state: AgentState) -> AgentState:
     data = cast(AvailableData, state.get("available_data"))
 
     persons = [ __as_criterion(p) for p in data.people if p] if data.people else []
@@ -324,9 +324,9 @@ def tool_analyses_search_person(state: AgentState) -> AgentState:
         "call_data": call_data,
     }
 
-def tool_online_help(state: AgentState) -> AgentState:
+async def tool_online_help(state: AgentState) -> AgentState:
     thought = state.get("thought", "__ i do not have any question __")
-    response =  AGATHA_HELP.invoke(input=thought)
+    response = await AGATHA_HELP.ainvoke(input=thought)
 
     return {
         "call_tool": "Online Help Resources",
@@ -334,14 +334,14 @@ def tool_online_help(state: AgentState) -> AgentState:
         "call_data": response,
     } # type: ignore
 
-def step_respond(state: AgentState) -> AgentState:
+async def step_respond(state: AgentState) -> AgentState:
     context = _build_context(state)
-    rsp =  (LLM | StrOutputParser()).invoke(
+    rsp = await (LLM | StrOutputParser()).ainvoke(
         state["messages"] + [ respond.format(context=context) ]
     )
     return {"messages": AIMessage(rsp), "output": rsp} # type: ignore
 
-def step_observation(state: AgentState) -> AgentState:
+async def step_observation(state: AgentState) -> AgentState:
     """Deliver the raw data as an AI message."""
 
     context   = _build_context(state)
@@ -364,9 +364,9 @@ def step_observation(state: AgentState) -> AgentState:
         bytes_mode="utf8"
     ).decode("utf8")
 
-    summary  =  (
+    summary  =  await (
         (LLM | StrOutputParser())
-        .invoke( state["messages"] + [ 
+        .ainvoke( state["messages"] + [ 
             summarize.format(
                 context = context,
                 call_tool = call_tool,

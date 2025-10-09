@@ -167,7 +167,8 @@ respond = SystemMessagePromptTemplate.from_template(
                                                                 
            **IMPORTANT**
            Any link you cite or provide to the user **MUST COME FROM THE CONTEXT**. 
-           YOU MAY NOT ASSUME THAT AN URL CAN BE BUILT BASED ON AN IDENTIFIER.
+           YOU MAY NOT ASSUME THAT YOU ARE ABLE TO REBUILD AN URL BASED ON PARTIAL
+           DATA. EVEN FROM AN IDENTIFIER.
            </ Instructions>
            """
     )
