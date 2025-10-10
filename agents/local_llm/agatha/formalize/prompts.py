@@ -13,7 +13,7 @@ base_info = SystemMessagePromptTemplate.from_template(
         """
         {context}
 
-        < Instructions >
+        ## Instructions
         Formalize your search criteria.
 
         Whenever you mention a municipality name, it MUST USE either 
@@ -21,9 +21,8 @@ base_info = SystemMessagePromptTemplate.from_template(
 
         When a data is unknown, just leave it out. The goal is to formalize only what you know
         or wish to use as criterion during your search.
-        </ Instructions >
 
-        < Examples >
+        ### Examples
         >>> I would like to find the birth certificate of Wim Van Piperzeel
         >>> who was born in Sterrebeek in the early 1800.
         ```
@@ -45,7 +44,6 @@ base_info = SystemMessagePromptTemplate.from_template(
             ],
         }}
         ```
-        </ Examples >
         """
     )
 )
@@ -55,13 +53,12 @@ period_of_interest = SystemMessagePromptTemplate.from_template(
         """
         {context}
 
-        < Instructions >
+        ## Instructions
         What period you you wish to use in your search criteria.
 
         If you are not sure of which min/max date to use, leave the field blank. 
-        </ Instructions >
 
-        < Examples >
+        ### Examples
         >>> I would like to find the birth certificate of Wim Van Piperzeel
         >>> who was born in Sterrebeek in the early 1800.
         ```
@@ -79,7 +76,6 @@ period_of_interest = SystemMessagePromptTemplate.from_template(
             "max_date_formatted_as_yyyy_mm_dd": ""
         }}
         ```
-        </ Examples >
         """
     )
 )
@@ -89,22 +85,20 @@ analyse_doc_type = SystemMessagePromptTemplate.from_template(
         """
         {context}
         
-        < Instructions >
+        ## Instructions
         We are formalizing your search criteria. For that purpose, we need to determine the kind record 
         we want to find.
                                                     
         Go through the list of document types. For each one, determine if it's a good fit to achieve the 
         **Current Partial Objective** using the given **Context** information. Explain your reasoning in one sentence.
-        </ Instructions >
 
-        < Note >
+        ### Posssible Document Types
         Here is the list of possible document types:
         {type_of_record_code_desc}
 
         **IMPORTANT** 
         Baptism-related documents types and baptism-related roles CANNOT BE USED find records posterior to anno 1796.
         Searching a Baptism certificate, or searching a Baptised-Child in 1797 or after is GUARANTEED TO FAIL.
-        </ Note >
         """
     )
 )
@@ -114,25 +108,22 @@ select_doc_type = SystemMessagePromptTemplate.from_template(
         """
         {context}
         
-        < Instructions >
+        ## Instructions
         We are formalizing your search criteria. For that purpose, we need to determine the kind record 
         we want to find. Based on your evaluation, state which document type code is the single best choice.
 
         Please be extra-careful to use the appropriate code as they are case sensitive. 
-        </ Instructions >
 
-        < Note >
+        ### Posssible Document Types
         Here is the list of possible document types:
         {type_of_record_code_desc}
 
         **IMPORTANT** 
         Baptism-related documents types CANNOT BE USED find records posterior to anno 1796.
         Searching a Baptism certificate, or searching a Baptised-Child in 1797 or after is GUARANTEED TO FAIL.
-        </ Note >
 
-        < YourEvaluation >
+        ### Your Evaluation
         {evaluation}
-        </ YourEvaluation >
         """
     )
 )
@@ -142,21 +133,19 @@ analyse_person_role = SystemMessagePromptTemplate.from_template(
         """
         {context}
         
-        < Instructions >
+        ## Instructions
         We are formalizing your search criteria. For that purpose, we need to determine the role played by {who}.
                                                     
         Go through the list of person roles. For each one, determine if it's a good fit to achieve the 
         **Current Partial Objective** using the given **Context** information. Explain your reasoning in one sentence.
-        </ Instructions >
 
-        < Note >
-        Here is the list of possible document types:
+        ### Possible Roles
+        Here is the list of possible roles:
         {type_of_roles_code_desc}
 
         **IMPORTANT** 
         Baptism-related roles CANNOT BE USED find records posterior to anno 1796.
         Searching a Baptism certificate, or searching a Baptised-Child in 1797 or after is GUARANTEED TO FAIL.
-        </ Note >
         """
     )
 )
@@ -166,26 +155,23 @@ select_person_role = SystemMessagePromptTemplate.from_template(
         """
         {context}
         
-        < Instructions >
+        ## Instructions
         We are formalizing your search criteria. For that purpose, we need to determine the role played by {who}.
                                                     
         Based on your evaluation, state which document type code is the single best choice.
 
         Please be extra-careful to use the appropriate code as they are case sensitive. 
-        </ Instructions >
 
-        < Note >
-        Here is the list of possible document types:
+        ### Possible Roles
+        Here is the list of possible roles:
         {type_of_roles_code_desc}
 
         **IMPORTANT** 
         Baptism-related roles CANNOT BE USED find records posterior to anno 1796.
         Searching a Baptism certificate, or searching a Baptised-Child in 1797 or after is GUARANTEED TO FAIL.
-        </ Note >
 
-        < YourEvaluation >
+        ### Your Evaluation
         {evaluation}
-        </ YourEvaluation >
         """
     )
 )

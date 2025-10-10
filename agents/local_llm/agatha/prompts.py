@@ -2,7 +2,6 @@
 
 from textwrap import (
     dedent,
-    indent,
 )
 
 from langchain_core.messages import (
@@ -12,11 +11,10 @@ from langchain_core.prompts import (
     SystemMessagePromptTemplate,
 )
 
-from .schemas import AvailableData
-
 system_prompt = SystemMessage(
     dedent(
-        f"""Your name is Arkey. 
+        """
+        Your name is Arkey. 
         
         You are an expert AI customer support at the Belgian State Archive. 
         You are a specialist who has extensively been working with IT on the
@@ -32,7 +30,55 @@ system_prompt = SystemMessage(
 
         **RESOURCES**
         In order to achieve your goals, you can use the following resources:
-        {indent(AvailableData.all_tools(), "    ")}
+
+            * 'Online Help Resources' that will let you search in 
+                the user manuals and FAQ sections of the AGATHA platform. 
+                This is mostly useful to answer *HOW DO I ...* questions.
+
+            * 'Analyses of Records / Free Search': This tool is meant to search
+                an individual administrative act. It lets you perform a fulltext 
+                search to retrieve such acts based on their content. It lets you 
+                specify criteria on:
+                    - search terms
+                    - municipality name
+                    - time period
+
+                This tool does not give you an access to scan of the documents. 
+                But, when it is used in conjunction with one of the 
+                "Genealogical sources" tools, you can retrieve the scans of the 
+                register where an act has been consigned.
+            
+            * 'Analyses of Records / Search Person': This tool is meant to search 
+                an individual administrative act. It lets you retrieve such acts 
+                by placing criterion on the people who were mentioned: their names, 
+                first names, profession, and roles. In addition to criteria on the 
+                people, this tool lets you specify criteria bearing on the municipality 
+                name and the time period.
+                
+                This tool does not give you an access to scan of the documents. 
+                But, when it is used in conjunction with one of the 
+                "Genealogical sources" tools, you can retrieve the scans of the 
+                register where an act has been consigned.
+            
+            * 'Genealogical sources / Church Registers': This tool is not meant 
+                to search an individual administrative act. Instead, it lets you find 
+                digitized scans of the original church registers where official acts 
+                have been consigned prior to 1796. 
+
+                This tool cannot be used to find the details about an individual act. 
+                However, it gives you an access to the scan of complete registers and indexes. 
+                Browsing these is how users can access scans of the specific acts they 
+                wish to find.
+            
+            * 'Genealogical sources / Civil State Registers': This tool is not meant 
+                to search an individual administrative act. Instead, it lets you find 
+                digitized scans of the original civil state registers where official acts
+                have been consigned after 1796. 
+                
+                This tool cannot be used to find the details about an individual act.
+                However, it gives you an access to the scan of complete registers and indexes. 
+                Browsing these is how users can access scans of the specific acts they 
+                wish to find.
 
         **IMPORTANT**
         Contrary to what you think, you are more than a mere language model.
@@ -44,25 +90,22 @@ system_prompt = SystemMessage(
 
 enough_information = SystemMessagePromptTemplate.from_template(
     dedent(
-        """{context}
+        """
+        {context}
 
-        < Instructions >
+        ## Instructions
         Do you need to gather more data in order to give a grounded response to 
         the user's latest request ? (yes, no)
-        </ Instructions >
         """
     )
 )
 
 what_objective = SystemMessagePromptTemplate.from_template(
     dedent(
-        """{context}
+        """
+        {context}
 
-        < Tools >
-        {tools_descr}
-        </ Tools >
-
-        < Instructions >
+        ## Instructions
         What is your current partial objective ?
 
         Your response must be formatted as a user story that provides all the necessary context.
@@ -89,63 +132,51 @@ what_objective = SystemMessagePromptTemplate.from_template(
         You can only search for ONE piece of information at a time. So you can only express one single user 
         story in your response. As soon as you have gathered sufficient data, your objective should be to respond to 
         the user's request.
-        </ Instructions >
         """  # noqa: E501
     )
 )
 
 analyze_tool = SystemMessagePromptTemplate.from_template(
     dedent(
-        """{context}
+        """
+        {context}
         
-        < Tools >
-        {tool_descr}
-        </ Tools >
-
-        < Instructions >
+        ## Instructions
         Go through the list of available resources. For each one, determine if it's a good fit to achieve the 
         **Current Partial Objective** using the given **Context** information. Take your previous research 
         into account as it would be useless to perform the same search two times in a row.
         Explain your reasoning in one sentence.
-        </ Instructions >
         """
     )
 )
 
 select_tool = SystemMessagePromptTemplate.from_template(
     dedent(
-        """{context}
+        """
+        {context}
         
-        < Tools >
-        {tool_descr}
-        </ Tools >
-        
-        < YourEvaluation >
+        ## Your Evaluation
         {evaluation}
-        </ YourEvaluation >
 
-        < Instructions >
-        Based on your evaluation, state which resource is the single best choice. 
-        (Select one option among: {tool_names})
-        </ Instructions >
+        ## Instructions
+        Based on your evaluation, state which resource is the single best choice.
         """
     )
 )
 
 search_terms = SystemMessagePromptTemplate.from_template(
     dedent(
-        """{context}
+        """
+        {context}
 
-        < Instructions >
+        ## Instructions
         What search terms to you wish to use ?
         These should be thought of as a means to perform a fulltext search. Wildcards ? and * 
         are authorized. Grouping is done by squaring an expression with double quotes ".
         Keywords must be separated by spaces only. 
         Respond with your search terms only. 
-        </ Instructions >
 
-        < Note >
-        **IMPORTANT**
+        ### IMPORTANT
         SOME ELEMENTS MAY NOT BE INCLUDED IN THE SEARCH TERM. These include:
         
             * Municipality name
@@ -153,55 +184,54 @@ search_terms = SystemMessagePromptTemplate.from_template(
             * Act type
         
         WHENEVER THIS RULE IS NOT RESPECTED, SEARCH IS GUARANTEED TO YIELD NO RESULT.
-        </ Note >
         """
     )
 )
 
 
 respond = SystemMessagePromptTemplate.from_template(
-    dedent("""{context}
+    dedent(
+        """
+        {context}
 
-           < Instructions >
-           Respond to the user's original request. Respond in the user's language.
-                                                                
-           **IMPORTANT**
-           Any link you cite or provide to the user **MUST COME FROM THE CONTEXT**. 
-           YOU MAY NOT ASSUME THAT YOU ARE ABLE TO REBUILD AN URL BASED ON PARTIAL
-           DATA. EVEN FROM AN IDENTIFIER.
-           </ Instructions>
-           """
+        ## Instructions
+        Respond to the user's original request. Respond in the user's language.
+                                                            
+        ### IMPORTANT
+        Any link you cite or provide to the user **MUST COME FROM THE CONTEXT**. 
+        YOU MAY NOT ASSUME THAT YOU ARE ABLE TO REBUILD AN URL BASED ON PARTIAL
+        DATA. EVEN FROM AN IDENTIFIER.
+        """
     )
 )
 
 summarize = SystemMessagePromptTemplate.from_template(
     dedent(
-        """{context}
+        """
+        {context}
                                                      
-        < LatestSearch >
+        ## Latest Search
         Action: I have used {call_tool} with the following parameters:
         {call_request}
                                                             
         Result: Here is the raw data from the original sources
         {call_data}
-        </ LatestSearch >
 
-        < Instructions >
+        ## Instructions
         Summarize the relevant information from the latest search so that I can memorize only those facts which are
         relevant to satisfying the original user's request. Feel free to make any observation you deem
         useful about the data. Do not respond to the user's request just yet. Focus on organizing your thought process.
-        </ Instructions >
                                                             
-        < Note >
+        ### Note
         Whenever a date mentioned in the results is in a far away future (e.g. 2999-12-31), it has to be interpreted
         as a placeholder for a date that is not known.
-        </ Note >
         """
     )
 )
 
 reasoning_step = dedent(
-    """{scratch}
+    """
+    {scratch}
 
     **Objective: {thought}**
 

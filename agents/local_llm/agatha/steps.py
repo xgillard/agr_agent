@@ -104,13 +104,13 @@ def _build_context(state: AgentState) -> str:
     scratch   = state.get("scratch")
     objective = state.get("thought")
     if scratch:
-        context += f"\n# Previous Research\n{scratch}\n"
+        context += f"\n### Previous Research\n{scratch}\n"
     
     if objective:
-        context += f"\n\n# Current Partial Objective\n{objective}\n"
+        context += f"\n\n### Current Partial Objective\n{objective}\n"
 
     if context:
-        context = f"\n< Context >\n{context}\n</ Context >\n"
+        context = f"## Context\n{context}\n"
     
     return context
 
@@ -120,7 +120,6 @@ async def step_set_objective(state: AgentState) -> AgentState:
     rsp =  await (LLM | StrOutputParser()).ainvoke(
         state["messages"] + [ what_objective.format(
             context     = _build_context(state),
-            tools_descr = AvailableData.all_tools(),
         ) ]
     )
     return {"n": n+1, "thought": rsp} # type: ignore
@@ -139,15 +138,11 @@ class ToolChoice(BaseModel):
 
 async def cond_what_tool(state: AgentState) -> _Tool:
     context = _build_context(state)
-    #
-    available_data = state.get("available_data", AvailableData())
-    tool_descr, tool_names = available_data.available_tools()
 
     evaluation = await (LLM | StrOutputParser()).ainvoke(
         state["messages"] + [
             analyze_tool.format(
                 context=context,
-                tool_descr=tool_descr,
             )
         ]
     )
@@ -156,9 +151,7 @@ async def cond_what_tool(state: AgentState) -> _Tool:
             .ainvoke(
             state["messages"] + [ select_tool.format(
                 context=context,
-                tool_descr=tool_descr,
                 evaluation=evaluation,
-                tool_names=tool_names,
             ) ])
     ))
     return cast(_Tool, rsp.tool_name)
