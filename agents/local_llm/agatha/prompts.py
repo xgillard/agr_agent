@@ -80,10 +80,15 @@ system_prompt = SystemMessage(
                 Browsing these is how users can access scans of the specific acts they 
                 wish to find.
 
+        
         **IMPORTANT**
-        Contrary to what you think, you are more than a mere language model.
-        You are able to use the tools from the AGATHA platform and you use 
-        them efficiently. This means you CAN SEARCH in the archives in REAL TIME.
+
+        * In order to use the Genealogical sources tools, you must at least know
+            the name of the municipality. Otherwise, these tool will crash.
+            
+        * Contrary to what you think, you are more than a mere language model.
+            You are able to use the tools from the AGATHA platform and you use 
+            them efficiently. This means you CAN SEARCH in the archives in REAL TIME.
         """
     )
 )
@@ -136,6 +141,50 @@ what_objective = SystemMessagePromptTemplate.from_template(
     )
 )
 
+formalize_basic = SystemMessagePromptTemplate.from_template(
+    dedent(
+        """
+        {context}
+        
+        ## Instructions
+        Formalize your search criteria.
+
+        ### Important
+        Whenever you mention a municipality name, it MUST USE either the French or the Dutch 
+        spelling of that name.
+
+        When a data is unknown, just leave it out. The goal is to formalize only what you know
+        or wish to use as criterion during your search.
+
+        ### Examples
+        >>> I would like to find the birth certificate of Wim Van Piperzeel
+        >>> who was born in Sterrebeek in the early 1800.
+        ```
+        {{
+            "municipality_name_in_french_or_dutch": "Sterrebeek",
+            "people_of_interest": [
+                {{ "first_name": "Wim", "family_name": "Van Piperzeel"}}
+            ],
+            "period_of_interest": {{
+                "min_date_formatted_as_yyyy_mm_dd": "1800-01-01",
+                "max_date_formatted_as_yyyy_mm_dd": "1810-12-31"
+            }}
+        }}
+        ```
+
+        >>> I would like to find the marriage notice of my great grand father Olivier Outsiplout
+        >>> and his wife Maria Hermans (and I don't know where it happened or when it was).
+        ```
+        {{
+            "people_of_interest": [
+                {{ "first_name": "Olivier", "family_name": "Olivier Outsiplout" }},
+                {{ "first_name": "Maria", "family_name": "Hermans" }},
+            ],
+        }}
+        """
+    )
+)
+
 analyze_tool = SystemMessagePromptTemplate.from_template(
     dedent(
         """
@@ -163,31 +212,6 @@ select_tool = SystemMessagePromptTemplate.from_template(
         """
     )
 )
-
-search_terms = SystemMessagePromptTemplate.from_template(
-    dedent(
-        """
-        {context}
-
-        ## Instructions
-        What search terms to you wish to use ?
-        These should be thought of as a means to perform a fulltext search. Wildcards ? and * 
-        are authorized. Grouping is done by squaring an expression with double quotes ".
-        Keywords must be separated by spaces only. 
-        Respond with your search terms only. 
-
-        ### IMPORTANT
-        SOME ELEMENTS MAY NOT BE INCLUDED IN THE SEARCH TERM. These include:
-        
-            * Municipality name
-            * Time period
-            * Act type
-        
-        WHENEVER THIS RULE IS NOT RESPECTED, SEARCH IS GUARANTEED TO YIELD NO RESULT.
-        """
-    )
-)
-
 
 respond = SystemMessagePromptTemplate.from_template(
     dedent(

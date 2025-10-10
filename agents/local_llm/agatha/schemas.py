@@ -12,245 +12,27 @@ from pydantic import (
     BaseModel,
 )
 
-from ...tools.generated import (
-    AnalysesActRole,
-    AnalysesActType,
-)
 
-ActRoleCode = Literal[*AnalysesActRole.all_codes()] # type: ignore
-ActTypeCode = Literal[*AnalysesActType.all_codes()] # type: ignore
+class YesNoChoice(BaseModel):
+    choice: Literal["yes", "no"]
 
-ACT_TYPE_OPENS_GENEA_CHURCH = [
-    # map to baptism
-    AnalysesActType.BIRTH_CERTIFICATES.code,
-    AnalysesActType.BAPTISM_CERTIFICATES.code,
-    AnalysesActType.BIRTH_ANNOUNCEMENT.code,
-    # map to marriage
-    AnalysesActType.NOTICES_OF_MARRIAGE.code,
-    AnalysesActType.MARRIAGE_ANNOUNCEMENTS.code,
-    AnalysesActType.MARRIAGE_CERTIFICATES.code,
-    AnalysesActType.MARRIAGE_SETTLEMENT.code,
-    # map to death
-    AnalysesActType.FUNERAL_CERTIFICATES.code,
-    AnalysesActType.DEATH_CERTIFICATES.code,
-    AnalysesActType.DEATH_NOTICE.code,
-    AnalysesActType.MORTUARY_AND_MOURNING_CARD.code,
-    AnalysesActType.MORTUARY_INVENTORY.code,
-]
-ACT_TYPE_OPENS_GENEA_CIVIL = [
-    # map to baptism
-    AnalysesActType.BIRTH_CERTIFICATES.code,
-    AnalysesActType.BIRTH_ANNOUNCEMENT.code,
-    # map to marriage
-    AnalysesActType.NOTICES_OF_MARRIAGE.code,
-    AnalysesActType.MARRIAGE_ANNOUNCEMENTS.code,
-    AnalysesActType.MARRIAGE_CERTIFICATES.code,
-    AnalysesActType.MARRIAGE_SETTLEMENT.code,
-    # map to death
-    AnalysesActType.FUNERAL_CERTIFICATES.code,
-    AnalysesActType.DEATH_CERTIFICATES.code,
-    AnalysesActType.DEATH_NOTICE.code,
-    AnalysesActType.MORTUARY_AND_MOURNING_CARD.code,
-    AnalysesActType.MORTUARY_INVENTORY.code,
-    AnalysesActType.JUDICIAL_DEATH_DECLARATION.code,
-]
-
-ONLINE_HELP_ID    = "Online Help Resources"
-ONLINE_HELP_DESCR = """
-    * 'Online Help Resources' that will let you search in 
-        the user manuals and FAQ sections of the AGATHA platform. 
-        This is mostly useful to answer *HOW DO I ...* questions.
-"""
-
-ANALYSES_FREE_SEARCH_ID = "Analyses of Records / Free Search"
-ANALYSES_FREE_SEARCH_DESCR = """
-    * 'Analyses of Records / Free Search': This tool is meant to search an individual 
-        administrative act. It lets you perform a fulltext search to retrieve such acts 
-        based on their content. It lets you specify criteria on:
-            - search terms
-            - municipality name
-            - time period
-
-        This tool does not give you an access to scan of the documents. But, when it is
-        used in conjunction with one of the "Genealogical sources" tools, you can 
-        retrieve the scans of the register where an act has been consigned.
-"""
-
-ANALYSES_SEARCH_PERSON_ID = "Analyses of Records / Search Person"
-ANALYSES_SEARCH_PERSON_DESCR = """
-    * 'Analyses of Records / Search Person': This tool is meant to search an individual 
-        administrative act. It lets you retrieve such acts by placing criterion on the 
-        people who were mentioned: their names, first names, profession, and roles. 
-        In addition to criteria on the people, this tool lets you specify
-        criteria bearing on the municipality name and the time period.
-        
-        This tool does not give you an access to scan of the documents. But, when it is
-        used in conjunction with one of the "Genealogical sources" tools, you can 
-        retrieve the scans of the register where an act has been consigned.
-"""
-
-GENEA_CHURCH_ID = "Genealogical sources / Church Registers"
-GENEA_CHURCH_DESCR = """
-    * 'Genealogical sources / Church Registers': This tool is not meant to search an individual 
-        administrative act. Instead, it lets you find digitized scans of the original church 
-        registers where official acts have been consigned prior to 1796. 
-
-        This tool cannot be used to find the details about an individual act. However,
-        this tool gives you an access to the scan of complete registers and indexes. Browsing 
-        these is how users can access scans of the specific acts they wish to find.
-"""
-
-GENEA_CIVIL_ID = "Genealogical sources / Civil State Registers"
-GENEA_CIVIL_DESCR = """
-    * 'Genealogical sources / Civil State Registers': This tool is not meant to search an individual 
-        administrative act. Instead, it lets you find digitized scans of the original civil state 
-        registers where official acts have been consigned after 1796. 
-        
-        This tool cannot be used to find the details about an individual act. However,
-        this tool gives you an access to the scan of complete registers and indexes. Browsing 
-        these is how users can access scans of the specific acts they wish to find.
-"""
-
-class PersonData(BaseModel):
-    """Data about a person.
-    
-    Attributes:
-        first_name (str | None): first name of the person
-        family_name (str | None): family name of the person
-        profession (str | None): profession 
-        role (AnalysesActRole | None): role played in the events
-    """
-
+class SignaleticPerson(BaseModel):
     first_name: str | None = None
     family_name: str | None = None
     profession: str | None = None
-    role_code: ActRoleCode | None = None # type: ignore
 
-    def __bool__(self) -> bool:
-        """Computes a truth value for people"""
+class PeriodOfInterest(BaseModel):
+    min_date_formatted_as_yyyy_mm_dd: str | None = None
+    max_date_formatted_as_yyyy_mm_dd: str | None = None
 
-        return bool(self.family_name) or bool(self.first_name)
+class BaseCriteria(BaseModel):
+    """The information that is easily gathered."""
 
-
-class AvailableData(BaseModel):
-    """This class is meant to formalize the useful available information about a user's request.
-    
-    Attributes:
-        municipality_name (str | None): the name of the municipality where events have happened
-        parish_name (str | None): name of the parish where the events happened
-        type_of_record (AnalysesActType | None): the type of document we wish to retrieve
-        search_period (DateRange | None): the range of date when the document might have been created
-        people (list[PersonData] | None): a list of persons who are involved in the act
-        min_document_date_yyyymmdd (str | None): start date of the range we want to consider when searching our doc
-        max_document_date_yyyymmdd (str | None): end date of range we want to consider when searching our doc
-    """
-    
-    municipality_name: str | None = None
+    municipality_name_in_french_or_dutch: str | None = None
     parish_name: str | None = None
-    type_of_record_code: ActTypeCode | None = None # type: ignore
-    people: list[PersonData] | None = None
-    min_document_date_formatted_as_yyyy_mm_dd: str | None = None
-    max_document_date_formatted_as_yyyy_mm_dd: str | None = None
 
-    @property
-    def from_year(self) -> int | None:
-        if self.min_document_date_formatted_as_yyyy_mm_dd is None:
-            return None
-        else:
-            try:
-                return int(self.min_document_date_formatted_as_yyyy_mm_dd[:4])
-            except ValueError:
-                return None
-    
-    @property
-    def until_year(self) -> int | None:
-        if self.max_document_date_formatted_as_yyyy_mm_dd is None:
-            return None
-        else:
-            try:
-                return int(self.max_document_date_formatted_as_yyyy_mm_dd[:4])
-            except ValueError:
-                return None
-
-    def _can_use_genea_church(self) -> bool:
-        """Return 'Search Genealogical Sources / Church Registers' can be used."""
-
-        return (
-            bool(self.municipality_name) 
-            and (self.type_of_record_code in ACT_TYPE_OPENS_GENEA_CHURCH)
-        )
-    
-    def _can_use_genea_civil(self) -> bool: 
-        """Return 'Search Genealogical Sources / Civil State Registers' can be used."""
-
-        return (
-            bool(self.municipality_name) 
-            and (self.type_of_record_code in ACT_TYPE_OPENS_GENEA_CIVIL)
-        )
-    
-    def _can_use_analyses_free_search(self) -> bool:
-        """Return true, "Analyses of Records / Free Search" can always be used."""
-        
-        return True
-    
-    def _can_use_analyses_search_person(self) -> bool:
-        """Return true when "Analyses of Records / Search Person" can be used."""
-
-        return (
-            bool( [p for p in self.people if bool(p) ]) if self.people else False
-        )
-    
-    def _can_use_help_resources(self) -> bool:
-        """Return true as using the manual is always allowed."""
-
-        return True
-    
-    def available_tools(self) -> tuple[str, list[str]]:
-        """Retrurn a description and names of the tools that can be used.
-
-        Returns: 
-            tuple[str, list[str]]:
-                the 1st item in the tuple is the description of the tools
-                the 2nd item in the tuple is the list of tool names.
-        """
-        tools = []
-        descr = "\nYou have acces to the following resources:\n"
-        if self._can_use_help_resources():
-            descr += ONLINE_HELP_DESCR
-            tools.append(ONLINE_HELP_ID)
-        
-        if self._can_use_analyses_free_search():
-            descr += ANALYSES_FREE_SEARCH_DESCR
-            tools.append(ANALYSES_FREE_SEARCH_ID)
-        
-        if self._can_use_analyses_search_person():
-            descr += ANALYSES_SEARCH_PERSON_DESCR
-            tools.append(ANALYSES_SEARCH_PERSON_ID)
-
-        if self._can_use_genea_church():
-            descr += GENEA_CHURCH_DESCR
-            tools.append(GENEA_CHURCH_ID)
-        
-        if self._can_use_genea_civil():
-            descr += GENEA_CIVIL_DESCR
-            tools.append(GENEA_CIVIL_ID)
-
-        return (descr, tools)
-    
-    @staticmethod
-    def all_tools() -> str:
-        """Return the description and use of all the available tools."""
-
-        descr = ""
-
-        descr += ONLINE_HELP_DESCR
-        descr += ANALYSES_FREE_SEARCH_DESCR
-        descr += ANALYSES_SEARCH_PERSON_DESCR
-        descr += GENEA_CHURCH_DESCR
-        descr += GENEA_CIVIL_DESCR
-        #descr += "\n\nNote: Some tools might be unavailable depending on your search criteria.\n"
-        
-        return descr
+    people_of_interest: list[SignaleticPerson] | None = None
+    period_of_interest: PeriodOfInterest | None = None
 
 class AgentState(MessagesState):
     """State of the agent.
@@ -260,6 +42,7 @@ class AgentState(MessagesState):
         scratch (str): the agent' scratchpad where all it knows its explicited.
 
         thought (str): the current thought (will be appended to scratchpad eventually)
+        criteria (BaseCriteria): the basic search criteria
         
         call_tool (str): the name of the tool to be called.
         call_request (Any): the request sent to the tool.
@@ -269,16 +52,13 @@ class AgentState(MessagesState):
     """
 
     input: str
-    available_data: AvailableData
     scratch: str
 
     thought: str
+    criteria: BaseCriteria
 
     call_tool: str
     call_request: Any
     call_data: Any
 
     n: int
-
-class YesNoChoice(BaseModel):
-    choice: Literal["yes", "no"]

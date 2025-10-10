@@ -19,29 +19,8 @@ from pydantic_core import (
     to_json,
 )
 
-from ...tools.agatha_common import (
-    Municipality,
-)
 from ...tools.agatha_help import (
     agatha_help,
-)
-from ...tools.analyses_of_records import (
-    AnalysesFreeSearchRequest,
-    AnalysesSearchPersonRequest,
-    PersonCriterion,
-    free_search_in_analyses_of_records,
-    search_person_in_analyses_of_records,
-)
-from ...tools.genealogy import (
-    AJAX_URL,
-    CivilActType,
-    ParishActType,
-    genealogy_search_church_registers_prior_to_1796,
-    genealogy_search_civil_state_registers,
-)
-from ...tools.generated import (
-    AnalysesActRole,
-    AnalysesActType,
 )
 from ..common.llm import (
     LLM,
@@ -49,9 +28,9 @@ from ..common.llm import (
 from .prompts import (
     analyze_tool,
     enough_information,
+    formalize_basic,
     reasoning_step,
     respond,
-    search_terms,
     select_tool,
     summarize,
     system_prompt,
@@ -59,8 +38,7 @@ from .prompts import (
 )
 from .schemas import (
     AgentState,
-    AvailableData,
-    PersonData,
+    BaseCriteria,
     YesNoChoice,
 )
 
@@ -124,6 +102,19 @@ async def step_set_objective(state: AgentState) -> AgentState:
     )
     return {"n": n+1, "thought": rsp} # type: ignore
 
+async def step_formalize(state: AgentState) -> AgentState:
+    criteria = cast(BaseCriteria, await (
+            LLM.with_structured_output(BaseCriteria)
+            .ainvoke(
+                state["messages"] + [
+                    formalize_basic.format(
+                        context = _build_context(state),
+                    )
+                ]
+            )
+        )
+    )
+    return {"criteria": criteria} # type: ignore
 
 _Tool = Literal[
     "Analyses of Records / Free Search", 
@@ -155,167 +146,6 @@ async def cond_what_tool(state: AgentState) -> _Tool:
             ) ])
     ))
     return cast(_Tool, rsp.tool_name)
-
-async def tool_genea_church(state: AgentState) -> AgentState:
-    data = cast(AvailableData, state.get("available_data"))
-
-    act_types = None
-
-    match data.type_of_record_code:
-        case (AnalysesActType.BIRTH_CERTIFICATES.code 
-            | AnalysesActType.BAPTISM_CERTIFICATES.code 
-            | AnalysesActType.BIRTH_ANNOUNCEMENT.code):
-            act_types = [ParishActType.BAPTISM]
-
-        case (AnalysesActType.NOTICES_OF_MARRIAGE.code
-            | AnalysesActType.MARRIAGE_ANNOUNCEMENTS.code
-            | AnalysesActType.MARRIAGE_CERTIFICATES.code
-            | AnalysesActType.MARRIAGE_SETTLEMENT.code):
-            act_types = [ParishActType.WEDDING]
-
-        case (AnalysesActType.FUNERAL_CERTIFICATES.code
-            | AnalysesActType.DEATH_CERTIFICATES.code
-            | AnalysesActType.DEATH_NOTICE.code
-            | AnalysesActType.MORTUARY_AND_MOURNING_CARD.code
-            | AnalysesActType.MORTUARY_INVENTORY.code):
-            act_types = [ParishActType.DEATH]
-
-    assert(data.municipality_name is not None)
-    municipality = Municipality.by_name(name=data.municipality_name, ajax=AJAX_URL, return_single_best_match=True)
-    parishes = municipality.parishes(AJAX_URL) if municipality is not None else []
-
-    if data.parish_name is not None:
-        parishes = [ p for p in parishes if data.parish_name in p.place_name.lower() ]
-    
-    call_request = dict(
-        municipality=municipality,
-        parishes=parishes,
-        act_types=act_types,
-        start_year=data.from_year,
-        end_year=data.until_year,
-        #other_types=other_types,
-        #index_types=,
-        #period_selector=
-    )
-
-    if municipality is None:
-        return { # type: ignore
-            "call_tool": "Genealogical sources / Church Registers",
-            "call_request": call_request,
-            "call_data": "Unknown municipality. Did you use french or dutch spelling ?",
-        }
-    else:
-        call_data = genealogy_search_church_registers_prior_to_1796(**call_request) # type: ignore
-        return { # type: ignore
-            "call_tool": "Genealogical sources / Church Registers",
-            "call_request": call_request,
-            "call_data": call_data,
-        }
-
-async def tool_genea_civil(state: AgentState) -> AgentState:
-    data = cast(AvailableData, state.get("available_data"))
-
-    act_types = None
-
-    match data.type_of_record_code:
-        case (AnalysesActType.BIRTH_CERTIFICATES.code 
-            | AnalysesActType.BIRTH_ANNOUNCEMENT.code):
-            act_types = [CivilActType.BIRTH]
-
-        case (AnalysesActType.NOTICES_OF_MARRIAGE.code
-            | AnalysesActType.MARRIAGE_ANNOUNCEMENTS.code
-            | AnalysesActType.MARRIAGE_CERTIFICATES.code
-            | AnalysesActType.MARRIAGE_SETTLEMENT.code):
-            act_types = [CivilActType.WEDDING]
-
-        case (AnalysesActType.FUNERAL_CERTIFICATES.code
-            | AnalysesActType.DEATH_CERTIFICATES.code
-            | AnalysesActType.DEATH_NOTICE.code
-            | AnalysesActType.MORTUARY_AND_MOURNING_CARD.code
-            | AnalysesActType.MORTUARY_INVENTORY.code
-            | AnalysesActType.JUDICIAL_DEATH_DECLARATION.code):
-            act_types = [CivilActType.DEATH]
-
-    assert(data.municipality_name is not None)
-    municipality = Municipality.by_name(name=data.municipality_name, ajax=AJAX_URL, return_single_best_match=True)
-    call_request = dict(
-        municipality=municipality,
-        act_types=act_types,
-        start_year=data.from_year,
-        end_year=data.until_year,
-        #other_types=other_types,
-        #index_types=,
-        #period_selector=
-    )
-
-    if municipality is None:
-        return { # type: ignore
-            "call_tool": "Genealogical sources / Civil State Registers",
-            "call_request": call_request,
-            "call_data": "Unknown municipality. Did you use french or dutch spelling ?",
-        }
-    else:
-        call_data = genealogy_search_civil_state_registers(**call_request) # type: ignore
-        return { # type: ignore
-            "call_tool": "Genealogical sources / Civil State Registers",
-            "call_request": call_request,
-            "call_data": call_data,
-        }
-
-async def tool_analyses_free_search(state: AgentState) -> AgentState:
-    data = cast(AvailableData, state.get("available_data"))
-    context = _build_context(state)
-
-    terms =  await (
-        (LLM | StrOutputParser())
-            .ainvoke(state["messages"] + [search_terms.format(context=context)])
-    )
-
-    call_request = AnalysesFreeSearchRequest(
-        search_terms=terms,
-        location=data.municipality_name,
-        start_year=data.from_year,
-        end_year=data.until_year,
-        act_type=AnalysesActType.from_code(data.type_of_record_code) if data.type_of_record_code is not None else None,
-        # project
-    )
-
-    call_data = free_search_in_analyses_of_records(call_request)
-    
-    return { # type: ignore
-        "call_tool": "Analyses of Records / Free Search",
-        "call_request": call_request,
-        "call_data": call_data,
-    }
-
-def __as_criterion(p: PersonData) -> PersonCriterion:
-    return PersonCriterion(
-        family_name=p.family_name,
-        first_name=p.first_name,
-        profession=p.profession,
-        role=AnalysesActRole.from_code(p.role_code) if p.role_code is not None else None,
-    )
-
-async def tool_analyses_search_person(state: AgentState) -> AgentState:
-    data = cast(AvailableData, state.get("available_data"))
-
-    persons = [ __as_criterion(p) for p in data.people if p] if data.people else []
-    call_request = AnalysesSearchPersonRequest(
-        persons=persons,
-        location=data.municipality_name,
-        start_year=data.from_year,
-        end_year=data.until_year,
-        act_type=AnalysesActType.from_code(data.type_of_record_code) if data.type_of_record_code is not None else None,
-        #project=,
-    )
-
-    call_data = search_person_in_analyses_of_records(call_request)
-    
-    return { # type: ignore
-        "call_tool": "Analyses of Records / Search Person",
-        "call_request": call_request,
-        "call_data": call_data,
-    }
 
 async def tool_online_help(state: AgentState) -> AgentState:
     thought = state.get("thought", "__ i do not have any question __")

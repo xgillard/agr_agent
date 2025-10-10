@@ -1,1 +1,0 @@
-"""Implement the common datatypes, prompts and steps to perform a search in the analyses of records."""
