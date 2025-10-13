@@ -125,7 +125,19 @@ _Tool = Literal[
 ]
 
 class ToolChoice(BaseModel):
-    tool_name: _Tool
+    ranking: list[_Tool]
+
+
+def can_be_used(formalized: BaseCriteria, tool: _Tool) -> bool:
+    match tool:
+        case "Analyses of Records / Free Search": 
+            return True
+        case "Analyses of Records / Search Person":
+            return bool(formalized.people_of_interest)
+        case "Genealogical sources / Church Registers":
+            return bool(formalized.municipality_name_in_french_or_dutch)
+        case "Genealogical sources / Civil State Registers":
+            return bool(formalized.municipality_name_in_french_or_dutch)
 
 async def cond_what_tool(state: AgentState) -> _Tool:
     context = _build_context(state)
@@ -145,7 +157,9 @@ async def cond_what_tool(state: AgentState) -> _Tool:
                 evaluation=evaluation,
             ) ])
     ))
-    return cast(_Tool, rsp.tool_name)
+    crit = state.get("criteria", BaseCriteria())
+    tools = [t for t in rsp.ranking if can_be_used(crit, t)]
+    return cast(_Tool, tools[0])
 
 async def tool_online_help(state: AgentState) -> AgentState:
     thought = state.get("thought", "__ i do not have any question __")

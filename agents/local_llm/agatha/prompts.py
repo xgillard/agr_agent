@@ -208,7 +208,7 @@ select_tool = SystemMessagePromptTemplate.from_template(
         {evaluation}
 
         ## Instructions
-        Based on your evaluation, state which resource is the single best choice.
+        Based on your evaluation, rank the available resources from the most useful to the least relevant.
         """
     )
 )
