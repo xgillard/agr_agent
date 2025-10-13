@@ -138,6 +138,8 @@ def can_be_used(formalized: BaseCriteria, tool: _Tool) -> bool:
             return bool(formalized.municipality_name_in_french_or_dutch)
         case "Genealogical sources / Civil State Registers":
             return bool(formalized.municipality_name_in_french_or_dutch)
+        case _:
+            raise ValueError(f"{tool} is not a known valid tool")
 
 async def cond_what_tool(state: AgentState) -> _Tool:
     context = _build_context(state)

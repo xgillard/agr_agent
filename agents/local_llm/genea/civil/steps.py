@@ -47,7 +47,7 @@ async def step_analyse(state: State) -> State:
             )
         ])
     )
-    return {"doctype_evaluation": evaluation}
+    return {"doctype_evaluation": evaluation} # type: ignore
 
 async def step_select(state: State) -> State:
     choice = cast(DocTypeChoice, await(
@@ -61,7 +61,7 @@ async def step_select(state: State) -> State:
                 ]
             )
     ))
-    return {"doctype_choice": choice.choices}
+    return {"doctype_choice": choice.choices} # type: ignore
 
 async def step_invoke(state: State) -> State:
     basic  = cast(BaseCriteria, state.get("criteria", BaseCriteria()))

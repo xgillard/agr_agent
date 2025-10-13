@@ -9,8 +9,8 @@ from langchain_core.output_parsers import (
 
 from ....local_llm.agatha.schemas import (
     BaseCriteria,
-    SignaleticPerson,
     PeriodOfInterest,
+    SignaleticPerson,
 )
 from ....local_llm.common.llm import (
     LLM,
@@ -76,7 +76,7 @@ async def step_select_doctype(state: State) -> State:
     doctype = AnalysesActType.from_code(selection.type_of_record_code) if selection.type_of_record_code else None
     return {"doctype_selection": doctype} # type: ignore
 
-def person_str(p: SignaleticPerson) -> SignaleticPerson:
+def person_str(p: SignaleticPerson) -> str:
     name = p.family_name if p.family_name else ""
     first= p.first_name if p.first_name else ""
     return f"{first} {name.upper()}"
@@ -116,7 +116,7 @@ async def single_person_role(
         first_name=p.first_name,
         family_name=p.family_name,
         profession=p.profession,
-        role_code=role,
+        role=role,
     )
 
 async def step_people_role(state: State) -> State:
@@ -139,7 +139,7 @@ async def step_search_term(state: State) -> State:
             .ainvoke(state["messages"] + [search_terms.format(context=context)])
     )
 
-    return {"search_term": terms}
+    return {"search_term": terms} # type: ignore
 
 
 
@@ -148,8 +148,8 @@ async def tool_analyses_free_search(state: State) -> State:
     terms = state.get("search_term", "i am not ready")
     location = crit.municipality_name_in_french_or_dutch
     period = crit.period_of_interest if crit.period_of_interest else PeriodOfInterest()
-    start_year = period.min_date_formatted_as_yyyy_mm_dd[:4] if period.min_date_formatted_as_yyyy_mm_dd else None
-    end_year = period.max_date_formatted_as_yyyy_mm_dd[:4] if period.max_date_formatted_as_yyyy_mm_dd else None
+    start_year = int(period.min_date_formatted_as_yyyy_mm_dd[:4]) if period.min_date_formatted_as_yyyy_mm_dd else None
+    end_year = int(period.max_date_formatted_as_yyyy_mm_dd[:4]) if period.max_date_formatted_as_yyyy_mm_dd else None
     act_type = cast(AnalysesActType, state.get("doctype_selection"))
     call_request = AnalysesFreeSearchRequest(
         search_terms=terms,
@@ -172,8 +172,8 @@ async def tool_analyses_search_person(state: State) -> State:
     crit  = state.get("criteria", BaseCriteria())
     location = crit.municipality_name_in_french_or_dutch
     period = crit.period_of_interest if crit.period_of_interest else PeriodOfInterest()
-    start_year = period.min_date_formatted_as_yyyy_mm_dd[:4] if period.min_date_formatted_as_yyyy_mm_dd else None
-    end_year = period.max_date_formatted_as_yyyy_mm_dd[:4] if period.max_date_formatted_as_yyyy_mm_dd else None
+    start_year = int(period.min_date_formatted_as_yyyy_mm_dd[:4]) if period.min_date_formatted_as_yyyy_mm_dd else None
+    end_year = int(period.max_date_formatted_as_yyyy_mm_dd[:4]) if period.max_date_formatted_as_yyyy_mm_dd else None
     act_type = cast(AnalysesActType, state.get("doctype_selection"))
     persons = state.get("people", [])
 
