@@ -1,6 +1,6 @@
 """Common datatypes that are used accross all tool calls in AGATHA."""
 
-from typing import Any
+from typing import Any, Literal
 
 from langgraph.graph import MessagesState
 from pydantic import BaseModel
@@ -43,4 +43,8 @@ class SingleChoice[Choice](BaseModel):
     """
 
     choice: Choice
+
+
+class YesNoChoice(BaseModel):
+    choice: Literal["yes", "no"]
 

@@ -7,12 +7,12 @@ from pydantic import (
     BaseModel,
 )
 
-from ....tools.analyses_of_records import (
+from ...tools.analyses_of_records import (
     AnalysesActRole,
     AnalysesActType,
     PersonCriterion,
 )
-from ...agatha.schemas import (
+from ..agatha.schemas import (
     AgentState,
 )
 

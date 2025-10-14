@@ -2,7 +2,6 @@
 
 from typing import (
     Any,
-    Literal,
 )
 
 from langgraph.graph import (
@@ -12,9 +11,6 @@ from pydantic import (
     BaseModel,
 )
 
-
-class YesNoChoice(BaseModel):
-    choice: Literal["yes", "no"]
 
 class SignaleticPerson(BaseModel):
     first_name: str | None = None

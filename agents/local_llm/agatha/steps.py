@@ -19,6 +19,8 @@ from pydantic_core import (
     to_json,
 )
 
+from ..common.schemas import YesNoChoice
+
 from ...tools.agatha_help import (
     agatha_help,
 )
@@ -39,7 +41,6 @@ from .prompts import (
 from .schemas import (
     AgentState,
     BaseCriteria,
-    YesNoChoice,
 )
 
 AGATHA_HELP = agatha_help()
@@ -117,10 +118,8 @@ async def step_formalize(state: AgentState) -> AgentState:
     return {"criteria": criteria} # type: ignore
 
 _Tool = Literal[
-    "Analyses of Records / Free Search", 
-    "Analyses of Records / Search Person", 
-    "Genealogical sources / Church Registers",
-    "Genealogical sources / Civil State Registers",
+    "Analyses of Records", 
+    "Genealogical sources",
     "Online Help Resources",
 ]
 
@@ -130,14 +129,18 @@ class ToolChoice(BaseModel):
 
 def can_be_used(formalized: BaseCriteria, tool: _Tool) -> bool:
     match tool:
-        case "Analyses of Records / Free Search": 
+        case "Online Help Resources":
             return True
-        case "Analyses of Records / Search Person":
-            return bool(formalized.people_of_interest)
-        case "Genealogical sources / Church Registers":
-            return bool(formalized.municipality_name_in_french_or_dutch)
-        case "Genealogical sources / Civil State Registers":
-            return bool(formalized.municipality_name_in_french_or_dutch)
+        case "Analyses of Records": 
+            return True
+        case "Genealogical sources":
+            poi = formalized.period_of_interest
+            return (
+                bool(formalized.municipality_name_in_french_or_dutch) and 
+                bool(poi) and 
+                bool(poi.min_date_formatted_as_yyyy_mm_dd) and 
+                bool(poi.max_date_formatted_as_yyyy_mm_dd) 
+            )
         case _:
             raise ValueError(f"{tool} is not a known valid tool")
 

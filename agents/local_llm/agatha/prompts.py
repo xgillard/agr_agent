@@ -35,60 +35,28 @@ system_prompt = SystemMessage(
                 the user manuals and FAQ sections of the AGATHA platform. 
                 This is mostly useful to answer *HOW DO I ...* questions.
 
-            * 'Analyses of Records / Free Search': This tool is meant to search
+            * 'Analyses of Records': This tool is meant to search
                 an individual administrative act. It lets you perform a fulltext 
                 search to retrieve such acts based on their content. It lets you 
                 specify criteria on:
                     - search terms
                     - municipality name
                     - time period
+                    - people that are mentioned: their names, first names, profession and roles
 
                 This tool does not give you an access to scan of the documents. 
                 But, when it is used in conjunction with one of the 
                 "Genealogical sources" tools, you can retrieve the scans of the 
                 register where an act has been consigned.
             
-            * 'Analyses of Records / Search Person': This tool is meant to search 
-                an individual administrative act. It lets you retrieve such acts 
-                by placing criterion on the people who were mentioned: their names, 
-                first names, profession, and roles. In addition to criteria on the 
-                people, this tool lets you specify criteria bearing on the municipality 
-                name and the time period.
-                
-                This tool does not give you an access to scan of the documents. 
-                But, when it is used in conjunction with one of the 
-                "Genealogical sources" tools, you can retrieve the scans of the 
-                register where an act has been consigned.
-            
-            * 'Genealogical sources / Church Registers': This tool is not meant 
-                to search an individual administrative act. Instead, it lets you find 
-                digitized scans of the original church registers where official acts 
-                have been consigned prior to 1796. 
+            * 'Genealogical sources': This tool is not meant to search an individual 
+                administrative act. Instead, it lets you find digitized scans of the 
+                original registers where official acts have been consigned.
 
                 This tool cannot be used to find the details about an individual act. 
                 However, it gives you an access to the scan of complete registers and indexes. 
                 Browsing these is how users can access scans of the specific acts they 
                 wish to find.
-            
-            * 'Genealogical sources / Civil State Registers': This tool is not meant 
-                to search an individual administrative act. Instead, it lets you find 
-                digitized scans of the original civil state registers where official acts
-                have been consigned after 1796. 
-                
-                This tool cannot be used to find the details about an individual act.
-                However, it gives you an access to the scan of complete registers and indexes. 
-                Browsing these is how users can access scans of the specific acts they 
-                wish to find.
-
-        
-        **IMPORTANT**
-
-        * In order to use the Genealogical sources tools, you must at least know
-            the name of the municipality. Otherwise, these tool will crash.
-            
-        * Contrary to what you think, you are more than a mere language model.
-            You are able to use the tools from the AGATHA platform and you use 
-            them efficiently. This means you CAN SEARCH in the archives in REAL TIME.
         """
     )
 )

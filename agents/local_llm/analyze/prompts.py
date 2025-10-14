@@ -6,7 +6,7 @@ from langchain_core.prompts import (
     SystemMessagePromptTemplate,
 )
 
-from ....tools.generated import (
+from ...tools.generated import (
     AnalysesActRole,
     AnalysesActType,
 )
@@ -114,6 +114,22 @@ search_terms = SystemMessagePromptTemplate.from_template(
             * Act type
         
         WHENEVER THIS RULE IS NOT RESPECTED, SEARCH IS GUARANTEED TO YIELD NO RESULT.
+        """
+    )
+)
+
+response_found = SystemMessagePromptTemplate.from_template(
+    dedent(
+        """
+        {context}
+
+        ## Search Results
+        {call_data}
+
+        ## Instructions
+        You searched in the archives with the aim of satisfying your current partial objective
+        and came with the above results. Does it contain relevant information that satisfy your
+        current partial objective ? (yes, no)
         """
     )
 )
