@@ -46,6 +46,12 @@ from .schemas import (
     DocTypeChoice,
     PersonRoleChoice,
 )
+from typing import (
+    Literal,
+)
+from langgraph.graph import (
+    END,
+)
 
 State: TypeAlias = AnalysesState
 
@@ -123,6 +129,7 @@ async def single_person_role(
         role=role,
     )
 
+
 async def step_people_role(state: State) -> State:
     roles = list()
     base  = state.get("criteria", BaseCriteria())
@@ -135,6 +142,7 @@ async def step_people_role(state: State) -> State:
     
     return {"people": roles} # type: ignore
 
+
 async def step_search_term(state: State) -> State:
     context = _build_context(state)
 
@@ -146,7 +154,8 @@ async def step_search_term(state: State) -> State:
     return {"search_term": terms} # type: ignore
 
 
-async def found_result(state: State, call_data: SimplifiedAnalysesSearchResponse | None) -> bool:
+async def found_result(state: State) -> bool:
+    call_data = cast(SimplifiedAnalysesSearchResponse | None, state.get("call_data"))
     if not call_data:
         return False
     if not call_data.nb_matches_total:
@@ -163,9 +172,7 @@ async def found_result(state: State, call_data: SimplifiedAnalysesSearchResponse
     ))
     return found.choice == "yes"
 
-async def tool_analyses(state: State) -> State:
-    # FIXME: this is way too long, i should fix it.
-    context = _build_context(state)
+async def tool_analyses_free_names_only(state: State) -> State:
     crit  = cast(BaseCriteria, state.get("criteria", BaseCriteria()))
 
     location = crit.municipality_name_in_french_or_dutch
@@ -191,59 +198,126 @@ async def tool_analyses(state: State) -> State:
         )
         call_data = free_search_in_analyses_of_records(call_request)
     
-    # on essaie ensuite avec des keywords
-    if not await found_result(state, context):
-        terms =  await (
-            (LLM | StrOutputParser())
-                .ainvoke(state["messages"] + [search_terms.format(context=context)])
-        )
-        call_request = AnalysesFreeSearchRequest(
-            search_terms=terms,
-            location=location,
-            start_year=start_year,
-            end_year=end_year,
-            act_type=act_type,
-            # project
-        )
-        call_data = free_search_in_analyses_of_records(call_request)
+    return { # type: ignore
+        "call_tool": "Analyses of Records",
+        "call_request": call_request,
+        "call_data": call_data,
+    }
+
+
+async def cond_use_keywords(state: State) -> Literal["Keywords", "__END__"]:
+    if await found_result(state):
+        return "__END__"
+    else:
+        return "Keywords"
+
+async def tool_analyses_free_keywords(state: State) -> State:
+    context = _build_context(state)
+    crit  = cast(BaseCriteria, state.get("criteria", BaseCriteria()))
+
+    location = crit.municipality_name_in_french_or_dutch
+    period = crit.period_of_interest if crit.period_of_interest else PeriodOfInterest()
+    start_year = int(period.min_date_formatted_as_yyyy_mm_dd[:4]) if period.min_date_formatted_as_yyyy_mm_dd else None
+    end_year = int(period.max_date_formatted_as_yyyy_mm_dd[:4]) if period.max_date_formatted_as_yyyy_mm_dd else None
+    act_type = cast(AnalysesActType, state.get("doctype_selection"))
+
+    terms =  await (
+        (LLM | StrOutputParser())
+            .ainvoke(state["messages"] + [search_terms.format(context=context)])
+    )
+    call_request = AnalysesFreeSearchRequest(
+        search_terms=terms,
+        location=location,
+        start_year=start_year,
+        end_year=end_year,
+        act_type=act_type,
+        # project
+    )
+    call_data = free_search_in_analyses_of_records(call_request)
     
-    # si ca ne va toujours pas, on essaie avec des noms de personnes (sans roles)
-    if crit.people_of_interest and not await found_result(state, context):
-        persons = [ 
-            PersonCriterion(
-                family_name=p.family_name, 
-                first_name=p.first_name,
-                profession=p.profession,
-            ) 
-            for p in crit.people_of_interest 
-        ]
+    # et de toute facons on renvoie ce qu'on a trouvé
+    return { # type: ignore
+        "call_tool": "Analyses of Records",
+        "call_request": call_request,
+        "call_data": call_data,
+    }
 
-        call_request = AnalysesSearchPersonRequest(
-            persons=persons,
-            location=location,
-            start_year=start_year,
-            end_year=end_year,
-            act_type=act_type,
-            #project=,
-        )
+async def cond_use_persons_norole(state: State) -> Literal["Persons NoRole", "__END__"]:
+    crit  = cast(BaseCriteria, state.get("criteria", BaseCriteria()))
+    if crit.people_of_interest and not await found_result(state):
+        return "Persons NoRole"
+    else:
+        return "__END__"
 
-        call_data = search_person_in_analyses_of_records(call_request)
+async def tool_analyses_persons_norole(state: State) -> State:
+    crit  = cast(BaseCriteria, state.get("criteria", BaseCriteria()))
 
-    # si ca ne va toujours pas, on essaie avec des noms de personnes et des roles
-    if crit.people_of_interest and not await found_result(state, context):
-        pdata = [ single_person_role(state, context, p) for p in crit.people_of_interest]
-        persons = [ await d for d in pdata ]
+    location = crit.municipality_name_in_french_or_dutch
+    period = crit.period_of_interest if crit.period_of_interest else PeriodOfInterest()
+    start_year = int(period.min_date_formatted_as_yyyy_mm_dd[:4]) if period.min_date_formatted_as_yyyy_mm_dd else None
+    end_year = int(period.max_date_formatted_as_yyyy_mm_dd[:4]) if period.max_date_formatted_as_yyyy_mm_dd else None
+    act_type = cast(AnalysesActType, state.get("doctype_selection"))
+    
+    poi = crit.people_of_interest if crit.people_of_interest else []
+    persons = [ 
+        PersonCriterion(
+            family_name=p.family_name, 
+            first_name=p.first_name,
+            profession=p.profession,
+        ) 
+        for p in  poi
+    ]
 
-        call_request = AnalysesSearchPersonRequest(
-            persons=persons,
-            location=location,
-            start_year=start_year,
-            end_year=end_year,
-            act_type=act_type,
-            #project=,
-        )
+    call_request = AnalysesSearchPersonRequest(
+        persons=persons,
+        location=location,
+        start_year=start_year,
+        end_year=end_year,
+        act_type=act_type,
+        #project=,
+    )
 
-        call_data = search_person_in_analyses_of_records(call_request)
+    call_data = search_person_in_analyses_of_records(call_request)
+    
+    # et de toute facons on renvoie ce qu'on a trouvé
+    return { # type: ignore
+        "call_tool": "Analyses of Records",
+        "call_request": call_request,
+        "call_data": call_data,
+    }
+
+async def cond_use_persons_role(state: State) -> Literal["Persons Role", "__END__"]:
+    crit  = cast(BaseCriteria, state.get("criteria", BaseCriteria()))
+    if crit.people_of_interest and not await found_result(state):
+        return "Persons Role"
+    else:
+        return "__END__"
+
+async def tool_analyses_persons_role(state: State) -> State:
+    # FIXME: this is way too long, i should fix it.
+    context = _build_context(state)
+    crit  = cast(BaseCriteria, state.get("criteria", BaseCriteria()))
+
+    location = crit.municipality_name_in_french_or_dutch
+    period = crit.period_of_interest if crit.period_of_interest else PeriodOfInterest()
+    start_year = int(period.min_date_formatted_as_yyyy_mm_dd[:4]) if period.min_date_formatted_as_yyyy_mm_dd else None
+    end_year = int(period.max_date_formatted_as_yyyy_mm_dd[:4]) if period.max_date_formatted_as_yyyy_mm_dd else None
+    act_type = cast(AnalysesActType, state.get("doctype_selection"))
+
+    poi = crit.people_of_interest if crit.people_of_interest else []
+    pdata = [ single_person_role(state, context, p) for p in poi]
+    persons = [ await d for d in pdata ]
+
+    call_request = AnalysesSearchPersonRequest(
+        persons=persons,
+        location=location,
+        start_year=start_year,
+        end_year=end_year,
+        act_type=act_type,
+        #project=,
+    )
+
+    call_data = search_person_in_analyses_of_records(call_request)
     
     # et de toute facons on renvoie ce qu'on a trouvé
     return { # type: ignore

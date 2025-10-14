@@ -138,8 +138,8 @@ def can_be_used(formalized: BaseCriteria, tool: _Tool) -> bool:
             return (
                 bool(formalized.municipality_name_in_french_or_dutch) and 
                 bool(poi) and 
-                bool(poi.min_date_formatted_as_yyyy_mm_dd) and 
-                bool(poi.max_date_formatted_as_yyyy_mm_dd) 
+                bool(poi.min_date_formatted_as_yyyy_mm_dd if poi else False) and 
+                bool(poi.max_date_formatted_as_yyyy_mm_dd if poi else False) 
             )
         case _:
             raise ValueError(f"{tool} is not a known valid tool")

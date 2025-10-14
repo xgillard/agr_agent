@@ -2,7 +2,9 @@
 
 import asyncio
 
-from agents.local_llm.agatha.graph import ASK_AGATHA
+from agents.local_llm.agatha.graph import ask_agatha_graph
+
+ASK_AGATHA = ask_agatha_graph()
 
 
 async def example_rubens()-> str:

@@ -4,11 +4,13 @@ import asyncio
 
 import streamlit as st
 
-from agents.local_llm.agatha.graph import ASK_AGATHA
+from agents.local_llm.agatha.graph import ask_agatha_graph
 
 # continue from here: https://docs.streamlit.io/develop/tutorials/chat-and-llm-apps/chat-response-feedback
 
 avatar = "./avatar.png"
+
+ASK_AGATHA = ask_agatha_graph()
 
 @st.fragment
 def render_page_header():
